@@ -23,7 +23,7 @@ const ScrollVideo: React.FC<{
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
 
   useEffect(() => {
@@ -56,15 +56,23 @@ const ScrollVideo: React.FC<{
 
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Corrected WORD TIMING: Each text gets exactly 1/5 of video duration
-      // and 1/5 of scroll progress
-      const SEGMENTS = SCROLL_TEXTS.length;
-      // Calculate which fifth we're in. Each text gets an equal segment.
-      const newTextIndex = Math.min(
-        Math.floor(scrollProgress * SEGMENTS),
-        SEGMENTS - 1
-      );
-      setCurrentTextIndex(newTextIndex);
+      // Use N+1 segments for buffer, where N = number of texts
+      const SEGMENTS = SCROLL_TEXTS.length + 1;
+      const segLen = 1 / SEGMENTS;
+
+      // Determine which text index to show based on segment.
+      // If in last segment, don't show any text
+      let textIdx: number | null = null;
+      for (let i = 0; i < SCROLL_TEXTS.length; ++i) {
+        if (scrollProgress >= segLen * i && scrollProgress < segLen * (i + 1)) {
+          textIdx = i;
+          break;
+        }
+      }
+      if (scrollProgress >= segLen * SCROLL_TEXTS.length) {
+        textIdx = null;
+      }
+      setCurrentTextIndex(textIdx);
 
       // Seek video
       const seekTime = scrollProgress * video.duration;
@@ -162,7 +170,7 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Scroll Hint */}
-      {!isAfterVideo && (
+      {!isAfterVideo && currentTextIndex !== null && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
           <div className="animate-bounce">
             <svg width="28" height="28" fill="none" className="mx-auto mb-1" viewBox="0 0 28 28">
