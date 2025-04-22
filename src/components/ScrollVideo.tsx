@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 
 // Placeholder video (user can replace with their own!)
@@ -66,7 +65,7 @@ const ScrollVideo: React.FC<{
         video.currentTime = seekTime;
       }
 
-      // If we've scrolled past the end of the video, switch to after-video "normal" scroll mode.
+      // If we've scrolled past the end of the video, switch to after-video "absolute" mode so it scrolls away.
       if (scrollProgress >= 1) {
         setIsAfterVideo(true);
       } else {
@@ -92,6 +91,9 @@ const ScrollVideo: React.FC<{
     };
   }, []);
 
+  // Determine where to place the video when scrolling is past the end
+  // When isAfterVideo, set video to absolute at the bottom of scroll area
+  // Otherwise, keep it fixed while scrolling video
   return (
     <div
       ref={containerRef}
@@ -107,20 +109,19 @@ const ScrollVideo: React.FC<{
         loop={false}
         muted
         tabIndex={-1}
-        // Only fixed while before the end, else becomes normal/scrolling
+        // Only fixed while before the end, else becomes absolute & remains visible at bottom of scroll area
         className={
           (isAfterVideo
             ? "absolute"
             : "fixed"
           ) +
-          " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black"
+          " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
         }
         style={{
           minHeight: "100vh",
           ...(isAfterVideo
             ? {
-                top: "auto",
-                bottom: 0,
+                top: `calc(${SCROLL_EXTRA_PX}px)`,
                 position: "absolute",
               }
             : {}),
@@ -168,20 +169,19 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Below the fold: Black bg section after video is done */}
-      {isAfterVideo && (
-        <div
-          className="w-full bg-black"
-          style={{
-            height: `${AFTER_VIDEO_EXTRA_HEIGHT}px`,
-            position: "absolute",
-            top: `calc(100vh + ${SCROLL_EXTRA_PX}px)`,
-            left: 0,
-          }}
-        />
-      )}
+      {/* This section remains for continued scrolling */}
+      <div
+        className="w-full bg-black"
+        style={{
+          height: `${AFTER_VIDEO_EXTRA_HEIGHT}px`,
+          position: "absolute",
+          top: `calc(100vh + ${SCROLL_EXTRA_PX}px)`,
+          left: 0,
+          zIndex: 1,
+        }}
+      />
     </div>
   );
 };
 
 export default ScrollVideo;
-
