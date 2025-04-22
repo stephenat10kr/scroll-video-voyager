@@ -1,22 +1,26 @@
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 
 // Placeholder video (user can replace with their own!)
-// Use a short mp4 to avoid load issues, or let user upload their own later.
 const VIDEO_SRC =
   "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
 
+const SCROLL_TEXTS = [
+  "Welcome to Lightning Society",
+  "Where",
+  "Curiosity",
+  "Meets",
+  "Culture"
+];
+
 const ScrollVideo: React.FC<{
   src?: string;
-  title?: string;
-  subtitle?: string;
 }> = ({
   src = VIDEO_SRC,
-  title = "Scroll to Scrub",
-  subtitle = "Your story, frame by frame.",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
   // Total scrollable height beyond the viewport
   const SCROLL_EXTRA_PX = 2000;
@@ -55,6 +59,10 @@ const ScrollVideo: React.FC<{
       let scrollProgress =
         (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
+
+      // Update text index based on scroll progress
+      const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
+      setCurrentTextIndex(newTextIndex);
 
       // Seek to the appropriate time in the video
       const seekTime = scrollProgress * video.duration;
@@ -130,21 +138,17 @@ const ScrollVideo: React.FC<{
         style={{ minHeight: "100vh" }}
       />
 
-      {/* Overlayed Title/Subitle */}
+      {/* Overlayed Title */}
       <div
         id="scroll-video-title"
         className="absolute w-full left-0 top-1/4 transition-all duration-500 flex flex-col items-center z-10"
         style={{
-          // Responsive top spacing
           transitionProperty: "opacity, transform",
         }}
       >
         <h1 className="text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 animate-fade-in">
-          {title}
+          {SCROLL_TEXTS[currentTextIndex]}
         </h1>
-        <p className="text-white text-2xl md:text-3xl opacity-80 font-light drop-shadow-md animate-fade-in">
-          {subtitle}
-        </p>
       </div>
 
       {/* Scroll Hint */}
