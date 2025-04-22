@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -101,6 +102,11 @@
   font-display: swap;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -108,5 +114,16 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Add a specific rule to ensure the font is applied */
+  .font-gt-super {
+    font-family: 'GT-Super-Display-Bold', ui-sans-serif, system-ui;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in-out forwards;
   }
 }

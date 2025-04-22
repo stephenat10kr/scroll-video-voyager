@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 
 // Placeholder video (user can replace with their own!)
@@ -154,7 +153,7 @@ const ScrollVideo: React.FC<{
               key={idx}
               className={[
                 "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg pointer-events-none transition-all duration-500",
-                "font-gt-super",
+                "font-gt-super", // Apply the custom font
                 idx === currentTextIndex
                   ? "opacity-100 animate-fade-in"
                   : "opacity-0"
@@ -201,4 +200,3 @@ const ScrollVideo: React.FC<{
 };
 
 export default ScrollVideo;
-
