@@ -90,6 +90,17 @@
   }
 }
 
+@font-face {
+  font-family: 'GT-Super-Display-Bold';
+  src: url('/GT-Super-Display-Bold.woff2') format('woff2'),
+       url('/GT-Super-Display-Bold.woff') format('woff'),
+       url('/GT-Super-Display-Bold.ttf') format('truetype'),
+       url('/GT-Super-Display-Bold.eot') format('embedded-opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   * {
     @apply border-border;
