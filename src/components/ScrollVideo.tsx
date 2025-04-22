@@ -1,9 +1,7 @@
+
 import React, { useRef, useEffect, useState } from "react";
 
-// Placeholder video (user can replace with their own!)
-const VIDEO_SRC =
-  "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
-
+// Define the full sequence of lines as you requested.
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
   "Where",
@@ -12,6 +10,10 @@ const SCROLL_TEXTS = [
   "Culture"
 ];
 
+// Placeholder video (user can replace with their own!)
+const VIDEO_SRC =
+  "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
+
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
@@ -19,7 +21,8 @@ const ScrollVideo: React.FC<{
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  // How many lines are revealed (from 1 up to all)
+  const [linesRevealed, setLinesRevealed] = useState(1);
 
   // Total scrollable height beyond the viewport
   const SCROLL_EXTRA_PX = 2000;
@@ -28,7 +31,6 @@ const ScrollVideo: React.FC<{
     const video = videoRef.current;
     if (!video) return;
 
-    // Prevent user interaction with the native controls
     video.controls = false;
     video.pause();
 
@@ -39,7 +41,6 @@ const ScrollVideo: React.FC<{
 
     video.addEventListener("loadedmetadata", handleLoaded);
 
-    // Handler to update video playback time based on scroll position
     const handleScroll = () => {
       const section = containerRef.current;
       if (!section || !video.duration) return;
@@ -58,35 +59,29 @@ const ScrollVideo: React.FC<{
         (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // There are 5 text steps, but we want each scroll to REVEAL one more line,
-      // so at the end, all lines are visible:
-      // We map scrollProgress (0 to 1) to (0 to SCROLL_TEXTS.length) using ceil.
-      // But to not show the next line until you've scrolled enough, use Math.floor+1, capped.
-      const linesVisible = Math.min(
-        Math.floor(scrollProgress * SCROLL_TEXTS.length) + 1,
-        SCROLL_TEXTS.length
+      // Reveal one more line each scroll "step"
+      const steps = SCROLL_TEXTS.length;
+      // linesRevealed goes from 1 (just first line) up to steps (all lines visible)
+      const visibleLines = Math.min(
+        Math.floor(scrollProgress * steps) + 1,
+        steps
       );
-      setCurrentTextIndex(linesVisible);
+      setLinesRevealed(visibleLines);
 
-      // Seek to the appropriate time in the video
-      // For the video, let's play fully as you reveal all lines, and after that, scroll freely.
-      const totalSteps = SCROLL_TEXTS.length;
-      // only tie video to scroll while text is being revealed; after that, let page scroll with video paused at the end.
-      if (linesVisible < totalSteps) {
+      // Video should play until all lines are visible, then freeze at end.
+      if (visibleLines < steps) {
         const seekTime =
-          (scrollProgress * totalSteps / totalSteps) * video.duration;
+          (scrollProgress * steps / steps) * video.duration;
         if (Math.abs(video.currentTime - seekTime) > 0.05) {
           video.currentTime = seekTime;
         }
       } else {
-        // Once all lines are visible, keep video at end
         if (video.currentTime !== video.duration) {
           video.currentTime = video.duration;
         }
       }
     };
 
-    // "Fake" scroll area: make container extra tall, so scroll can scrub whole video
     const resizeSection = () => {
       const section = containerRef.current;
       if (section) {
@@ -97,7 +92,6 @@ const ScrollVideo: React.FC<{
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resizeSection);
 
-    // Setup on mount
     resizeSection();
 
     return () => {
@@ -134,12 +128,11 @@ const ScrollVideo: React.FC<{
           transitionProperty: "none",
         }}
       >
-        {SCROLL_TEXTS.slice(0, currentTextIndex).map((line, i) => (
+        {SCROLL_TEXTS.slice(0, linesRevealed).map((line, i) => (
           <h1
-            key={line}
+            key={i}
             className="text-white text-4xl md:text-7xl font-bold text-center drop-shadow-lg mb-2 animate-fade-in"
             style={{
-              // Slightly stagger the fade in
               animationDelay: `${i * 80}ms`
             }}
           >
@@ -148,8 +141,8 @@ const ScrollVideo: React.FC<{
         ))}
       </div>
 
-      {/* Scroll Hint */}
-      {currentTextIndex < SCROLL_TEXTS.length && (
+      {/* Scroll Hint only if not all lines are revealed */}
+      {linesRevealed < SCROLL_TEXTS.length && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
           <div className="animate-bounce">
             <svg width="28" height="28" fill="none" className="mx-auto mb-1" viewBox="0 0 28 28">
@@ -166,3 +159,4 @@ const ScrollVideo: React.FC<{
 };
 
 export default ScrollVideo;
+
