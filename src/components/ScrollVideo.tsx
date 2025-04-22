@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 
-// Placeholder video (user can replace with their own!)
-const VIDEO_SRC =
-  "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
+// Local video files (uses .webm and .mp4 for compatibility)
+const VIDEO_MP4 = "/videos/HeroTest_1-720.mp4";
+const VIDEO_WEBM = "/videos/HeroTest_1-720.webm";
 
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
@@ -18,7 +18,7 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 800; // Black bg after video
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
-  src = VIDEO_SRC,
+  src, // Ignore incoming src in favor of local files
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -114,16 +114,14 @@ const ScrollVideo: React.FC<{
       className="relative w-full min-h-screen overflow-hidden bg-black"
       style={{ zIndex: 1 }}
     >
-      {/* Video */}
+      {/* Video with multiple sources for compatibility */}
       <video
         ref={videoRef}
-        src={src}
         playsInline
         preload="auto"
         loop={false}
         muted
         tabIndex={-1}
-        // Only fixed while before the end, else becomes absolute & remains visible at bottom of scroll area
         className={
           (isAfterVideo
             ? "absolute"
@@ -140,7 +138,13 @@ const ScrollVideo: React.FC<{
               }
             : {}),
         }}
-      />
+      >
+        <source src={VIDEO_WEBM} type="video/webm" />
+        <source src={VIDEO_MP4} type="video/mp4" />
+        {/* Optionally, you can add: */}
+        {/* <source src="/videos/HeroTest_1-720.mov" type="video/quicktime" /> */}
+        Your browser does not support the video tag.
+      </video>
 
       {/* Centered Overlayed Titles (each line is its own element, only overlays before end) */}
       {!isAfterVideo && (
