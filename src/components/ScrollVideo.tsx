@@ -1,30 +1,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 
-// Custom bounce-in-up animation
-const style = `
-@keyframes bounce-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(60px) scale(0.98);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-16px) scale(1.04);
-  }
-  80% {
-    transform: translateY(6px) scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.bounce-in-up {
-  animation: bounce-in-up 0.70s cubic-bezier(.59,1.73,.24,.95);
-}
-`;
-
+// Placeholder video (user can replace with their own!)
 const VIDEO_SRC =
   "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
 
@@ -138,8 +115,6 @@ const ScrollVideo: React.FC<{
       className="relative w-full min-h-screen overflow-hidden bg-black"
       style={{ zIndex: 1 }}
     >
-      {/* Temporary style tag for custom animation */}
-      <style>{style}</style>
       {/* Video */}
       <video
         ref={videoRef}
@@ -149,6 +124,7 @@ const ScrollVideo: React.FC<{
         loop={false}
         muted
         tabIndex={-1}
+        // Only fixed while before the end, else becomes absolute & remains visible at bottom of scroll area
         className={
           (isAfterVideo
             ? "absolute"
@@ -179,7 +155,7 @@ const ScrollVideo: React.FC<{
               className={[
                 "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg pointer-events-none transition-all duration-500",
                 idx === currentTextIndex
-                  ? "opacity-100 bounce-in-up"
+                  ? "opacity-100 animate-fade-in"
                   : "opacity-0"
               ].join(" ")}
               style={{
@@ -208,6 +184,7 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Below the fold: Black bg section after video is done */}
+      {/* This section remains for continued scrolling */}
       <div
         className="w-full bg-black"
         style={{
@@ -223,3 +200,4 @@ const ScrollVideo: React.FC<{
 };
 
 export default ScrollVideo;
+
