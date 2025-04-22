@@ -13,6 +13,8 @@ const SCROLL_TEXTS = [
   "Culture"
 ];
 
+const SCROLL_EXTRA_PX = 2000;
+
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
@@ -22,56 +24,47 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
-  // Total scrollable height beyond the viewport
-  const SCROLL_EXTRA_PX = 2000;
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Prevent user interaction with the native controls
+    // Prevent user interaction with native controls
     video.controls = false;
     video.pause();
 
-    // On initial load, ensure video metadata is ready for duration.
     let duration = 0;
     const handleLoaded = () => {
       duration = video.duration;
     };
-
     video.addEventListener("loadedmetadata", handleLoaded);
 
-    // Handler to update video playback time based on scroll position
+    // Scroll handler
     const handleScroll = () => {
       const section = containerRef.current;
       if (!section || !video.duration) return;
-
-      const rect = section.getBoundingClientRect();
       const windowH = window.innerHeight;
       const scrollY =
         window.scrollY ||
         window.pageYOffset ||
         document.documentElement.scrollTop;
-
-      // Get relative scroll in section (0 = top, 1 = bottom)
       const sectionTop = section.offsetTop;
       const sectionHeight = section.offsetHeight - windowH;
       let scrollProgress =
         (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Update text index based on scroll progress
+      // Update text index
       const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
       setCurrentTextIndex(newTextIndex);
 
-      // Seek to the appropriate time in the video
+      // Seek video
       const seekTime = scrollProgress * video.duration;
       if (Math.abs(video.currentTime - seekTime) > 0.05) {
         video.currentTime = seekTime;
       }
     };
 
-    // "Fake" scroll area: make container extra tall, so scroll can scrub whole video
+    // "Fake" scroll area -- extra height in container
     const resizeSection = () => {
       const section = containerRef.current;
       if (section) {
@@ -81,8 +74,6 @@ const ScrollVideo: React.FC<{
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resizeSection);
-
-    // Setup on mount
     resizeSection();
 
     return () => {
@@ -91,8 +82,6 @@ const ScrollVideo: React.FC<{
       video.removeEventListener("loadedmetadata", handleLoaded);
     };
   }, []);
-
-  // --- REMOVED: useEffect for text fade/transform on scroll ---
 
   return (
     <div
@@ -113,18 +102,34 @@ const ScrollVideo: React.FC<{
         style={{ minHeight: "100vh" }}
       />
 
-      {/* Overlayed Title */}
+      {/* Overlayed Titles - each line is its own element */}
       <div
         id="scroll-video-title"
         className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
         style={{
-          // No dynamic opacity/transform!
           transitionProperty: "none",
         }}
       >
-        <h1 className="text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 animate-fade-in">
-          {SCROLL_TEXTS[currentTextIndex]}
-        </h1>
+        {SCROLL_TEXTS.map((text, idx) => (
+          <h1
+            key={idx}
+            className={
+              [
+                "text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 pointer-events-none absolute left-1/2 top-0 w-full transition-all duration-500",
+                idx === currentTextIndex
+                  ? "opacity-100 translate-y-0 animate-fade-in"
+                  : "opacity-0 translate-y-10"
+              ].join(" ")
+            }
+            style={{
+              transform: idx === currentTextIndex ? "translate(-50%, 0)" : "translate(-50%, 40px)",
+              zIndex: idx === currentTextIndex ? 2 : 1,
+              pointerEvents: "none"
+            }}
+          >
+            {text}
+          </h1>
+        ))}
       </div>
 
       {/* Scroll Hint */}
