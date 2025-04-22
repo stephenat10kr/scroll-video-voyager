@@ -91,16 +91,8 @@
   }
 }
 
-@font-face {
-  font-family: 'GT-Super-Display-Bold';
-  src: url('/GT-Super-Display-Bold.woff2') format('woff2'),
-       url('/GT-Super-Display-Bold.woff') format('woff'),
-       url('/GT-Super-Display-Bold.ttf') format('truetype'),
-       url('/GT-Super-Display-Bold.eot') format('embedded-opentype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
+/* Use Google Fonts instead of local font files */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 
 @keyframes fade-in {
   from { opacity: 0; }
@@ -116,9 +108,10 @@
     @apply bg-background text-foreground;
   }
 
-  /* Add a specific rule to ensure the font is applied */
+  /* Update the font-gt-super class to use Playfair Display instead */
   .font-gt-super {
-    font-family: 'GT-Super-Display-Bold', ui-sans-serif, system-ui;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
   }
 }
 
