@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'gt-super': ['Playfair Display', 'serif'],
+				'gt-super': ['GT-Super-Display-Bold', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
