@@ -1,7 +1,10 @@
 
 import React, { useRef, useEffect, useState } from "react";
 
-// Define the full sequence of lines as you requested.
+// Placeholder video (user can replace with their own!)
+const VIDEO_SRC =
+  "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
+
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
   "Where",
@@ -10,10 +13,6 @@ const SCROLL_TEXTS = [
   "Culture"
 ];
 
-// Placeholder video (user can replace with their own!)
-const VIDEO_SRC =
-  "https://www.w3schools.com/html/mov_bbb.mp4"; // Example public sample video
-
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
@@ -21,8 +20,7 @@ const ScrollVideo: React.FC<{
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // How many lines are revealed (from 1 up to all)
-  const [linesRevealed, setLinesRevealed] = useState(1);
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
   // Total scrollable height beyond the viewport
   const SCROLL_EXTRA_PX = 2000;
@@ -31,9 +29,11 @@ const ScrollVideo: React.FC<{
     const video = videoRef.current;
     if (!video) return;
 
+    // Prevent user interaction with the native controls
     video.controls = false;
     video.pause();
 
+    // On initial load, ensure video metadata is ready for duration.
     let duration = 0;
     const handleLoaded = () => {
       duration = video.duration;
@@ -41,6 +41,7 @@ const ScrollVideo: React.FC<{
 
     video.addEventListener("loadedmetadata", handleLoaded);
 
+    // Handler to update video playback time based on scroll position
     const handleScroll = () => {
       const section = containerRef.current;
       if (!section || !video.duration) return;
@@ -52,36 +53,25 @@ const ScrollVideo: React.FC<{
         window.pageYOffset ||
         document.documentElement.scrollTop;
 
+      // Get relative scroll in section (0 = top, 1 = bottom)
       const sectionTop = section.offsetTop;
       const sectionHeight = section.offsetHeight - windowH;
-
       let scrollProgress =
         (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Reveal one more line each scroll "step"
-      const steps = SCROLL_TEXTS.length;
-      // linesRevealed goes from 1 (just first line) up to steps (all lines visible)
-      const visibleLines = Math.min(
-        Math.floor(scrollProgress * steps) + 1,
-        steps
-      );
-      setLinesRevealed(visibleLines);
+      // Update text index based on scroll progress
+      const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
+      setCurrentTextIndex(newTextIndex);
 
-      // Video should play until all lines are visible, then freeze at end.
-      if (visibleLines < steps) {
-        const seekTime =
-          (scrollProgress * steps / steps) * video.duration;
-        if (Math.abs(video.currentTime - seekTime) > 0.05) {
-          video.currentTime = seekTime;
-        }
-      } else {
-        if (video.currentTime !== video.duration) {
-          video.currentTime = video.duration;
-        }
+      // Seek to the appropriate time in the video
+      const seekTime = scrollProgress * video.duration;
+      if (Math.abs(video.currentTime - seekTime) > 0.05) {
+        video.currentTime = seekTime;
       }
     };
 
+    // "Fake" scroll area: make container extra tall, so scroll can scrub whole video
     const resizeSection = () => {
       const section = containerRef.current;
       if (section) {
@@ -92,6 +82,7 @@ const ScrollVideo: React.FC<{
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resizeSection);
 
+    // Setup on mount
     resizeSection();
 
     return () => {
@@ -100,6 +91,8 @@ const ScrollVideo: React.FC<{
       video.removeEventListener("loadedmetadata", handleLoaded);
     };
   }, []);
+
+  // --- REMOVED: useEffect for text fade/transform on scroll ---
 
   return (
     <div
@@ -120,40 +113,31 @@ const ScrollVideo: React.FC<{
         style={{ minHeight: "100vh" }}
       />
 
-      {/* Overlayed Stacked Titles */}
+      {/* Overlayed Title */}
       <div
         id="scroll-video-title"
         className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
         style={{
+          // No dynamic opacity/transform!
           transitionProperty: "none",
         }}
       >
-        {SCROLL_TEXTS.slice(0, linesRevealed).map((line, i) => (
-          <h1
-            key={i}
-            className="text-white text-4xl md:text-7xl font-bold text-center drop-shadow-lg mb-2 animate-fade-in"
-            style={{
-              animationDelay: `${i * 80}ms`
-            }}
-          >
-            {line}
-          </h1>
-        ))}
+        <h1 className="text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 animate-fade-in">
+          {SCROLL_TEXTS[currentTextIndex]}
+        </h1>
       </div>
 
-      {/* Scroll Hint only if not all lines are revealed */}
-      {linesRevealed < SCROLL_TEXTS.length && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-          <div className="animate-bounce">
-            <svg width="28" height="28" fill="none" className="mx-auto mb-1" viewBox="0 0 28 28">
-              <path d="M14 20V8M14 20l-6-6M14 20l6-6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <span className="block text-white text-base opacity-70 font-medium tracking-wide animate-fade-in">
-            Scroll to explore
-          </span>
+      {/* Scroll Hint */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+        <div className="animate-bounce">
+          <svg width="28" height="28" fill="none" className="mx-auto mb-1" viewBox="0 0 28 28">
+            <path d="M14 20V8M14 20l-6-6M14 20l6-6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
-      )}
+        <span className="block text-white text-base opacity-70 font-medium tracking-wide animate-fade-in">
+          Scroll to explore
+        </span>
+      </div>
     </div>
   );
 };
