@@ -92,32 +92,7 @@ const ScrollVideo: React.FC<{
     };
   }, []);
 
-  // Overlay text fade-out as user scrolls
-  useEffect(() => {
-    // Animate fade out of text as user scrolls halfway through section
-    const onScroll = () => {
-      const section = containerRef.current;
-      if (!section) return;
-      const overlay = document.getElementById("scroll-video-title");
-      if (!overlay) return;
-      const rect = section.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const start = windowH * 0.1;
-      const end = windowH * 0.4;
-      let opacity = 1;
-      if (rect.top < start) {
-        // Fade out between start and end scroll
-        opacity = Math.max(
-          0,
-          1 - (Math.abs(rect.top - start) / (end - start))
-        );
-      }
-      overlay.style.opacity = opacity.toString();
-      overlay.style.transform = `translateY(${Math.max(0, -rect.top / 3)}px)`;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // --- REMOVED: useEffect for text fade/transform on scroll ---
 
   return (
     <div
@@ -141,9 +116,10 @@ const ScrollVideo: React.FC<{
       {/* Overlayed Title */}
       <div
         id="scroll-video-title"
-        className="absolute w-full left-0 top-1/4 transition-all duration-500 flex flex-col items-center z-10"
+        className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
         style={{
-          transitionProperty: "opacity, transform",
+          // No dynamic opacity/transform!
+          transitionProperty: "none",
         }}
       >
         <h1 className="text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 animate-fade-in">
