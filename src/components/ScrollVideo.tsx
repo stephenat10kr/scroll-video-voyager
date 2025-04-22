@@ -102,29 +102,24 @@ const ScrollVideo: React.FC<{
         style={{ minHeight: "100vh" }}
       />
 
-      {/* Overlayed Titles - each line is its own element */}
+      {/* Centered Overlayed Titles (each line is its own element) */}
       <div
         id="scroll-video-title"
-        className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
-        style={{
-          transitionProperty: "none",
-        }}
+        className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none"
+        // No transition on the container; individual children will animate
       >
         {SCROLL_TEXTS.map((text, idx) => (
           <h1
             key={idx}
-            className={
-              [
-                "text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 pointer-events-none absolute left-1/2 top-0 w-full transition-all duration-500",
-                idx === currentTextIndex
-                  ? "opacity-100 translate-y-0 animate-fade-in"
-                  : "opacity-0 translate-y-10"
-              ].join(" ")
-            }
+            className={[
+              "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg pointer-events-none transition-all duration-500",
+              idx === currentTextIndex
+                ? "opacity-100 animate-fade-in"
+                : "opacity-0"
+            ].join(" ")}
             style={{
-              transform: idx === currentTextIndex ? "translate(-50%, 0)" : "translate(-50%, 40px)",
               zIndex: idx === currentTextIndex ? 2 : 1,
-              pointerEvents: "none"
+              pointerEvents: "none",
             }}
           >
             {text}
