@@ -23,43 +23,12 @@ const ScrollVideo: React.FC<{
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const snapPoints = useRef<number[]>([]);
 
-  // Compute snap points on mount and resize
-  useEffect(() => {
-    const updateSnapPoints = () => {
-      const section = containerRef.current;
-      if (!section) return;
-      const windowH = window.innerHeight;
-      const sectionTop = section.offsetTop;
-
-      const availableScroll =
-        section.offsetHeight - windowH;
-      // Snap point for each item, equally dividing the scrollable area
-      const points: number[] = [];
-      const count = SCROLL_TEXTS.length;
-      for (let i = 0; i < count; i++) {
-        points.push(
-          Math.round(
-            sectionTop + (availableScroll * i) / (count - 1)
-          )
-        );
-      }
-      snapPoints.current = points;
-    };
-
-    updateSnapPoints();
-    window.addEventListener("resize", updateSnapPoints);
-    return () => {
-      window.removeEventListener("resize", updateSnapPoints);
-    };
-  }, []);
-
-  // Video and scroll syncing
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    // Prevent user interaction with native controls
     video.controls = false;
     video.pause();
 
@@ -69,53 +38,29 @@ const ScrollVideo: React.FC<{
     };
     video.addEventListener("loadedmetadata", handleLoaded);
 
-    let isSnapping = false;
-    let snapTimeout: NodeJS.Timeout | null = null;
-
-    // Handles scroll snapping and video scrubbing
+    // Scroll handler
     const handleScroll = () => {
-      if (!containerRef.current || !video.duration) return;
-
+      const section = containerRef.current;
+      if (!section || !video.duration) return;
+      const windowH = window.innerHeight;
       const scrollY =
         window.scrollY ||
         window.pageYOffset ||
         document.documentElement.scrollTop;
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.offsetHeight - windowH;
+      let scrollProgress =
+        (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
+      scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Find the nearest snap point
-      const points = snapPoints.current;
-      let nearestIdx = 0;
-      let minDelta = Number.POSITIVE_INFINITY;
-      points.forEach((pt, idx) => {
-        const delta = Math.abs(scrollY - pt);
-        if (delta < minDelta) {
-          minDelta = delta;
-          nearestIdx = idx;
-        }
-      });
+      // Update text index
+      const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
+      setCurrentTextIndex(newTextIndex);
 
-      setCurrentTextIndex(nearestIdx);
-
-      // Move video
-      if (points.length > 1) {
-        const progress = nearestIdx / (points.length - 1);
-        const seekTime = progress * video.duration;
-        if (Math.abs(video.currentTime - seekTime) > 0.05) {
-          video.currentTime = seekTime;
-        }
-      }
-
-      // Snap if not already snapping and user is close to point
-      // Only snap when user is within 32px (tweakable)
-      if (!isSnapping && minDelta > 1 && minDelta < 32) {
-        isSnapping = true;
-        window.scrollTo({
-          top: points[nearestIdx],
-          behavior: "smooth",
-        });
-        if (snapTimeout) clearTimeout(snapTimeout);
-        snapTimeout = setTimeout(() => {
-          isSnapping = false;
-        }, 400); // lock snapping for 400ms
+      // Seek video
+      const seekTime = scrollProgress * video.duration;
+      if (Math.abs(video.currentTime - seekTime) > 0.05) {
+        video.currentTime = seekTime;
       }
     };
 
@@ -135,7 +80,6 @@ const ScrollVideo: React.FC<{
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", handleLoaded);
-      if (snapTimeout) clearTimeout(snapTimeout);
     };
   }, []);
 
@@ -158,29 +102,27 @@ const ScrollVideo: React.FC<{
         style={{ minHeight: "100vh" }}
       />
 
-      {/* Overlayed Titles */}
+      {/* Overlayed Titles - each line is its own element */}
       <div
         id="scroll-video-title"
-        className="absolute w-full left-0 top-1/2 flex flex-col items-center z-10"
+        className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
         style={{
-          transform: "translateY(-50%)",
           transitionProperty: "none",
         }}
       >
         {SCROLL_TEXTS.map((text, idx) => (
           <h1
             key={idx}
-            className={[
-              "text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 pointer-events-none absolute left-1/2 top-0 w-full transition-all duration-500",
-              idx === currentTextIndex
-                ? "opacity-100 translate-y-0 animate-fade-in"
-                : "opacity-0 translate-y-10"
-            ].join(" ")}
-            style={{
-              transform:
+            className={
+              [
+                "text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg mb-4 pointer-events-none absolute left-1/2 top-0 w-full transition-all duration-500",
                 idx === currentTextIndex
-                  ? "translate(-50%, 0)"
-                  : "translate(-50%, 40px)",
+                  ? "opacity-100 translate-y-0 animate-fade-in"
+                  : "opacity-0 translate-y-10"
+              ].join(" ")
+            }
+            style={{
+              transform: idx === currentTextIndex ? "translate(-50%, 0)" : "translate(-50%, 40px)",
               zIndex: idx === currentTextIndex ? 2 : 1,
               pointerEvents: "none"
             }}
