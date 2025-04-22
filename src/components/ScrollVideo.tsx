@@ -10,7 +10,7 @@ const SCROLL_TEXTS = [
   "Where",
   "Curiosity",
   "Meets",
-  "Culture"
+  "Culture",
 ];
 
 const ScrollVideo: React.FC<{
@@ -41,13 +41,11 @@ const ScrollVideo: React.FC<{
 
     video.addEventListener("loadedmetadata", handleLoaded);
 
-    // Handler to update video playback time based on scroll position
+    // Handler to update video playback time and overlay text based on scroll position
     const handleScroll = () => {
       const section = containerRef.current;
       if (!section || !video.duration) return;
 
-      const rect = section.getBoundingClientRect();
-      const windowH = window.innerHeight;
       const scrollY =
         window.scrollY ||
         window.pageYOffset ||
@@ -55,14 +53,19 @@ const ScrollVideo: React.FC<{
 
       // Get relative scroll in section (0 = top, 1 = bottom)
       const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight - windowH;
+      const sectionHeight = section.offsetHeight - window.innerHeight;
       let scrollProgress =
         (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Update text index based on scroll progress
-      const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
-      setCurrentTextIndex(newTextIndex);
+      // Text updates at the start of each equally sized section, and stays until the next
+      const numSegments = SCROLL_TEXTS.length;
+      const segmentLength = 1 / numSegments;
+      let textIdx = Math.floor(scrollProgress / segmentLength);
+
+      // Clamp index so "Culture" stays visible during the last scroll segment
+      if (textIdx >= SCROLL_TEXTS.length) textIdx = SCROLL_TEXTS.length - 1;
+      setCurrentTextIndex(textIdx);
 
       // Seek to the appropriate time in the video
       const seekTime = scrollProgress * video.duration;
@@ -92,8 +95,6 @@ const ScrollVideo: React.FC<{
     };
   }, []);
 
-  // --- REMOVED: useEffect for text fade/transform on scroll ---
-
   return (
     <div
       ref={containerRef}
@@ -118,7 +119,6 @@ const ScrollVideo: React.FC<{
         id="scroll-video-title"
         className="absolute w-full left-0 top-1/4 flex flex-col items-center z-10"
         style={{
-          // No dynamic opacity/transform!
           transitionProperty: "none",
         }}
       >
@@ -143,4 +143,3 @@ const ScrollVideo: React.FC<{
 };
 
 export default ScrollVideo;
-
