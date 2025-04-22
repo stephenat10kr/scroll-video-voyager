@@ -143,41 +143,29 @@ const ScrollVideo: React.FC<{
         }}
       />
 
-      {/* Centered Overlayed Titles with animated vertical scrolling */}
+      {/* Centered Overlayed Titles (each line is its own element, only overlays before end) */}
       {!isAfterVideo && (
         <div
           id="scroll-video-title"
-          className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none overflow-hidden"
+          className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none"
         >
-          <div
-            className="relative w-full flex flex-col items-center will-change-transform"
-            style={{
-              // Animate translateY to bring current line to center, with a spring/bounce
-              transition: "transform 0.7s cubic-bezier(.53,1.73,.37,.81)",
-              transform: `translateY(calc(${-((currentTextIndex ?? 0)) * 7}rem))`,
-              // Each line is about 7rem tall (matches text-6xl/8xl), tweak as needed for aesthetics
-            }}
-          >
-            {SCROLL_TEXTS.map((text, idx) => (
-              <h1
-                key={idx}
-                className={[
-                  "w-full text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg pointer-events-none transition-all duration-500",
-                  idx === currentTextIndex
-                    ? "opacity-100 scale-105 animate-bounce-in"
-                    : "opacity-60 scale-95"
-                ].join(" ")}
-                style={{
-                  zIndex: idx === currentTextIndex ? 2 : 1,
-                  pointerEvents: "none",
-                  minHeight: "7rem",
-                  margin: 0,
-                }}
-              >
-                {text}
-              </h1>
-            ))}
-          </div>
+          {SCROLL_TEXTS.map((text, idx) => (
+            <h1
+              key={idx}
+              className={[
+                "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl md:text-8xl font-bold text-center drop-shadow-lg pointer-events-none transition-all duration-500",
+                idx === currentTextIndex
+                  ? "opacity-100 animate-fade-in"
+                  : "opacity-0"
+              ].join(" ")}
+              style={{
+                zIndex: idx === currentTextIndex ? 2 : 1,
+                pointerEvents: "none",
+              }}
+            >
+              {text}
+            </h1>
+          ))}
         </div>
       )}
 
@@ -207,20 +195,6 @@ const ScrollVideo: React.FC<{
           zIndex: 1,
         }}
       />
-      {/* Custom bounce keyframes for finer bounce on text bring-in */}
-      <style>
-        {`
-        @keyframes bounce-in {
-          0% { transform: scale(0.96) translateY(22px); opacity: 0.5;}
-          55% { transform: scale(1.06) translateY(-5px); opacity: 1;}
-          75% { transform: scale(0.99) translateY(2px); }
-          100% { transform: scale(1) translateY(0); opacity: 1;}
-        }
-        .animate-bounce-in {
-          animation: bounce-in 0.65s cubic-bezier(.49,1.94,.34,.98);
-        }
-        `}
-      </style>
     </div>
   );
 };
