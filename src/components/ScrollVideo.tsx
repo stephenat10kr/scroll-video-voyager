@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 
 // Placeholder video (user can replace with their own!)
@@ -55,8 +56,14 @@ const ScrollVideo: React.FC<{
 
       scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
 
-      // Update text index
-      const newTextIndex = Math.floor(scrollProgress * (SCROLL_TEXTS.length - 1));
+      // Corrected WORD TIMING: Each text gets exactly 1/5 of video duration
+      // and 1/5 of scroll progress
+      const SEGMENTS = SCROLL_TEXTS.length;
+      // Calculate which fifth we're in. Each text gets an equal segment.
+      const newTextIndex = Math.min(
+        Math.floor(scrollProgress * SEGMENTS),
+        SEGMENTS - 1
+      );
       setCurrentTextIndex(newTextIndex);
 
       // Seek video
@@ -185,3 +192,4 @@ const ScrollVideo: React.FC<{
 };
 
 export default ScrollVideo;
+
