@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -45,31 +46,65 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.preload = "auto";
     video.pause();
 
-    // Apply Chrome-specific optimizations
+    // Chrome-specific optimizations still apply
     video.style.willChange = "contents";
-    
-    // Apply hardware acceleration for Chrome
     if (navigator.userAgent.indexOf("Chrome") > -1) {
-      // Force hardware acceleration
       video.style.transform = "translate3d(0,0,0)";
-      // Reduce the quality for better performance in Chrome
-      if (video.canPlayType('video/webm')) {
-        // Prefer WebM for Chrome if available
-        const webmSrc = src?.replace(/\.(mp4|mov)$/, '.webm');
-        if (webmSrc && webmSrc !== src) {
-          // Check if this WebM version exists before switching
-          fetch(webmSrc, { method: 'HEAD' })
-            .then(response => {
-              if (response.ok && !isLoaded) {
-                video.src = webmSrc;
-              }
-            })
-            .catch(() => {
-              // WebM not available, keep using original source
-            });
+    }
+
+    // --- Begin: Video source selection and logging ---
+    // Figure out the possible alternatives based on the src extension
+    let srcAssigned = false;
+    const origSrc = src || "";
+    const webmSrc =
+      origSrc.match(/\.(mp4|mov)$/i) !== null
+        ? origSrc.replace(/\.(mp4|mov)$/i, ".webm")
+        : origSrc.match(/\.webm$/i)
+        ? origSrc
+        : undefined;
+
+    function logSource(type: string, url: string) {
+      // eslint-disable-next-line no-console
+      console.log(`[ScrollVideo] Assigned ${type} video source: ${url}`);
+    }
+
+    // Only attempt to assign new source if not already loaded
+    async function assignSource() {
+      if (!origSrc) {
+        // eslint-disable-next-line no-console
+        console.log("[ScrollVideo] No src provided.");
+        return;
+      }
+      // Prefer WebM in browsers that support it
+      if (webmSrc && video.canPlayType("video/webm")) {
+        // Test if the file exists (HEAD request)
+        try {
+          const resp = await fetch(webmSrc, { method: "HEAD" });
+          if (resp.ok) {
+            if (video.src !== webmSrc) {
+              video.src = webmSrc;
+              logSource("WebM", webmSrc);
+            }
+            srcAssigned = true;
+            return;
+          }
+        } catch {
+          // not available, fallback
+        }
+      }
+      // Fallback to the originally provided source
+      if (!srcAssigned) {
+        if (video.src !== origSrc) {
+          video.src = origSrc;
+          const extension = origSrc.split(".").pop() || "unknown";
+          logSource(extension.toUpperCase(), origSrc);
         }
       }
     }
+
+    assignSource();
+
+    // --- End: Video source selection and logging ---
 
     const resizeSection = () => {
       if (container) {
@@ -87,26 +122,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
-      
-      // Only update if progress change is significant enough
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
-      
       lastProgressRef.current = progress;
-      
-      // Update video time with a small delay to improve performance
       const newTime = progress * video.duration;
-      
-      // Use RAF for smoother updates
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
-      
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
-        
-        // Update text index based on progress
         let textIdx: number | null = null;
         for (let i = 0; i < segmentCount; ++i) {
           if (progress >= segLen * i && progress < segLen * (i + 1)) {
@@ -124,16 +149,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const setupScrollTrigger = () => {
       if (!video.duration) return;
-
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
-
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: 0.1, // Add a small amount of smoothing
-        anticipatePin: 1, // Help with performance
-        fastScrollEnd: true, // Optimize for fast scrolling
+        scrub: 0.1,
+        anticipatePin: 1,
+        fastScrollEnd: true,
         preventOverlaps: true,
         onUpdate: (self) => {
           const progress = self.progress;
@@ -141,7 +164,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           updateVideoFrame(progress);
         }
       });
-      
       setIsLoaded(true);
     };
 
@@ -178,20 +200,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           });
       }
     };
-    
     tryLowerResVersion();
 
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
       video.addEventListener("loadedmetadata", setupScrollTrigger);
-      // Also set a timeout to handle videos that load slowly
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
           setupScrollTrigger();
         }
       }, 1000);
-      
       return () => clearTimeout(timeoutId);
     }
 
