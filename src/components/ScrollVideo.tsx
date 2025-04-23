@@ -67,7 +67,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
         <video
           ref={videoRef}
           src={secureVideoSrc || VIDEO_SRC} 
-          playsInline={true}
+          playsInline
           preload={isMobile ? "metadata" : "auto"}
           loop={false}
           muted
@@ -75,7 +75,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
           autoPlay={false}
-          controls={false}
+          controls={true}
           className={
             (isAfterVideo ? "absolute" : "fixed") +
             " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
