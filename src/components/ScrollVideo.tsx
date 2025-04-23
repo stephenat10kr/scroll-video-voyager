@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -32,7 +31,6 @@ const ScrollVideo: React.FC<{
 
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
 
-  // Force video playback check for mobile devices
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
@@ -40,7 +38,6 @@ const ScrollVideo: React.FC<{
         console.log("Video can play now");
         setVideoLoaded(true);
         
-        // For mobile devices, we need to try playing the video once to check permissions
         if (isMobile) {
           video.play().catch((err) => {
             console.error("Mobile video play error:", err);
@@ -78,22 +75,10 @@ const ScrollVideo: React.FC<{
           loop={false}
           muted
           tabIndex={-1}
-          className={
-            (isAfterVideo
-              ? "absolute"
-              : "fixed"
-            ) +
-            " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
-          }
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black"
           style={{
             minHeight: "100vh",
             opacity: videoLoaded ? 1 : 0,
-            ...(isAfterVideo
-              ? {
-                  top: `calc(${SCROLL_EXTRA_PX}px)`,
-                  position: "absolute",
-                }
-              : {}),
           }}
         />
       </ScrollVideoPlayer>
@@ -110,12 +95,10 @@ const ScrollVideo: React.FC<{
       )}
 
       <div
-        className="w-full bg-black"
+        className="w-full bg-black relative"
         style={{
           height: `${AFTER_VIDEO_EXTRA_HEIGHT}px`,
-          position: "absolute",
-          top: `calc(100vh + ${SCROLL_EXTRA_PX}px)`,
-          left: 0,
+          marginTop: `${SCROLL_EXTRA_PX}px`,
           zIndex: 1,
         }}
       />
