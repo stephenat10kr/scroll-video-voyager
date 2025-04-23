@@ -6,6 +6,8 @@ import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import { useIsMobile } from "../hooks/use-mobile";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -28,23 +30,38 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   // Ensure the src is properly formatted for all devices
   const formattedSrc = src && (src.startsWith('//') ? `https:${src}` : src);
 
-  // Now all ScrollTrigger/video logic is in ScrollVideoPlayer
+  const handleVideoError = (error: string) => {
+    console.error("Video error:", error);
+    setVideoError(error);
+  };
+
   return (
     <div
       ref={containerRef}
       className="relative w-full min-h-screen overflow-hidden bg-black"
       style={{ zIndex: 1 }}
     >
+      {videoError && (
+        <Alert variant="destructive" className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {videoError}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <ScrollVideoPlayer
         src={formattedSrc}
         segmentCount={SCROLL_TEXTS.length}
         onTextIndexChange={setCurrentTextIndex}
         onAfterVideoChange={setIsAfterVideo}
+        onError={handleVideoError}
         videoRef={videoRef}
         containerRef={containerRef}
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}

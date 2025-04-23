@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     
-    // Fetch video asset directly by ID
+    // Fetch video asset directly by ID with improved error handling
     contentfulClient
       .getAsset("1VGBBPgvLIZXktdboXT0RP")
       .then((asset) => {
@@ -18,13 +21,18 @@ const Index = () => {
         if (asset && asset.fields && asset.fields.file) {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
-          setVideoUrl(file.url.startsWith('https://') ? file.url : `https:${file.url}`);
+          // Ensure URL has https protocol
+          const url = file.url.startsWith('https://') ? file.url : `https:${file.url}`;
+          setVideoUrl(url);
         } else {
           console.error("Video asset not found or has invalid structure");
+          setError("Video asset not found or has invalid structure");
         }
       })
       .catch((err) => {
+        if (!isMounted) return;
         console.error("Contentful video fetch error:", err);
+        setError(`Error loading video: ${err.message || 'Unknown error'}`);
       });
 
     // Keep existing entries fetch
@@ -48,7 +56,17 @@ const Index = () => {
 
   return (
     <div className="bg-black min-h-screen w-full relative">
+      {error && (
+        <Alert variant="destructive" className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <ScrollVideo src={videoUrl || undefined} />
+      
       <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-900/90 rounded shadow">
         <h2 className="text-white text-xl font-bold mb-4">Contentful Entries</h2>
         {loading ? (
