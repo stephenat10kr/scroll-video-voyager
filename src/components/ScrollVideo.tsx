@@ -1,9 +1,12 @@
+
 import React, { useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ImageSequencePlayer from "./ImageSequencePlayer";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
