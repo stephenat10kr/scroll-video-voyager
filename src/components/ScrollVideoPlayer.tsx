@@ -15,6 +15,7 @@ type ScrollVideoPlayerProps = {
   containerRef: React.RefObject<HTMLDivElement>;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
+  isMobile: boolean;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -27,6 +28,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   containerRef,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
+  isMobile,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,12 +41,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const container = containerRef.current;
     if (!video || !container) return;
 
+    console.log("Mobile detection:", isMobile);
+
     // Optimize video element
     video.controls = false;
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
     video.pause();
+
+    // Mobile-specific optimizations
+    if (isMobile) {
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+    }
 
     // Chrome-specific optimizations still apply
     video.style.willChange = "contents";
@@ -64,18 +74,28 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         : undefined;
 
     function logSource(type: string, url: string) {
-      // eslint-disable-next-line no-console
       console.log(`[ScrollVideo] Assigned ${type} video source: ${url}`);
     }
 
     // Only attempt to assign new source if not already loaded
     async function assignSource() {
       if (!origSrc) {
-        // eslint-disable-next-line no-console
         console.log("[ScrollVideo] No src provided.");
         return;
       }
-      // Prefer WebM in browsers that support it
+      
+      // For mobile, prefer MP4 format
+      if (isMobile) {
+        if (video.src !== origSrc) {
+          video.src = origSrc;
+          const extension = origSrc.split(".").pop() || "unknown";
+          logSource(`Mobile ${extension.toUpperCase()}`, origSrc);
+        }
+        srcAssigned = true;
+        return;
+      }
+      
+      // For desktop, prefer WebM if supported
       if (webmSrc && video.canPlayType("video/webm")) {
         // Test if the file exists (HEAD request)
         try {
@@ -92,6 +112,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           // not available, fallback
         }
       }
+      
       // Fallback to the originally provided source
       if (!srcAssigned) {
         if (video.src !== origSrc) {
@@ -154,7 +175,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: 0.1,
+        scrub: isMobile ? 0.2 : 0.1, // Slightly higher value for mobile
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -165,6 +186,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         }
       });
       setIsLoaded(true);
+      
+      // For mobile, attempt to trigger video playback after scroll
+      if (isMobile) {
+        const touchStart = () => {
+          video.play().catch(err => console.log("Mobile play attempt:", err));
+        };
+        document.addEventListener('touchstart', touchStart, { once: true });
+        return () => document.removeEventListener('touchstart', touchStart);
+      }
     };
 
     // Request high priority loading for the video
@@ -200,14 +230,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           });
       }
     };
-    tryLowerResVersion();
+    
+    if (!isMobile) {
+      tryLowerResVersion();
+    }
 
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
       video.addEventListener("loadedmetadata", setupScrollTrigger);
+      
+      // Safety timeout - if metadata doesn't load in a reasonable time
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
+          console.log("Setting up ScrollTrigger after timeout");
           setupScrollTrigger();
         }
       }, 1000);
@@ -224,7 +260,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };

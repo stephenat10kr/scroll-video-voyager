@@ -2,14 +2,18 @@
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
+import { useIsMobile } from "../hooks/use-mobile";
 
 const Index = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let isMounted = true;
+    
+    console.log("Fetching video for platform:", isMobile ? "mobile" : "desktop");
     
     // Fetch video asset directly by ID
     contentfulClient
@@ -20,7 +24,9 @@ const Index = () => {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
           const secureUrl = file.url.replace(/^\/\//, 'https://').replace(/^http:/, 'https:');
+          console.log("Formatted video URL:", secureUrl);
           setVideoUrl(secureUrl);
+          console.log("Video URL:", secureUrl);
         } else {
           console.error("Video asset not found or has invalid structure");
         }
@@ -46,7 +52,7 @@ const Index = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className="bg-black min-h-screen w-full relative">

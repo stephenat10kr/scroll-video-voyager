@@ -1,13 +1,13 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
+import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const VIDEO_SRC = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
@@ -27,8 +27,31 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const isMobile = useIsMobile();
 
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+
+  // Force video playback check for mobile devices
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && secureVideoSrc) {
+      const handleCanPlay = () => {
+        console.log("Video can play now");
+        setVideoLoaded(true);
+        
+        // For mobile devices, we need to try playing the video once to check permissions
+        if (isMobile) {
+          video.play().catch((err) => {
+            console.error("Mobile video play error:", err);
+          });
+        }
+      };
+      
+      video.addEventListener("canplay", handleCanPlay);
+      return () => video.removeEventListener("canplay", handleCanPlay);
+    }
+  }, [secureVideoSrc, isMobile]);
 
   return (
     <div
@@ -45,6 +68,7 @@ const ScrollVideo: React.FC<{
         containerRef={containerRef}
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
+        isMobile={isMobile}
       >
         <video
           ref={videoRef}
@@ -63,6 +87,7 @@ const ScrollVideo: React.FC<{
           }
           style={{
             minHeight: "100vh",
+            opacity: videoLoaded ? 1 : 0,
             ...(isAfterVideo
               ? {
                   top: `calc(${SCROLL_EXTRA_PX}px)`,

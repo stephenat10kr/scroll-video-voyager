@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useIsMobile } from "../hooks/use-mobile";
 
 type ScrollVideoTextOverlayProps = {
   texts: string[];
@@ -10,6 +11,8 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
   texts,
   currentTextIndex,
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <div
       id="scroll-video-title"
@@ -19,8 +22,9 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
         <h1
           key={idx}
           className={[
-            "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl md:text-8xl font-bold text-center pointer-events-none transition-all duration-500",
+            "absolute w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-4xl md:text-6xl lg:text-8xl font-bold text-center pointer-events-none transition-all duration-500",
             "font-gt-super",
+            isMobile ? "px-4" : "",
             idx === currentTextIndex
               ? "opacity-100 animate-fade-in"
               : "opacity-0"
@@ -28,6 +32,7 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
           style={{
             zIndex: idx === currentTextIndex ? 2 : 1,
             pointerEvents: "none",
+            textShadow: "0 2px 4px rgba(0,0,0,0.5)"  // Add shadow to improve readability
           }}
         >
           {text}
