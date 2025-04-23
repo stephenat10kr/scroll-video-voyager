@@ -1,20 +1,12 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
-import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const SCROLL_TEXTS = [
-  "Welcome to Lightning Society",
-  "Where",
-  "Curiosity",
-  "Meets",
-  "Culture"
-];
 
 const SCROLL_EXTRA_PX = 2000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 800;
@@ -24,7 +16,6 @@ const ScrollVideo: React.FC<{
 }> = ({ src }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const isMobile = useIsMobile();
@@ -58,8 +49,7 @@ const ScrollVideo: React.FC<{
     >
       <ScrollVideoPlayer
         src={secureVideoSrc}
-        segmentCount={SCROLL_TEXTS.length}
-        onTextIndexChange={setCurrentTextIndex}
+        segmentCount={5}
         onAfterVideoChange={setIsAfterVideo}
         videoRef={videoRef}
         containerRef={containerRef}
@@ -84,13 +74,6 @@ const ScrollVideo: React.FC<{
       </ScrollVideoPlayer>
 
       {!isAfterVideo && (
-        <ScrollVideoTextOverlay
-          texts={SCROLL_TEXTS}
-          currentTextIndex={currentTextIndex}
-        />
-      )}
-
-      {!isAfterVideo && currentTextIndex !== null && (
         <ScrollVideoScrollHint />
       )}
 

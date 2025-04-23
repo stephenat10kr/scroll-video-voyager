@@ -7,7 +7,9 @@ const Index = () => {
   return (
     <div className="bg-black min-h-screen w-full relative">
       <Video />
-      <RevealText />
+      <div className="relative" style={{ zIndex: 2 }}>
+        <RevealText />
+      </div>
     </div>
   );
 };
