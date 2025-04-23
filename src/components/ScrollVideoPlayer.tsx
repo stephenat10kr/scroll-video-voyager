@@ -15,7 +15,6 @@ type ScrollVideoPlayerProps = {
   containerRef: React.RefObject<HTMLDivElement>;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
-  onError?: (message: string) => void;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -28,7 +27,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   containerRef,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
-  onError,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,17 +37,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
-    if (!video || !container) {
-      onError?.("Failed to initialize video player");
-      return;
-    }
-
-    // Handle video loading errors
-    const handleVideoError = () => {
-      console.error("Video loading error");
-      onError?.("Failed to load video");
-    };
-    video.addEventListener("error", handleVideoError);
+    if (!video || !container) return;
 
     // Optimize video element
     video.controls = false;
@@ -162,27 +150,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
-      
-      try {
-        scrollTriggerRef.current = ScrollTrigger.create({
-          trigger: container,
-          start: "top top",
-          end: `+=${SCROLL_EXTRA_PX}`,
-          scrub: 0.1,
-          anticipatePin: 1,
-          fastScrollEnd: true,
-          preventOverlaps: true,
-          onUpdate: (self) => {
-            const progress = self.progress;
-            if (isNaN(progress)) return;
-            updateVideoFrame(progress);
-          }
-        });
-        setIsLoaded(true);
-      } catch (error) {
-        console.error("Failed to create ScrollTrigger:", error);
-        onError?.("Failed to initialize scroll behavior");
-      }
+      scrollTriggerRef.current = ScrollTrigger.create({
+        trigger: container,
+        start: "top top",
+        end: `+=${SCROLL_EXTRA_PX}`,
+        scrub: 0.1,
+        anticipatePin: 1,
+        fastScrollEnd: true,
+        preventOverlaps: true,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          if (isNaN(progress)) return;
+          updateVideoFrame(progress);
+        }
+      });
+      setIsLoaded(true);
     };
 
     // Request high priority loading for the video
@@ -235,7 +217,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     return () => {
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", setupScrollTrigger);
-      video.removeEventListener("error", handleVideoError);
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
@@ -243,7 +224,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, onError]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded]);
 
   return <>{children}</>;
 };
