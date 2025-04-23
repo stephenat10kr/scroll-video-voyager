@@ -2,6 +2,7 @@
 import React from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
+import Values from "../components/Values";
 
 const Index = () => {
   return (
@@ -9,6 +10,7 @@ const Index = () => {
       <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
+        <Values title="VALUES" />
       </div>
     </div>
   );
