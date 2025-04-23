@@ -1,84 +1,80 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { ImageError } from './ImageError';
+import { ImageDebugInfo } from './ImageDebugInfo';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SequenceImage } from './SequenceImage';
 
 const SingleImage = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const isMobile = useIsMobile();
   
-  // Try different image path formats that might work better on mobile
-  const imagePaths = [
-    "/Image Sequence/0001.webp",
-    "Image Sequence/0001.webp",
-    "./Image Sequence/0001.webp",
-    "Image-Sequence/0001.webp",
+  // Define our image path formats to try
+  const pathFormats = [
+    (frame: number) => `/Image Sequence/${frame.toString().padStart(4, '0')}.webp`,
+    (frame: number) => `Image Sequence/${frame.toString().padStart(4, '0')}.webp`,
+    (frame: number) => `./Image Sequence/${frame.toString().padStart(4, '0')}.webp`,
+    // Add any other path formats you want to try
   ];
   
-  const [currentPathIndex, setCurrentPathIndex] = useState(0);
-  const currentPath = imagePaths[currentPathIndex];
+  // Start with the first path format
+  const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
+  const currentPathFormat = currentFormatIndex < pathFormats.length ? pathFormats[currentFormatIndex] : null;
   
-  useEffect(() => {
-    console.log(`Attempting to load image from path: ${currentPath}`);
-  }, [currentPath]);
+  // Use a fixed frame (1) for the single image
+  const currentFrame = 1;
   
+  // Handle image load success
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+  
+  // Handle image load error
   const handleImageError = () => {
-    console.error(`Failed to load image from path: ${currentPath}`);
+    console.error(`Failed to load image using format at index ${currentFormatIndex}`);
     // Try the next path format
-    if (currentPathIndex < imagePaths.length - 1) {
-      setCurrentPathIndex(prevIndex => prevIndex + 1);
+    if (currentFormatIndex < pathFormats.length - 1) {
+      setCurrentFormatIndex(prevIndex => prevIndex + 1);
     } else {
       setImageError(true);
     }
   };
   
+  // Reset the image loading attempt
+  const resetImageLoading = () => {
+    setImageError(false);
+    setImageLoaded(false);
+    setCurrentFormatIndex(0);
+  };
+  
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black flex items-center justify-center">
       <div className="relative w-full h-full">
-        {!imageError && (
-          <img
-            key={currentPath} // Key to force re-render on path change
-            src={currentPath}
-            alt="Single frame"
-            className="w-full h-full object-contain"
-            style={{ 
-              opacity: imageLoaded ? 1 : 0,
-              transition: "opacity 0.2s ease"
-            }}
-            onLoad={() => setImageLoaded(true)}
+        {!imageError && currentPathFormat && (
+          <SequenceImage 
+            currentFrame={currentFrame}
+            getImagePath={currentPathFormat}
+            onLoad={handleImageLoad}
             onError={handleImageError}
+            imageLoaded={imageLoaded}
           />
         )}
         
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-          </div>
+        {imageError && (
+          <ImageError 
+            message="Unable to load the image. Please check your internet connection and try again."
+            onRefresh={resetImageLoading}
+          />
         )}
         
-        {imageError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4">
-            <p className="mb-4">Unable to load the image.</p>
-            <button 
-              className="px-4 py-2 bg-white text-black rounded-md"
-              onClick={() => {
-                setImageError(false);
-                setImageLoaded(false);
-                setCurrentPathIndex(0);
-              }}
-            >
-              Retry
-            </button>
-            
-            {/* Debug info */}
-            <div className="mt-6 text-xs opacity-70 max-w-xs">
-              <p>User Agent: {navigator.userAgent.substring(0, 50)}...</p>
-              <p>Is Mobile: {isMobile ? "Yes" : "No"}</p>
-              <p>Current Path: {currentPath}</p>
-              <p>Path Index: {currentPathIndex + 1}/{imagePaths.length}</p>
-            </div>
-          </div>
-        )}
+        <ImageDebugInfo 
+          currentFrame={currentFrame}
+          workingPathFormat={currentPathFormat}
+          imageLoaded={imageLoaded}
+          imageError={imageError}
+          isMobile={isMobile}
+        />
       </div>
     </div>
   );
