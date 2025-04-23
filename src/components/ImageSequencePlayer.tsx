@@ -1,7 +1,8 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useToast } from '@/hooks/use-toast';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,27 +25,22 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const lastProgressRef = useRef(0);
-
-  // Testing different URL formats
-  const testImageNumber = "0001";
+  const [currentFrame, setCurrentFrame] = useState(1);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const toast = useToast();
   
-  // Test URLs
-  const urlWithoutSpaces = `/Image%20Sequence/${testImageNumber}.webp`;
-  const absoluteUrlWithoutSpaces = `${window.location.origin}/Image%20Sequence/${testImageNumber}.webp`;
-  const publicPath = `/public/Image%20Sequence/${testImageNumber}.webp`;
-  const absolutePublicPath = `${window.location.origin}/public/Image%20Sequence/${testImageNumber}.webp`;
-  
-  // Bare minimum path - this should work if the files are properly served
-  const simplePath = `/${testImageNumber}.webp`;
+  // Generate the correct image path
+  const getImagePath = (frameNumber: number) => {
+    // Format the frame number with leading zeros
+    const paddedNumber = frameNumber.toString().padStart(4, '0');
+    // Return the direct path to the image in the public directory
+    return `/${paddedNumber}.webp`;
+  };
   
   useEffect(() => {
     console.log("ImageSequencePlayer mounted");
-    console.log("URL paths being tested:");
-    console.log("- urlWithoutSpaces:", urlWithoutSpaces);
-    console.log("- absoluteUrlWithoutSpaces:", absoluteUrlWithoutSpaces);
-    console.log("- publicPath:", publicPath);
-    console.log("- absolutePublicPath:", absolutePublicPath);
-    console.log("- simplePath:", simplePath);
+    console.log("Current image path being tested:", getImagePath(1));
     
     const container = containerRef.current;
     if (!container) {
@@ -61,12 +57,17 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     window.addEventListener("resize", resizeSection);
 
     const segLen = 1 / (segmentCount + 1);
+    const totalFrames = 437; // Total number of frames in the sequence (from 0001.webp to 0437.webp)
 
     const updateScroll = (progress: number) => {
       if (Math.abs(progress - lastProgressRef.current) < 0.01) {
         return;
       }
       lastProgressRef.current = progress;
+
+      // Calculate the current frame based on scroll progress
+      const frameIndex = Math.min(Math.floor(progress * totalFrames) + 1, totalFrames);
+      setCurrentFrame(frameIndex);
 
       // Just update text indices based on scroll
       let textIdx: number | null = null;
@@ -114,77 +115,39 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange]);
 
+  // Handle image load event
+  const handleImageLoad = () => {
+    console.log(`Image ${currentFrame} loaded successfully!`);
+    setImageLoaded(true);
+    setImageError(false);
+  };
+
+  // Handle image error event
+  const handleImageError = () => {
+    console.error(`Image ${currentFrame} failed to load`);
+    setImageError(true);
+    setImageLoaded(false);
+  };
+
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black flex flex-col items-center justify-center">
-      <div className="grid grid-cols-2 grid-rows-3 gap-4 p-4 bg-black/90 w-full h-full">
-        {/* Test image 1 */}
-        <div className="relative border border-gray-700 flex flex-col">
-          <div className="text-white text-xs mb-1 bg-black p-1">URL without spaces:</div>
-          <img
-            src={urlWithoutSpaces}
-            alt={`Test 1`}
-            className="w-full h-full object-contain"
-            onLoad={() => console.log("Image 1 loaded successfully!")}
-            onError={(e) => console.error("Image 1 failed to load:", e)}
-          />
-        </div>
+    <div className="fixed top-0 left-0 w-full h-full bg-black flex items-center justify-center">
+      <div className="relative w-full h-full">
+        <img
+          key={currentFrame} // Key changes will force re-render when frame changes
+          src={getImagePath(currentFrame)}
+          alt={`Frame ${currentFrame}`}
+          className="w-full h-full object-cover"
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+        />
         
-        {/* Test image 2 */}
-        <div className="relative border border-gray-700 flex flex-col">
-          <div className="text-white text-xs mb-1 bg-black p-1">Absolute URL without spaces:</div>
-          <img
-            src={absoluteUrlWithoutSpaces}
-            alt={`Test 2`}
-            className="w-full h-full object-contain"
-            onLoad={() => console.log("Image 2 loaded successfully!")}
-            onError={(e) => console.error("Image 2 failed to load:", e)}
-          />
-        </div>
-        
-        {/* Test image 3 */}
-        <div className="relative border border-gray-700 flex flex-col">
-          <div className="text-white text-xs mb-1 bg-black p-1">Public path:</div>
-          <img
-            src={publicPath}
-            alt={`Test 3`}
-            className="w-full h-full object-contain"
-            onLoad={() => console.log("Image 3 loaded successfully!")}
-            onError={(e) => console.error("Image 3 failed to load:", e)}
-          />
-        </div>
-        
-        {/* Test image 4 */}
-        <div className="relative border border-gray-700 flex flex-col">
-          <div className="text-white text-xs mb-1 bg-black p-1">Absolute public path:</div>
-          <img
-            src={absolutePublicPath}
-            alt={`Test 4`}
-            className="w-full h-full object-contain"
-            onLoad={() => console.log("Image 4 loaded successfully!")}
-            onError={(e) => console.error("Image 4 failed to load:", e)}
-          />
-        </div>
-        
-        {/* Test image 5 */}
-        <div className="relative border border-gray-700 flex flex-col">
-          <div className="text-white text-xs mb-1 bg-black p-1">Simple path:</div>
-          <img
-            src={simplePath}
-            alt={`Test 5`}
-            className="w-full h-full object-contain"
-            onLoad={() => console.log("Image 5 loaded successfully!")}
-            onError={(e) => console.error("Image 5 failed to load:", e)}
-          />
-        </div>
-        
-        {/* Debug info */}
-        <div className="border border-gray-700 p-2 overflow-auto">
-          <div className="text-white text-xs">
-            <p>Origin: {window.location.origin}</p>
-            <p>Pathname: {window.location.pathname}</p>
-            <p>Current URL: {window.location.href}</p>
-            <p>Test image: {testImageNumber}.webp</p>
-          </div>
+        {/* Display debugging info */}
+        <div className="absolute bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs max-w-xs">
+          <div>Current Frame: {currentFrame}</div>
+          <div>Image Path: {getImagePath(currentFrame)}</div>
+          <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
+          <div>Origin: {window.location.origin}</div>
+          <div>Pathname: {window.location.pathname}</div>
         </div>
       </div>
     </div>

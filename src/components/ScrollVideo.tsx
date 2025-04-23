@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
@@ -6,6 +7,7 @@ import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ImageSequencePlayer from "./ImageSequencePlayer";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useToast } from "@/hooks/use-toast";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -33,6 +35,7 @@ const ScrollVideo: React.FC<{
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const isMobile = useIsMobile();
+  const toast = useToast();
   
   useEffect(() => {
     // Log environment info for debugging
