@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -181,9 +182,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
     };
 
-    if ('fetchPriority' in HTMLImageElement.prototype) {
-      video.fetchPriority = 'high';
-    }
+    // Remove the fetchPriority assignment as it's not supported in the HTMLVideoElement type
+    // Instead, we'll use the preload attribute which is standard
+    video.preload = "auto";
 
     if (video.readyState >= 2) {
       setupScrollTrigger();
