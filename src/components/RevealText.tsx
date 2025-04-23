@@ -13,21 +13,22 @@ const RevealText = () => {
 
     const lines = text.querySelectorAll('.line-reveal');
 
+    // Reset initial state - gradient is positioned to the left (off-screen)
     gsap.set(lines, {
-      backgroundPosition: "0% 0%",
+      backgroundPosition: "-100% 0%",
     });
 
     lines.forEach((line, index) => {
       gsap.to(line, {
-        backgroundPosition: "100% 0%",
-        duration: 1,
-        ease: "none",
+        backgroundPosition: "0% 0%", // Move to normal position (0%)
+        duration: 1.5,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: line,
-          start: "top center",
-          end: "bottom center",
-          scrub: 1,
-          markers: true,
+          start: "top 80%",
+          end: "bottom 60%",
+          scrub: true,
+          markers: false, // Remove markers in production
         },
       });
     });
@@ -50,12 +51,13 @@ const RevealText = () => {
             style={{
               color: "white",
               backgroundImage: "linear-gradient(to right, #FF6B6B, #FFE66D)",
-              backgroundSize: "100% 100%",
-              backgroundPosition: "0% 0%",
+              backgroundSize: "200% 100%", // Wider gradient to ensure full coverage
+              backgroundPosition: "-100% 0%", // Start off-screen to the left
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundRepeat: "no-repeat",
+              position: "relative",
             }}
           >
             {line}{index < lines.length - 1 ? '.' : ''}
