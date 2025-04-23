@@ -1,15 +1,9 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useToast } from '@/hooks/use-toast';
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Placeholder images for fallback if sequence fails
-const FALLBACK_IMAGES = [
-  '/placeholder.svg'
-];
 
 type ImageSequencePlayerProps = {
   segmentCount: number;
@@ -28,17 +22,12 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
 }) => {
-  const [currentFrame, setCurrentFrame] = useState(1);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.01;
-  const { toast } = useToast();
-  
-  const totalFrames = 437; // Total number of frames in the sequence
 
+  // Just testing with frame 1 for now
+  const testFrame = "0001";
+  
   useEffect(() => {
     console.log("ImageSequencePlayer mounted");
     
@@ -58,33 +47,25 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
 
     const segLen = 1 / (segmentCount + 1);
 
-    const updateFrame = (progress: number) => {
-      if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
+    const updateScroll = (progress: number) => {
+      if (Math.abs(progress - lastProgressRef.current) < 0.01) {
         return;
       }
       lastProgressRef.current = progress;
 
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
+      // Just update text indices based on scroll
+      let textIdx: number | null = null;
+      for (let i = 0; i < segmentCount; ++i) {
+        if (progress >= segLen * i && progress < segLen * (i + 1)) {
+          textIdx = i;
+          break;
+        }
       }
-
-      frameRef.current = requestAnimationFrame(() => {
-        const frame = Math.max(1, Math.min(Math.ceil(progress * totalFrames), totalFrames));
-        setCurrentFrame(frame);
-
-        let textIdx: number | null = null;
-        for (let i = 0; i < segmentCount; ++i) {
-          if (progress >= segLen * i && progress < segLen * (i + 1)) {
-            textIdx = i;
-            break;
-          }
-        }
-        if (progress >= segLen * segmentCount) {
-          textIdx = null;
-        }
-        onTextIndexChange(textIdx);
-        onAfterVideoChange(progress >= 1);
-      });
+      if (progress >= segLen * segmentCount) {
+        textIdx = null;
+      }
+      onTextIndexChange(textIdx);
+      onAfterVideoChange(progress >= 1);
     };
 
     console.log("Creating ScrollTrigger in ImageSequencePlayer");
@@ -103,40 +84,49 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           console.warn("Progress is NaN");
           return;
         }
-        updateFrame(progress);
+        updateScroll(progress);
       }
     });
 
-    setIsLoaded(true);
     console.log("ScrollTrigger created in ImageSequencePlayer");
-      
+    
     return () => {
       console.log("ImageSequencePlayer unmounting");
       window.removeEventListener("resize", resizeSection);
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange]);
 
-  // Format frame number with padding
-  const frameNumber = String(currentFrame).padStart(4, '0');
+  // Test loading a single image with different URL formats to see which works
+  // Adding query param to avoid caching
+  const cacheParam = `?t=${Date.now()}`;
   
-  // Use absolute URL path to ensure it works on all environments
-  const imageSrc = `${window.location.origin}/Image%20Sequence/${frameNumber}.webp`;
+  // Log what we're attempting to load for debugging
+  console.log(`Attempting to load test image: ${testFrame}.webp`);
   
-  console.log("Current image path:", imageSrc);
+  // Try absolute URL without encoding spaces
+  const imageUrl = `${window.location.origin}/Image Sequence/${testFrame}.webp${cacheParam}`;
+  console.log("Image URL:", imageUrl);
 
   return (
-    <img
-      src={imageSrc}
-      alt={`Sequence frame ${frameNumber}`}
-      className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black"
-      style={{ minHeight: '100vh' }}
-    />
+    <div className="fixed top-0 left-0 w-full h-full bg-black flex flex-col items-center justify-center">
+      {/* Display the test image */}
+      <img
+        src={imageUrl}
+        alt={`Test frame ${testFrame}`}
+        className="w-full h-full object-cover pointer-events-none"
+        style={{ minHeight: '100vh' }}
+        onLoad={() => console.log("Image loaded successfully!")}
+        onError={(e) => console.error("Image failed to load:", e)}
+      />
+      
+      {/* Also try with encoded URL */}
+      <div className="absolute bottom-4 left-4 right-4 bg-black/80 p-4 text-white text-sm rounded">
+        {`Testing image: ${testFrame}.webp`}
+      </div>
+    </div>
   );
 };
 

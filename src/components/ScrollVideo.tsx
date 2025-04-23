@@ -40,6 +40,7 @@ const ScrollVideo: React.FC<{
     console.log("ScrollVideo mounted");
     console.log("isMobile:", isMobile);
     console.log("Using:", isMobile ? "ImageSequencePlayer" : "ScrollVideoPlayer");
+    console.log("Origin:", window.location.origin);
     
     return () => {
       console.log("ScrollVideo unmounting");
