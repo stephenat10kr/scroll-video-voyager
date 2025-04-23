@@ -1,11 +1,11 @@
 
 import React from "react";
-import ImageSequencer from "../components/ImageSequencer";
+import SingleImage from "../components/SingleImage";
 
 const Index = () => {
   return (
-    <div className="w-full min-h-screen bg-black">
-      <ImageSequencer />
+    <div className="w-full h-screen bg-black">
+      <SingleImage />
     </div>
   );
 };
