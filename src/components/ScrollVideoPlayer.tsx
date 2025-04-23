@@ -43,12 +43,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const container = containerRef.current;
     if (!video || !container) return;
 
+    // Configure video properties
     video.controls = false;
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
     video.pause();
 
+    // Set video styles for optimized performance
     video.style.willChange = "contents";
     video.style.transform = "translate3d(0,0,0)";
     video.style.backfaceVisibility = "hidden";
@@ -86,6 +88,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         return;
       }
       
+      // Try mobile-specific source first on mobile devices
       if (isMobile) {
         const mobileUrl = src.replace(/\.(mp4|webm|mov)$/i, '-mobile.$1');
         srcAssigned = await tryVideoSource(mobileUrl, "Mobile-optimized");
@@ -96,17 +99,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         if (srcAssigned) return;
       }
       
+      // Try WebM format if supported by browser
       const webmSrc = src.replace(/\.(mp4|mov)$/i, ".webm");
       if (video.canPlayType("video/webm")) {
         srcAssigned = await tryVideoSource(webmSrc, "WebM");
         if (srcAssigned) return;
       }
       
+      // Fall back to original source
       await tryVideoSource(src, "Original");
     }
 
     assignSource();
 
+    // Set up scrolling container size
     const resizeSection = () => {
       if (container) {
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
@@ -120,9 +126,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
     const segLen = calculateSegmentLength(segmentCount);
 
+    // Update video frame based on scroll position
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       
+      // Optimize frame updates by only updating when significant change occurs
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -137,8 +145,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       frameRef.current = requestAnimationFrame(() => {
         try {
+          // Update video time based on scroll position
           video.currentTime = newTime;
           
+          // Calculate which text to display
           let textIdx: number | null = null;
           for (let i = 0; i < segmentCount; ++i) {
             if (progress >= segLen * i && progress < segLen * (i + 1)) {
@@ -159,6 +169,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       });
     };
 
+    // Set up scroll trigger for controlling video playback
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       
@@ -182,15 +193,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
     };
 
-    // Remove the fetchPriority assignment as it's not supported in the HTMLVideoElement type
-    // Instead, we'll use the preload attribute which is standard
+    // Use preload attribute which is standard
     video.preload = "auto";
 
+    // Set up video initialization
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
       video.addEventListener("loadedmetadata", setupScrollTrigger);
       
+      // Fallback initialization if metadata takes too long
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
           console.log("[ScrollVideo] Using fallback initialization");

@@ -28,6 +28,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const isMobile = useIsMobile();
 
   const ensureHttps = (url?: string) => {
@@ -62,6 +63,22 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
 
   const secureVideoSrc = ensureHttps(src);
 
+  // Handle video load event
+  const handleVideoLoaded = () => {
+    console.log("[ScrollVideo] Video loaded successfully");
+    setVideoLoaded(true);
+  };
+
+  // Handle video error event
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error("[ScrollVideo] Video loading error:", e);
+    // Fallback to default video if loading fails
+    if (videoRef.current && videoRef.current.src !== VIDEO_SRC) {
+      console.log("[ScrollVideo] Trying fallback video");
+      videoRef.current.src = VIDEO_SRC;
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -88,6 +105,8 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           tabIndex={-1}
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
+          onLoadedData={handleVideoLoaded}
+          onError={handleVideoError}
           className={
             "fixed top-0 left-0 w-full h-full object-cover " + 
             (isMobile ? "" : "pointer-events-none ") +
