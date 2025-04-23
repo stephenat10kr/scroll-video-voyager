@@ -74,7 +74,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           tabIndex={-1}
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
-          autoPlay={false}
+          autoPlay={true}
           controls={true}
           className={
             (isAfterVideo ? "absolute" : "fixed") +
