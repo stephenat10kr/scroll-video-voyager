@@ -66,7 +66,9 @@ const RevealText = () => {
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
           lineHeight: "1.2",
-          wordWrap: "break-word",
+          wordBreak: "keep-all", // Prevent words from breaking
+          overflowWrap: "normal",
+          wordWrap: "normal",
           whiteSpace: "pre-wrap"
         }}
       >
