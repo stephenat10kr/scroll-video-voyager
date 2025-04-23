@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 
 // Placeholder video (user can replace with their own!)
@@ -24,13 +25,27 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const lastScrollProgress = useRef(0);
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    // Better playback performance settings for Chrome
     video.controls = false;
     video.pause();
+    video.playsInline = true;
+    video.muted = true;
+    video.preload = "auto";
+
+    // Chrome-specific optimizations
+    video.style.willChange = "contents";
+    
+    // On Chrome, hardware acceleration can help
+    if (navigator.userAgent.indexOf("Chrome") > -1) {
+      video.style.transform = "translateZ(0)";
+    }
 
     let duration = 0;
     const handleLoaded = () => {
@@ -38,53 +53,72 @@ const ScrollVideo: React.FC<{
     };
     video.addEventListener("loadedmetadata", handleLoaded);
 
-    // Scroll handler
+    // Optimized scroll handler with throttling via requestAnimationFrame
     const handleScroll = () => {
-      const section = containerRef.current;
-      if (!section || !video.duration) return;
-      const windowH = window.innerHeight;
-      const scrollY =
-        window.scrollY ||
-        window.pageYOffset ||
-        document.documentElement.scrollTop;
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight - windowH;
-
-      let scrollProgress =
-        (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
-
-      scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
-
-      // Use N+1 segments for buffer, where N = number of texts
-      const SEGMENTS = SCROLL_TEXTS.length + 1;
-      const segLen = 1 / SEGMENTS;
-
-      // Determine which text index to show based on segment.
-      // If in last segment, don't show any text
-      let textIdx: number | null = null;
-      for (let i = 0; i < SCROLL_TEXTS.length; ++i) {
-        if (scrollProgress >= segLen * i && scrollProgress < segLen * (i + 1)) {
-          textIdx = i;
-          break;
+      if (frameRef.current !== null) {
+        return; // Skip if we're already processing a frame
+      }
+      
+      frameRef.current = requestAnimationFrame(() => {
+        const section = containerRef.current;
+        if (!section || !video.duration) {
+          frameRef.current = null;
+          return;
         }
-      }
-      if (scrollProgress >= segLen * SCROLL_TEXTS.length) {
-        textIdx = null;
-      }
-      setCurrentTextIndex(textIdx);
+        
+        const windowH = window.innerHeight;
+        const scrollY =
+          window.scrollY ||
+          window.pageYOffset ||
+          document.documentElement.scrollTop;
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight - windowH;
 
-      // Seek video
-      const seekTime = scrollProgress * video.duration;
-      if (Math.abs(video.currentTime - seekTime) > 0.05) {
-        video.currentTime = seekTime;
-      }
+        let scrollProgress =
+          (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
 
-      // If we've scrolled past the end of the video, switch to after-video "absolute" mode so it scrolls away.
-      if (scrollProgress >= 1) {
-        setIsAfterVideo(true);
-      } else {
-        setIsAfterVideo(false);
-      }
+        scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
+
+        // Only update if progress changed significantly (reduces jank on Chrome)
+        const progressDelta = Math.abs(scrollProgress - lastScrollProgress.current);
+        if (progressDelta > 0.001) {
+          // Use N+1 segments for buffer, where N = number of texts
+          const SEGMENTS = SCROLL_TEXTS.length + 1;
+          const segLen = 1 / SEGMENTS;
+
+          // Determine which text index to show based on segment.
+          // If in last segment, don't show any text
+          let textIdx: number | null = null;
+          for (let i = 0; i < SCROLL_TEXTS.length; ++i) {
+            if (scrollProgress >= segLen * i && scrollProgress < segLen * (i + 1)) {
+              textIdx = i;
+              break;
+            }
+          }
+          if (scrollProgress >= segLen * SCROLL_TEXTS.length) {
+            textIdx = null;
+          }
+          setCurrentTextIndex(textIdx);
+
+          // Seek video with requestAnimationFrame for smoother updates
+          const seekTime = scrollProgress * video.duration;
+          if (Math.abs(video.currentTime - seekTime) > 0.01) {
+            video.currentTime = seekTime;
+          }
+
+          // Update progress reference
+          lastScrollProgress.current = scrollProgress;
+        }
+
+        // If we've scrolled past the end of the video, switch to after-video "absolute" mode so it scrolls away.
+        if (scrollProgress >= 1) {
+          setIsAfterVideo(true);
+        } else {
+          setIsAfterVideo(false);
+        }
+        
+        frameRef.current = null;
+      });
     };
 
     const resizeSection = () => {
@@ -94,6 +128,7 @@ const ScrollVideo: React.FC<{
       }
     };
 
+    // Use passive scroll listener for better performance
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resizeSection);
     resizeSection();
@@ -102,6 +137,9 @@ const ScrollVideo: React.FC<{
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", handleLoaded);
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
     };
   }, []);
 
