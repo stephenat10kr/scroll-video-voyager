@@ -7,7 +7,6 @@ import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ImageSequencePlayer from "./ImageSequencePlayer";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useToast } from "@/hooks/use-toast";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -35,8 +34,6 @@ const ScrollVideo: React.FC<{
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const isMobile = useIsMobile();
-  const { toast } = useToast();
-  const [playerError, setPlayerError] = useState(false);
   
   useEffect(() => {
     // Log environment info for debugging
@@ -49,31 +46,13 @@ const ScrollVideo: React.FC<{
     };
   }, [isMobile]);
 
-  // Handle errors in either player
-  const handlePlayerError = (message: string) => {
-    console.error(`Player error: ${message}`);
-    setPlayerError(true);
-    toast({
-      title: "Media loading error",
-      description: message,
-      variant: "destructive"
-    });
-  };
-
   return (
     <div
       ref={containerRef}
       className="relative w-full min-h-screen overflow-hidden bg-black"
       style={{ zIndex: 1 }}
     >
-      {playerError ? (
-        <div className="fixed top-0 left-0 w-full h-screen flex items-center justify-center bg-black text-white">
-          <div className="text-center p-8">
-            <p className="text-xl font-bold mb-2">Media loading error</p>
-            <p>Please check your connection and try again.</p>
-          </div>
-        </div>
-      ) : isMobile ? (
+      {isMobile ? (
         <ImageSequencePlayer
           segmentCount={SCROLL_TEXTS.length}
           onTextIndexChange={setCurrentTextIndex}
@@ -92,7 +71,6 @@ const ScrollVideo: React.FC<{
           containerRef={containerRef}
           SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
           AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
-          onError={handlePlayerError}
         >
           <video
             ref={videoRef}
@@ -123,7 +101,7 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Centered Overlayed Titles */}
-      {!isAfterVideo && !playerError && (
+      {!isAfterVideo && (
         <ScrollVideoTextOverlay
           texts={SCROLL_TEXTS}
           currentTextIndex={currentTextIndex}
@@ -131,7 +109,7 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Scroll Hint */}
-      {!isAfterVideo && currentTextIndex !== null && !playerError && (
+      {!isAfterVideo && currentTextIndex !== null && (
         <ScrollVideoScrollHint />
       )}
 
