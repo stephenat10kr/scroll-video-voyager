@@ -18,23 +18,27 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
         <h2 className="text-white text-2xl mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-12">
           <div className="col-span-12">
-            <Carousel className="w-full">
-              <CarouselContent>
-                {images.map((image, index) => (
-                  <CarouselItem key={index}>
-                    <AspectRatio ratio={16 / 9} className="bg-black">
-                      <img
-                        src={image}
-                        alt={`Gallery image ${index + 1}`}
-                        className="object-cover w-full h-full"
-                      />
-                    </AspectRatio>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="text-white" />
-              <CarouselNext className="text-white" />
-            </Carousel>
+            <div className="relative">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {images.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <AspectRatio ratio={16 / 9} className="bg-black">
+                        <img
+                          src={image}
+                          alt={`Gallery image ${index + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                      </AspectRatio>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+              <div className="flex justify-end gap-2 mt-4">
+                <CarouselPrevious className="relative static text-white translate-y-0 translate-x-0" />
+                <CarouselNext className="relative static text-white translate-y-0 translate-x-0" />
+              </div>
+            </div>
           </div>
           <div className="col-start-5 col-end-13 space-y-6 text-white">
             <p className="text-xl">{description}</p>
