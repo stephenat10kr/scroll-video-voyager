@@ -20,6 +20,10 @@ const ScrollVideo: React.FC<{
   const [videoLoaded, setVideoLoaded] = useState(false);
   const isMobile = useIsMobile();
 
+  // Add a dummy state for text index tracking since we don't need it anymore
+  // but the component still requires it
+  const [textIndex, setTextIndex] = useState<number | null>(null);
+
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
 
   useEffect(() => {
@@ -50,6 +54,7 @@ const ScrollVideo: React.FC<{
       <ScrollVideoPlayer
         src={secureVideoSrc}
         segmentCount={5}
+        onTextIndexChange={setTextIndex} // Pass the required prop
         onAfterVideoChange={setIsAfterVideo}
         videoRef={videoRef}
         containerRef={containerRef}
