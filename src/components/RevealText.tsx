@@ -13,22 +13,17 @@ const RevealText = () => {
 
     const lines = text.querySelectorAll('.line-reveal');
 
-    // Reset initial state - gradient is positioned to the left (off-screen)
-    gsap.set(lines, {
-      backgroundPosition: "-100% 0%",
-    });
-
     lines.forEach((line, index) => {
       gsap.to(line, {
-        backgroundPosition: "0% 0%", // Move to normal position (0%)
-        duration: 1.5,
-        ease: "power2.out",
+        "--mask-position": "100%",
+        duration: 2,
+        ease: "none",
         scrollTrigger: {
           trigger: line,
           start: "top 80%",
           end: "bottom 60%",
           scrub: true,
-          markers: false, // Remove markers in production
+          markers: false,
         },
       });
     });
@@ -50,15 +45,14 @@ const RevealText = () => {
             className="line-reveal text-7xl font-gt-super relative mb-4 last:mb-0"
             style={{
               color: "white",
+              WebkitMask: "linear-gradient(to right, #000 var(--mask-position), transparent var(--mask-position))",
+              mask: "linear-gradient(to right, #000 var(--mask-position), transparent var(--mask-position))",
+              "--mask-position": "0%",
               backgroundImage: "linear-gradient(to right, #FF6B6B, #FFE66D)",
-              backgroundSize: "200% 100%", // Wider gradient to ensure full coverage
-              backgroundPosition: "-100% 0%", // Start off-screen to the left
-              backgroundClip: "text",
               WebkitBackgroundClip: "text",
+              backgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              backgroundRepeat: "no-repeat",
-              position: "relative",
-            }}
+            } as React.CSSProperties}
           >
             {line}{index < lines.length - 1 ? '.' : ''}
           </p>
@@ -69,3 +63,4 @@ const RevealText = () => {
 };
 
 export default RevealText;
+
