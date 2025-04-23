@@ -1,9 +1,8 @@
 
 import React from "react";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
-import { useCarousel } from "@/components/ui/carousel";
 
 interface GalleryProps {
   title: string;
@@ -14,7 +13,15 @@ interface GalleryProps {
 }
 
 const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, mapUrl }) => {
-  const carousel = useCarousel();
+  const api = React.useRef<any>(null);
+  
+  const scrollPrev = React.useCallback(() => {
+    api.current?.scrollPrev();
+  }, []);
+  
+  const scrollNext = React.useCallback(() => {
+    api.current?.scrollNext();
+  }, []);
 
   return (
     <div className="w-full bg-black py-24">
@@ -22,7 +29,12 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
         <h2 className="text-white text-2xl mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-12">
           <div className="col-span-12">
-            <Carousel setApi={carousel.setApi} className="w-full">
+            <Carousel
+              setApi={(carouselApi) => {
+                api.current = carouselApi;
+              }}
+              className="w-full"
+            >
               <CarouselContent>
                 {images.map((image, index) => (
                   <CarouselItem key={index}>
@@ -38,8 +50,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
               </CarouselContent>
             </Carousel>
             <div className="flex justify-end gap-4 mt-4">
-              <CustomPrevButton onClick={carousel.scrollPrev} />
-              <CustomNextButton onClick={carousel.scrollNext} />
+              <CustomPrevButton onClick={scrollPrev} />
+              <CustomNextButton onClick={scrollNext} />
             </div>
           </div>
           <div className="col-start-5 col-end-13 space-y-6 text-white">
