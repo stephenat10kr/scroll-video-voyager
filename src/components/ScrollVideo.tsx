@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
@@ -34,6 +34,17 @@ const ScrollVideo: React.FC<{
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const isMobile = useIsMobile();
+  
+  useEffect(() => {
+    // Log environment info for debugging
+    console.log("ScrollVideo mounted");
+    console.log("isMobile:", isMobile);
+    console.log("Using:", isMobile ? "ImageSequencePlayer" : "ScrollVideoPlayer");
+    
+    return () => {
+      console.log("ScrollVideo unmounting");
+    };
+  }, [isMobile]);
 
   return (
     <div
@@ -52,7 +63,7 @@ const ScrollVideo: React.FC<{
         />
       ) : (
         <ScrollVideoPlayer
-          src={src}
+          src={src || VIDEO_SRC}
           segmentCount={SCROLL_TEXTS.length}
           onTextIndexChange={setCurrentTextIndex}
           onAfterVideoChange={setIsAfterVideo}
@@ -63,7 +74,7 @@ const ScrollVideo: React.FC<{
         >
           <video
             ref={videoRef}
-            src={src}
+            src={src || VIDEO_SRC}
             playsInline
             preload="auto"
             loop={false}
