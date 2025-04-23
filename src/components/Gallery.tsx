@@ -14,12 +14,10 @@ interface GalleryProps {
 const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, mapUrl }) => {
   return (
     <div className="w-full bg-black py-24">
-      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div className="col-span-3">
-          <h2 className="text-white text-2xl">{title}</h2>
-        </div>
-        <div className="col-span-9">
-          <div className="mb-12">
+      <div className="max-w-[90%] mx-auto">
+        <h2 className="text-white text-2xl mb-12">{title}</h2>
+        <div className="grid grid-cols-12 gap-12">
+          <div className="col-span-12">
             <Carousel className="w-full">
               <CarouselContent>
                 {images.map((image, index) => (
@@ -38,7 +36,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
               <CarouselNext className="text-white" />
             </Carousel>
           </div>
-          <div className="space-y-6 text-white">
+          <div className="col-span-12 space-y-6 text-white">
             <p className="text-xl">{description}</p>
             <a 
               href={mapUrl}
