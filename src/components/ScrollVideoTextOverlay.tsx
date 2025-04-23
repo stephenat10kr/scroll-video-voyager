@@ -32,7 +32,7 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
           style={{
             zIndex: idx === currentTextIndex ? 2 : 1,
             pointerEvents: "none",
-            textShadow: "0 2px 4px rgba(0,0,0,0.5)"  // Add shadow to improve readability
+            // Removed textShadow property
           }}
         >
           {text}
