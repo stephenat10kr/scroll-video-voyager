@@ -1,16 +1,14 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
+import { useIsMobile } from "../hooks/use-mobile";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
-
-// Placeholder video (user can replace with their own!)
-const VIDEO_SRC =
-  "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
@@ -30,6 +28,10 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Ensure the src is properly formatted for all devices
+  const formattedSrc = src && (src.startsWith('//') ? `https:${src}` : src);
 
   // Now all ScrollTrigger/video logic is in ScrollVideoPlayer
   return (
@@ -39,7 +41,7 @@ const ScrollVideo: React.FC<{
       style={{ zIndex: 1 }}
     >
       <ScrollVideoPlayer
-        src={src}
+        src={formattedSrc}
         segmentCount={SCROLL_TEXTS.length}
         onTextIndexChange={setCurrentTextIndex}
         onAfterVideoChange={setIsAfterVideo}
@@ -51,7 +53,7 @@ const ScrollVideo: React.FC<{
         {/* Video */}
         <video
           ref={videoRef}
-          src={src}
+          src={formattedSrc}
           playsInline
           preload="auto"
           loop={false}

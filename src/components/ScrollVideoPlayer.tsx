@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,9 +31,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const lastProgressRef = useRef(0);
   const progressThreshold = 0.01; // Only update if progress change exceeds this threshold
   const frameRef = useRef<number | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -46,6 +49,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.preload = "auto";
     video.pause();
 
+    // Set playsinline and webkit-playsinline for iOS
+    video.setAttribute("playsinline", "playsinline");
+    video.setAttribute("webkit-playsinline", "webkit-playsinline");
+
     // Chrome-specific optimizations still apply
     video.style.willChange = "contents";
     if (navigator.userAgent.indexOf("Chrome") > -1) {
@@ -56,11 +63,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     // Figure out the possible alternatives based on the src extension
     let srcAssigned = false;
     const origSrc = src || "";
+    
+    // Clean up the Contentful URL if needed
+    const cleanedSrc = origSrc.startsWith('//') ? `https:${origSrc}` : origSrc;
+    
+    // Try WebM format for supported browsers
     const webmSrc =
-      origSrc.match(/\.(mp4|mov)$/i) !== null
-        ? origSrc.replace(/\.(mp4|mov)$/i, ".webm")
-        : origSrc.match(/\.webm$/i)
-        ? origSrc
+      cleanedSrc.match(/\.(mp4|mov)$/i) !== null
+        ? cleanedSrc.replace(/\.(mp4|mov)$/i, ".webm")
+        : cleanedSrc.match(/\.webm$/i)
+        ? cleanedSrc
         : undefined;
 
     function logSource(type: string, url: string) {
@@ -68,14 +80,33 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       console.log(`[ScrollVideo] Assigned ${type} video source: ${url}`);
     }
 
+    // Error handler for video
+    const handleVideoError = () => {
+      const errorMsg = `Error loading video: ${video.error?.message || 'Unknown error'}. Code: ${video.error?.code || 'N/A'}`;
+      console.error(errorMsg);
+      setLoadError(errorMsg);
+    };
+    
+    video.addEventListener('error', handleVideoError);
+
     // Only attempt to assign new source if not already loaded
     async function assignSource() {
-      if (!origSrc) {
+      if (!cleanedSrc) {
         // eslint-disable-next-line no-console
         console.log("[ScrollVideo] No src provided.");
         return;
       }
-      // Prefer WebM in browsers that support it
+      
+      console.log("[ScrollVideo] Trying to load video:", cleanedSrc);
+      
+      // For mobile, simplify by using the direct source and not trying WebM
+      if (isMobile) {
+        video.src = cleanedSrc;
+        logSource("Mobile", cleanedSrc);
+        return;
+      }
+      
+      // Desktop flow - try WebM first if supported
       if (webmSrc && video.canPlayType("video/webm")) {
         // Test if the file exists (HEAD request)
         try {
@@ -88,16 +119,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
             srcAssigned = true;
             return;
           }
-        } catch {
-          // not available, fallback
+        } catch (err) {
+          console.warn("WebM format not available, falling back:", err);
         }
       }
+      
       // Fallback to the originally provided source
       if (!srcAssigned) {
-        if (video.src !== origSrc) {
-          video.src = origSrc;
-          const extension = origSrc.split(".").pop() || "unknown";
-          logSource(extension.toUpperCase(), origSrc);
+        if (video.src !== cleanedSrc) {
+          video.src = cleanedSrc;
+          const extension = cleanedSrc.split(".").pop() || "unknown";
+          logSource(extension.toUpperCase(), cleanedSrc);
         }
       }
     }
@@ -150,20 +182,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
-      scrollTriggerRef.current = ScrollTrigger.create({
+      
+      // On mobile, we might need different scroll settings
+      const scrollConfig = {
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: 0.1,
+        scrub: isMobile ? 0.2 : 0.1, // Slightly smoother on mobile
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
-        onUpdate: (self) => {
+        onUpdate: (self: any) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
           updateVideoFrame(progress);
         }
-      });
+      };
+      
+      scrollTriggerRef.current = ScrollTrigger.create(scrollConfig);
       setIsLoaded(true);
     };
 
@@ -173,50 +209,35 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.fetchPriority = 'high';
     }
 
-    // Load video at a lower resolution initially if available
-    const tryLowerResVersion = () => {
-      const lowResSrc = src?.replace(/\.(mp4|mov|webm)$/, '-low.$1');
-      if (lowResSrc && lowResSrc !== src) {
-        fetch(lowResSrc, { method: 'HEAD' })
-          .then(response => {
-            if (response.ok && !isLoaded) {
-              video.src = lowResSrc;
-              video.addEventListener('canplaythrough', () => {
-                // Once low-res is ready, switch to high-res in background
-                if (src) {
-                  const highResVideo = new Image();
-                  highResVideo.src = src;
-                  highResVideo.onload = () => {
-                    if (!isLoaded) {
-                      video.src = src;
-                    }
-                  };
-                }
-              }, { once: true });
-            }
-          })
-          .catch(() => {
-            // Low-res version not available
-          });
-      }
-    };
-    tryLowerResVersion();
-
+    // Try to load the video and handle errors
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
       video.addEventListener("loadedmetadata", setupScrollTrigger);
+      // Add a specific listener for load success
+      video.addEventListener("canplaythrough", () => {
+        console.log("[ScrollVideo] Video can play through");
+        setIsLoaded(true);
+      }, { once: true });
+      
+      // Fallback timeout if video doesn't load properly
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
+          console.log("[ScrollVideo] Setting up scroll trigger after timeout");
           setupScrollTrigger();
         }
       }, 1000);
-      return () => clearTimeout(timeoutId);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        video.removeEventListener('error', handleVideoError);
+      };
     }
 
     return () => {
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", setupScrollTrigger);
+      video.removeEventListener('error', handleVideoError);
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
@@ -224,9 +245,18 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {loadError && (
+        <div className="absolute top-0 left-0 w-full bg-red-500/70 text-white p-4 z-50 text-sm">
+          {loadError}
+        </div>
+      )}
+      {children}
+    </>
+  );
 };
 
 export default ScrollVideoPlayer;
