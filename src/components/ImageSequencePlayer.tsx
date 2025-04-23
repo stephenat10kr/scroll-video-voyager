@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useImagePathFormat } from '@/hooks/useImagePathFormat';
 import { useScrollSequence } from '@/hooks/useScrollSequence';
 import { ImagePreloader } from './ImagePreloader';
