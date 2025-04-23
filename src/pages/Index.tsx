@@ -1,28 +1,42 @@
+
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useIsMobile } from "../hooks/use-mobile";
 
 const Index = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let isMounted = true;
+    const assetId = "1VGBBPgvLIZXktdboXT0RP";
+    
+    console.log("Fetching video for platform:", isMobile ? "mobile" : "desktop");
     
     // Fetch video asset directly by ID with improved error handling
     contentfulClient
-      .getAsset("1VGBBPgvLIZXktdboXT0RP")
+      .getAsset(assetId)
       .then((asset) => {
         if (!isMounted) return;
         if (asset && asset.fields && asset.fields.file) {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
-          // Ensure URL has https protocol
-          const url = file.url.startsWith('https://') ? file.url : `https:${file.url}`;
+          
+          // Ensure URL has https protocol for mobile compatibility
+          let url = file.url;
+          if (url.startsWith('//')) {
+            url = `https:${url}`;
+          } else if (!url.startsWith('http')) {
+            url = `https://${url}`;
+          }
+          
+          console.log("Formatted video URL:", url);
           setVideoUrl(url);
         } else {
           console.error("Video asset not found or has invalid structure");
@@ -52,7 +66,7 @@ const Index = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className="bg-black min-h-screen w-full relative">

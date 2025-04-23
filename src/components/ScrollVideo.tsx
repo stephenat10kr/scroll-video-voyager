@@ -22,6 +22,9 @@ const SCROLL_TEXTS = [
 
 const SCROLL_EXTRA_PX = 2000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 800;
+// Reduce extra spacing on mobile for better performance
+const MOBILE_SCROLL_EXTRA_PX = 1000;
+const MOBILE_AFTER_VIDEO_EXTRA_HEIGHT = 400;
 
 const ScrollVideo: React.FC<{
   src?: string;
@@ -33,8 +36,21 @@ const ScrollVideo: React.FC<{
   const [videoError, setVideoError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
-  // Ensure the src is properly formatted for all devices
-  const formattedSrc = src && (src.startsWith('//') ? `https:${src}` : src);
+  // Get the appropriate scroll values based on device
+  const scrollExtraPx = isMobile ? MOBILE_SCROLL_EXTRA_PX : SCROLL_EXTRA_PX;
+  const afterVideoExtraHeight = isMobile ? MOBILE_AFTER_VIDEO_EXTRA_HEIGHT : AFTER_VIDEO_EXTRA_HEIGHT;
+
+  // Ensure the src is properly formatted with https
+  const formattedSrc = src 
+    ? (src.startsWith('//') ? `https:${src}` : src.startsWith('http') ? src : `https://${src}`)
+    : undefined;
+
+  // Log the video source for debugging
+  useEffect(() => {
+    if (formattedSrc) {
+      console.log("Mobile optimized video URL:", formattedSrc);
+    }
+  }, [formattedSrc]);
 
   const handleVideoError = (error: string) => {
     console.error("Video error:", error);
@@ -64,8 +80,9 @@ const ScrollVideo: React.FC<{
         onError={handleVideoError}
         videoRef={videoRef}
         containerRef={containerRef}
-        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
-        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
+        SCROLL_EXTRA_PX={scrollExtraPx}
+        AFTER_VIDEO_EXTRA_HEIGHT={afterVideoExtraHeight}
+        isMobile={isMobile}
       >
         {/* Video */}
         <video
@@ -87,7 +104,7 @@ const ScrollVideo: React.FC<{
             minHeight: "100vh",
             ...(isAfterVideo
               ? {
-                  top: `calc(${SCROLL_EXTRA_PX}px)`,
+                  top: `calc(${scrollExtraPx}px)`,
                   position: "absolute",
                 }
               : {}),
@@ -112,9 +129,9 @@ const ScrollVideo: React.FC<{
       <div
         className="w-full bg-black"
         style={{
-          height: `${AFTER_VIDEO_EXTRA_HEIGHT}px`,
+          height: `${afterVideoExtraHeight}px`,
           position: "absolute",
-          top: `calc(100vh + ${SCROLL_EXTRA_PX}px)`,
+          top: `calc(100vh + ${scrollExtraPx}px)`,
           left: 0,
           zIndex: 1,
         }}

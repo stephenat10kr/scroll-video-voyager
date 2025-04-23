@@ -17,6 +17,7 @@ type ScrollVideoPlayerProps = {
   containerRef: React.RefObject<HTMLDivElement>;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
+  isMobile?: boolean;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -30,21 +31,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   containerRef,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
+  isMobile,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.01; // Only update if progress change exceeds this threshold
+  const progressThreshold = isMobile ? 0.005 : 0.01; // More responsive on mobile
   const frameRef = useRef<number | null>(null);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
 
-    // Optimize video element
+    // Optimize video element for mobile
     video.controls = false;
     video.playsInline = true;
     video.muted = true;
@@ -59,6 +60,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
       video.setAttribute("autoplay", "false");
       video.setAttribute("webkit-playsinline", "true");
+      // iOS Safari specific
+      video.setAttribute("x-webkit-airplay", "allow");
     }
 
     // Chrome-specific optimizations
@@ -67,15 +70,23 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.style.transform = "translate3d(0,0,0)";
     }
 
-    // Clean up the source URL
+    // Clean up the source URL for mobile
     let cleanedSrc = "";
     if (src) {
-      cleanedSrc = src.startsWith('//') ? `https:${src}` : src;
+      // Handle all URL formats to ensure they have https:
+      if (src.startsWith('//')) {
+        cleanedSrc = `https:${src}`;
+      } else if (src.startsWith('http://')) {
+        cleanedSrc = src.replace('http://', 'https://');
+      } else if (!src.startsWith('http')) {
+        cleanedSrc = `https://${src}`;
+      } else {
+        cleanedSrc = src;
+      }
       
-      // For testing: Log the video URL
-      console.log("Video URL:", cleanedSrc);
-
-      // Explicitly set source to help with mobile
+      console.log("Mobile video source:", cleanedSrc);
+      
+      // Explicitly set source
       video.src = cleanedSrc;
     }
 
@@ -173,6 +184,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
     };
 
+    // Mobile-specific load optimizations
+    const loadTimeout = isMobile ? 1500 : 1000; // Longer timeout for mobile
+
     // Request high priority loading for the video
     if ('fetchPriority' in HTMLImageElement.prototype) {
       // @ts-ignore
@@ -197,7 +211,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           console.log("[ScrollVideo] Setting up scroll trigger after timeout");
           setupScrollTrigger();
         }
-      }, 1000);
+      }, loadTimeout);
       
       return () => {
         clearTimeout(timeoutId);
