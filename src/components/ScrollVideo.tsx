@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { useRef, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
+import ImageSequencePlayer from "./ImageSequencePlayer";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -30,51 +30,61 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const isMobile = useIsMobile();
 
-  // Now all ScrollTrigger/video logic is in ScrollVideoPlayer
   return (
     <div
       ref={containerRef}
       className="relative w-full min-h-screen overflow-hidden bg-black"
       style={{ zIndex: 1 }}
     >
-      <ScrollVideoPlayer
-        src={src}
-        segmentCount={SCROLL_TEXTS.length}
-        onTextIndexChange={setCurrentTextIndex}
-        onAfterVideoChange={setIsAfterVideo}
-        videoRef={videoRef}
-        containerRef={containerRef}
-        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
-        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
-      >
-        {/* Video */}
-        <video
-          ref={videoRef}
-          src={src}
-          playsInline
-          preload="auto"
-          loop={false}
-          muted
-          tabIndex={-1}
-          className={
-            (isAfterVideo
-              ? "absolute"
-              : "fixed"
-            ) +
-            " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
-          }
-          style={{
-            minHeight: "100vh",
-            ...(isAfterVideo
-              ? {
-                  top: `calc(${SCROLL_EXTRA_PX}px)`,
-                  position: "absolute",
-                }
-              : {}),
-          }}
+      {isMobile ? (
+        <ImageSequencePlayer
+          segmentCount={SCROLL_TEXTS.length}
+          onTextIndexChange={setCurrentTextIndex}
+          onAfterVideoChange={setIsAfterVideo}
+          containerRef={containerRef}
+          SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
+          AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
         />
-      </ScrollVideoPlayer>
+      ) : (
+        <ScrollVideoPlayer
+          src={src}
+          segmentCount={SCROLL_TEXTS.length}
+          onTextIndexChange={setCurrentTextIndex}
+          onAfterVideoChange={setIsAfterVideo}
+          videoRef={videoRef}
+          containerRef={containerRef}
+          SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
+          AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
+        >
+          <video
+            ref={videoRef}
+            src={src}
+            playsInline
+            preload="auto"
+            loop={false}
+            muted
+            tabIndex={-1}
+            className={
+              (isAfterVideo
+                ? "absolute"
+                : "fixed"
+              ) +
+              " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
+            }
+            style={{
+              minHeight: "100vh",
+              ...(isAfterVideo
+                ? {
+                    top: `calc(${SCROLL_EXTRA_PX}px)`,
+                    position: "absolute",
+                  }
+                : {}),
+            }}
+          />
+        </ScrollVideoPlayer>
+      )}
 
       {/* Centered Overlayed Titles */}
       {!isAfterVideo && (
