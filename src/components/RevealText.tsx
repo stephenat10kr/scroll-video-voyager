@@ -58,6 +58,7 @@ const RevealText = () => {
           start: `top+=${index * 50} bottom`,
           end: `top+=${index * 50 + 200} center`,
           scrub: true,
+          markers: false, // Set to true for debugging
         }
       });
 
