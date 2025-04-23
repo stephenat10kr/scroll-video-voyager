@@ -51,7 +51,22 @@ const ScrollVideo: React.FC<{
     if (formattedSrc) {
       console.log("Video URL:", formattedSrc);
     }
-  }, [formattedSrc]);
+    
+    // Ensure video is always paused on initial load for mobile
+    if (videoRef.current && isMobile) {
+      const video = videoRef.current;
+      video.pause();
+      video.currentTime = 0;
+      
+      // Add a safety pause for iOS which may try to autoplay
+      const safePause = () => {
+        video.pause();
+        document.removeEventListener('touchstart', safePause);
+      };
+      
+      document.addEventListener('touchstart', safePause, { once: true });
+    }
+  }, [formattedSrc, isMobile]);
 
   const handleVideoError = (error: string) => {
     console.error("Video error:", error);
@@ -93,6 +108,7 @@ const ScrollVideo: React.FC<{
           preload="auto"
           loop={false}
           muted
+          autoPlay={false}
           tabIndex={-1}
           className={
             (isAfterVideo

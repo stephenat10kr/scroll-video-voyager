@@ -45,29 +45,52 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const container = containerRef.current;
     if (!video || !container) return;
 
-    // Optimize video element for mobile
+    // Strictly prevent autoplay by explicitly setting these attributes
     video.controls = false;
+    video.autoplay = false;
     video.playsInline = true;
     video.muted = true;
-    video.preload = "auto";
+    video.preload = "metadata"; // Only preload metadata to avoid triggering autoplay
     
-    // Prevent autoplay on mobile - set initial time to 0
-    if (isMobile && isInitialMount.current) {
+    // Forcefully pause the video when it loads
+    if (isInitialMount.current) {
       video.currentTime = 0;
       video.pause();
       isInitialMount.current = false;
+      
+      // For iOS specifically
+      if (/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) {
+        console.log("Mobile device detected, preventing autoplay");
+        // Using setTimeout to ensure this runs after any browser autoplay attempts
+        setTimeout(() => {
+          video.pause();
+          video.currentTime = 0;
+        }, 100);
+      }
     }
 
     // Set playsinline and webkit-playsinline for iOS
     video.setAttribute("playsinline", "playsinline");
     video.setAttribute("webkit-playsinline", "webkit-playsinline");
 
-    // Add iOS-specific attributes to help with playback
+    // Add iOS-specific attributes to help with playback control
     if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      video.removeAttribute("autoplay");
       video.setAttribute("autoplay", "false");
       video.setAttribute("webkit-playsinline", "true");
       // iOS Safari specific
       video.setAttribute("x-webkit-airplay", "allow");
+      
+      // Add click handler to forcefully pause video on mobile
+      const pauseVideo = () => {
+        video.pause();
+      };
+      
+      video.addEventListener('play', pauseVideo);
+      
+      return () => {
+        video.removeEventListener('play', pauseVideo);
+      };
     }
 
     // Clean up the source URL
@@ -86,6 +109,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Explicitly set source
       video.src = cleanedSrc;
+      
+      // Immediately pause after setting the source to prevent autoplay
+      video.pause();
     }
 
     // Handle video errors
@@ -119,30 +145,27 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
     const segLen = calculateSegmentLength(segmentCount);
 
-    // Optimized update function to reduce stuttering
+    // Optimized update function to reduce stuttering and control video frame
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       
-      // Only update if the progress has changed significantly
-      // This reduces unnecessary updates that can cause stuttering
-      if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
+      // Prevent stuttering on mobile by using a threshold
+      if (isMobile && Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
       
       lastProgressRef.current = progress;
       
-      // Use requestAnimationFrame for smoother updates
+      // Cancel any existing animation frame to prevent stacking
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Ensure the video is paused unless we're explicitly changing its time
-        // This prevents autoplay behavior on mobile
-        if (isMobile) {
-          video.pause();
-        }
+        // CRITICAL: Always pause the video first to prevent autoplay behavior
+        video.pause();
         
+        // Manually set the currentTime based on scroll position
         video.currentTime = progress * video.duration;
         
         // Calculate current text index
@@ -175,7 +198,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.1, // Smoother on mobile with higher value
+        scrub: isMobile ? 0.8 : 0.1, // Higher value for mobile for smoother scrubbing
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -183,12 +206,26 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onUpdate: (self: any) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
+          
+          // Always ensure video is paused before updating frame
+          video.pause();
           updateVideoFrame(progress);
+        },
+        onLeave: () => {
+          // Ensure video is paused when scrolling away
+          video.pause();
+        },
+        onEnterBack: () => {
+          // Ensure video is paused when scrolling back
+          video.pause();
         }
       };
       
       scrollTriggerRef.current = ScrollTrigger.create(scrollConfig);
       setIsLoaded(true);
+      
+      // Final check to ensure video is paused
+      video.pause();
     };
 
     // Mobile-specific load optimizations
@@ -200,15 +237,28 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.fetchPriority = 'high';
     }
 
+    // Add listener to forcefully pause after any play events
+    const forceVideoPause = () => {
+      console.log("Video tried to play, forcing pause");
+      video.pause();
+    };
+    
+    video.addEventListener('play', forceVideoPause);
+
     // Set up video loading
     if (video.readyState >= 2) {
+      video.pause(); // Ensure paused state before setup
       setupScrollTrigger();
     } else {
-      video.addEventListener("loadedmetadata", setupScrollTrigger);
+      video.addEventListener("loadedmetadata", () => {
+        video.pause(); // Ensure paused state after metadata loads
+        setupScrollTrigger();
+      });
       
       // Add a specific listener for load success
       video.addEventListener("canplaythrough", () => {
         console.log("[ScrollVideo] Video can play through");
+        video.pause(); // Ensure paused state after it can play through
         setIsLoaded(true);
       }, { once: true });
       
@@ -216,6 +266,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
           console.log("[ScrollVideo] Setting up scroll trigger after timeout");
+          video.pause(); // Ensure paused state before timeout setup
           setupScrollTrigger();
         }
       }, loadTimeout);
@@ -223,6 +274,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       return () => {
         clearTimeout(timeoutId);
         video.removeEventListener('error', handleVideoError);
+        video.removeEventListener('play', forceVideoPause);
       };
     }
 
@@ -230,6 +282,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", setupScrollTrigger);
       video.removeEventListener('error', handleVideoError);
+      video.removeEventListener('play', forceVideoPause);
       
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
