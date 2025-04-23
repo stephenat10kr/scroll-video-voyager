@@ -32,7 +32,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <div className="flex justify-end gap-1 mt-4 pr-0">
+              <div className="flex justify-end gap-1 mt-4 w-full">
                 <CarouselPrevious className="static relative h-8 w-8 rounded-full text-white translate-y-0 translate-x-0" />
                 <CarouselNext className="static relative h-8 w-8 rounded-full text-white translate-y-0 translate-x-0" />
               </div>
