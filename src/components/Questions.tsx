@@ -67,9 +67,9 @@ const QUESTIONS: Record<(typeof TABS)[number], QuestionData[]> = {
 const Questions: React.FC<QuestionsProps> = ({ title }) => {
   return (
     <div className="w-full bg-black py-24">
-      <div className="max-w-[90%] mx-auto">
-        <h2 className="text-white text-2xl mb-12">{title}</h2>
-        <Tabs defaultValue="THE COMMUNITY" className="w-full">
+      <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
+        <h2 className="text-white text-2xl mb-12 col-span-12">{title}</h2>
+        <Tabs defaultValue="THE COMMUNITY" className="col-span-12">
           <TabsList className="mb-12 bg-transparent w-full flex justify-start gap-4">
             {TABS.map((tab) => (
               <TabsTrigger
@@ -82,7 +82,7 @@ const Questions: React.FC<QuestionsProps> = ({ title }) => {
             ))}
           </TabsList>
           {TABS.map((tab) => (
-            <TabsContent key={tab} value={tab}>
+            <TabsContent key={tab} value={tab} className="col-start-5 col-span-8">
               <Accordion type="single" collapsible className="w-full">
                 {QUESTIONS[tab].map((question, index) => (
                   <AccordionItem
