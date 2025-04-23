@@ -66,7 +66,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
       >
         <video
           ref={videoRef}
-          src={secureVideoSrc || VIDEO_SRC} // Add fallback to VIDEO_SRC constant
+          src={secureVideoSrc || VIDEO_SRC} 
           playsInline
           preload={isMobile ? "metadata" : "auto"}
           loop={false}
@@ -76,6 +76,11 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           x-webkit-airplay="allow"
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
+          playsinline="true"
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
+          autoPlay={false}
+          controls={false}
           className={
             (isAfterVideo ? "absolute" : "fixed") +
             " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
