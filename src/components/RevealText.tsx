@@ -16,14 +16,10 @@ const RevealText = () => {
     // Get the text content
     const originalText = text.textContent || "";
     
-    // Split text into words and apply spans to each character
-    const words = originalText.split(" ");
-    
-    // Create HTML structure with words and characters wrapped in spans
-    const formattedHTML = words.map(word => {
-      const charSpans = word.split("").map(char => `<span>${char}</span>`).join("");
-      return `<span class="word">${charSpans}</span>`;
-    }).join('<span>&nbsp;</span>'); // Add space between words
+    // Split text into words and wrap each word in a span
+    const formattedHTML = originalText.split(" ").map(word => 
+      `<span class="word">${word}</span>`
+    ).join('<span>&nbsp;</span>');
     
     text.innerHTML = formattedHTML;
 
@@ -38,11 +34,11 @@ const RevealText = () => {
       }
     });
 
-    // Select all character spans for animation
-    const spans = text.querySelectorAll("span:not(.word)");
-    console.log(`Found ${spans.length} spans to animate`);
+    // Select all word spans for animation
+    const spans = text.querySelectorAll(".word");
+    console.log(`Found ${spans.length} words to animate`);
 
-    // Animate each character with a slight stagger
+    // Animate each word with a slight stagger
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
@@ -67,8 +63,7 @@ const RevealText = () => {
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             lineHeight: "1.2",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word"
+            whiteSpace: "pre-wrap"
           }}
         >
           Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
