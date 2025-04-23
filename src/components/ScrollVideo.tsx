@@ -99,7 +99,9 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
             transform: "translate3d(0,0,0)", // Force hardware acceleration
             backfaceVisibility: "hidden", // Additional optimization
             WebkitBackfaceVisibility: "hidden",
-            visibility: isAfterVideo ? "hidden" : "visible", // Hide but don't remove from DOM
+            visibility: "visible", // Always keep the video visible
+            opacity: isAfterVideo ? 0 : 1, // Use opacity instead of visibility
+            transition: "opacity 0.2s ease", // Smooth transition
           }}
         />
       </ScrollVideoPlayer>
