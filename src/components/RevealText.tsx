@@ -13,11 +13,19 @@ const RevealText = () => {
     const text = textRef.current;
     if (!text) return;
 
-    // Split text into characters with wrapper spans
-    const chars = text.textContent?.split("") || [];
-    text.innerHTML = chars.map(char => 
-      char === " " ? "<span>&nbsp;</span>" : `<span>${char}</span>`
-    ).join("");
+    // Get the text content
+    const originalText = text.textContent || "";
+    
+    // Split text into words and apply spans to each character
+    const words = originalText.split(" ");
+    
+    // Create HTML structure with words and characters wrapped in spans
+    const formattedHTML = words.map(word => {
+      const charSpans = word.split("").map(char => `<span>${char}</span>`).join("");
+      return `<span class="word">${charSpans}</span>`;
+    }).join('<span>&nbsp;</span>'); // Add space between words
+    
+    text.innerHTML = formattedHTML;
 
     // Create timeline with ScrollTrigger
     const tl = gsap.timeline({
@@ -33,8 +41,8 @@ const RevealText = () => {
       }
     });
 
-    // Select all spans for animation
-    const spans = text.querySelectorAll("span");
+    // Select all character spans for animation
+    const spans = text.querySelectorAll("span:not(.word)");
     console.log(`Found ${spans.length} spans to animate`);
 
     // Animate each character with a slight stagger
@@ -62,6 +70,9 @@ const RevealText = () => {
         style={{
           WebkitBackgroundClip: "initial",
           backgroundClip: "initial",
+          lineHeight: "1.2",
+          wordWrap: "break-word",
+          whiteSpace: "pre-wrap"
         }}
       >
         Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
