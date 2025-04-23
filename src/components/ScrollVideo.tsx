@@ -78,7 +78,9 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           controls={true}
           className={
             (isAfterVideo ? "absolute" : "fixed") +
-            " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
+            " top-0 left-0 w-full h-full object-cover " + 
+            (isMobile ? "" : "pointer-events-none ") +
+            "z-0 bg-black transition-[position,top] duration-300"
           }
           style={{
             minHeight: "100vh",
