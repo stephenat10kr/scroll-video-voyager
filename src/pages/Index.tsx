@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
@@ -10,24 +9,25 @@ const Index = () => {
 
   useEffect(() => {
     let isMounted = true;
+    
+    // Fetch video asset directly by ID
     contentfulClient
-      .getAssets({
-        'mimetype_group': 'video',
-        'fields.file.fileName': 'HeroTest_1-720-6KeyFrame.mp4' // Specify the exact filename
-      })
-      .then((response) => {
+      .getAsset("1VGBBPgvLIZXktdboXT0RP")
+      .then((asset) => {
         if (!isMounted) return;
-        if (response.items.length > 0) {
-          const { file } = response.items[0].fields;
+        if (asset && asset.fields && asset.fields.file) {
+          const { file } = asset.fields;
+          console.log("Found video asset:", file);
           setVideoUrl(file.url.startsWith('https://') ? file.url : `https:${file.url}`);
         } else {
-          console.error("No video found with the specified filename");
+          console.error("Video asset not found or has invalid structure");
         }
       })
       .catch((err) => {
         console.error("Contentful video fetch error:", err);
       });
 
+    // Keep existing entries fetch
     contentfulClient
       .getEntries()
       .then((response) => {
