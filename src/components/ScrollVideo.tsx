@@ -67,18 +67,13 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
         <video
           ref={videoRef}
           src={secureVideoSrc || VIDEO_SRC} 
-          playsInline
+          playsInline={true}
           preload={isMobile ? "metadata" : "auto"}
           loop={false}
           muted
           tabIndex={-1}
-          webkit-playsinline="true"
-          x-webkit-airplay="allow"
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
-          playsinline="true"
-          webkit-playsinline="true"
-          x-webkit-airplay="allow"
           autoPlay={false}
           controls={false}
           className={
