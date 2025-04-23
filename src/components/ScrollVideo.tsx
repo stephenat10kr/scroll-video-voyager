@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -30,10 +31,19 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
 
   const ensureHttps = (url?: string) => {
     if (!url) return undefined;
-    return url
+    // Make sure URL starts with https:// and not http:// or //
+    let secureUrl = url
       .replace(/^\/\//, 'https://')
       .replace(/^http:/, 'https:')
       .replace(/^ws:/, 'wss:');
+    
+    // Add cache-busting parameter for mobile devices to prevent caching issues
+    if (isMobile) {
+      const cacheBuster = `cb=${Date.now()}`;
+      secureUrl += (secureUrl.includes('?') ? '&' : '?') + cacheBuster;
+    }
+    
+    return secureUrl;
   };
 
   const secureVideoSrc = ensureHttps(src);
