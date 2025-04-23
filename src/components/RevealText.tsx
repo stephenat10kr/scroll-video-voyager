@@ -17,6 +17,9 @@ const RevealText = () => {
     const textElement = textRef.current;
     if (!container || !textElement) return;
 
+    // Make the text visible initially
+    gsap.set(textElement, { opacity: 1 });
+
     // Split text into lines based on actual line breaks
     const splitText = new SplitType(textElement, {
       types: 'lines',
@@ -37,6 +40,13 @@ const RevealText = () => {
       wrapper.appendChild(gradient);
     });
 
+    // Set initial styles for the lines - visible but without gradient
+    gsap.set(splitText.lines, { 
+      y: 0,
+      opacity: 1,
+      color: 'white'
+    });
+
     // Animate each line
     splitText.lines?.forEach((line, index) => {
       const gradientElement = line.parentNode?.querySelector('.gradient-overlay');
@@ -51,23 +61,13 @@ const RevealText = () => {
         }
       });
 
-      // Animate line from hidden to visible
-      tl.fromTo(line, {
-        y: 50,
-        opacity: 0
-      }, {
-        y: 0,
-        opacity: 1,
-        duration: 0.5
-      });
-
-      // Animate gradient width
+      // Animate gradient width only
       tl.fromTo(gradientElement, {
         width: "0%"
       }, {
         width: "100%",
         duration: 1
-      }, "<0.2");
+      });
     });
 
     return () => {
@@ -81,7 +81,7 @@ const RevealText = () => {
       <div ref={containerRef} className="max-w-[90%] mx-auto">
         <p 
           ref={textRef} 
-          className="text-white font-gt-super text-7xl opacity-0"
+          className="text-white font-gt-super text-7xl"
         >
           {text}
         </p>
