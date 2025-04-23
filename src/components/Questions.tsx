@@ -1,14 +1,18 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 interface QuestionData {
   title: string;
   content: string;
 }
+
 interface QuestionsProps {
   title: string;
 }
+
 const TABS = ["THE COMMUNITY", "THE SPACE", "THE MEMBERSHIPS"] as const;
+
 const QUESTIONS: Record<(typeof TABS)[number], QuestionData[]> = {
   "THE COMMUNITY": [{
     title: "Title of accordion",
@@ -41,6 +45,7 @@ const QUESTIONS: Record<(typeof TABS)[number], QuestionData[]> = {
     content: "Content for membership question 3"
   }]
 };
+
 const Questions: React.FC<QuestionsProps> = ({
   title
 }) => {
@@ -69,4 +74,5 @@ const Questions: React.FC<QuestionsProps> = ({
       </div>
     </div>;
 };
+
 export default Questions;
