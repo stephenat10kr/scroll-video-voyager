@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
@@ -18,7 +19,8 @@ const Index = () => {
         if (asset && asset.fields && asset.fields.file) {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
-          setVideoUrl(file.url.startsWith('https://') ? file.url : `https:${file.url}`);
+          const secureUrl = file.url.replace(/^\/\//, 'https://').replace(/^http:/, 'https:');
+          setVideoUrl(secureUrl);
         } else {
           console.error("Video asset not found or has invalid structure");
         }

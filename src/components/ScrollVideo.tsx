@@ -5,12 +5,9 @@ import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 
-// Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
-// Placeholder video (user can replace with their own!)
-const VIDEO_SRC =
-  "https://www.w3schools.com/html/mov_bbb.mp4";
+const VIDEO_SRC = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const SCROLL_TEXTS = [
   "Welcome to Lightning Society",
@@ -31,7 +28,8 @@ const ScrollVideo: React.FC<{
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
 
-  // Now all ScrollTrigger/video logic is in ScrollVideoPlayer
+  const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+
   return (
     <div
       ref={containerRef}
@@ -39,7 +37,7 @@ const ScrollVideo: React.FC<{
       style={{ zIndex: 1 }}
     >
       <ScrollVideoPlayer
-        src={src}
+        src={secureVideoSrc}
         segmentCount={SCROLL_TEXTS.length}
         onTextIndexChange={setCurrentTextIndex}
         onAfterVideoChange={setIsAfterVideo}
@@ -48,10 +46,9 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX}
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT}
       >
-        {/* Video */}
         <video
           ref={videoRef}
-          src={src}
+          src={secureVideoSrc}
           playsInline
           preload="auto"
           loop={false}
@@ -76,7 +73,6 @@ const ScrollVideo: React.FC<{
         />
       </ScrollVideoPlayer>
 
-      {/* Centered Overlayed Titles */}
       {!isAfterVideo && (
         <ScrollVideoTextOverlay
           texts={SCROLL_TEXTS}
@@ -84,12 +80,10 @@ const ScrollVideo: React.FC<{
         />
       )}
 
-      {/* Scroll Hint */}
       {!isAfterVideo && currentTextIndex !== null && (
         <ScrollVideoScrollHint />
       )}
 
-      {/* Below the fold: Black bg section after video is done */}
       <div
         className="w-full bg-black"
         style={{
