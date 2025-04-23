@@ -1,36 +1,59 @@
+
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollTrigger);
+import { TextPlugin } from "gsap/TextPlugin";
+
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+  const gradientRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const text = textRef.current;
-    if (!text) return;
+    const gradient = gradientRef.current;
+    if (!text || !gradient) return;
+
+    const chars = text.textContent?.split("") || [];
+    text.innerHTML = chars.map(char => `<span>${char}</span>`).join("");
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
         start: "top bottom",
-        end: "top center",
-        scrub: true
+        end: "bottom center",
+        scrub: 1,
       }
     });
-    tl.fromTo(text, {
-      y: 100,
-      opacity: 0
-    }, {
-      y: 0,
-      opacity: 1,
-      duration: 1
+
+    // Animate each character
+    const spans = text.querySelectorAll("span");
+    spans.forEach((span, i) => {
+      tl.to(span, {
+        backgroundImage: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
+        backgroundClip: "text",
+        "-webkit-background-clip": "text",
+        "-webkit-text-fill-color": "transparent",
+        duration: 0.05,
+      }, i * 0.01);
     });
+
     return () => {
       tl.kill();
     };
   }, []);
-  return <div className="w-full bg-black py-24">
-      <p ref={textRef} className="text-white font-gt-super max-w-[90%] mx-auto opacity-0 transform translate-y-[100px] text-7xl">
+
+  return (
+    <div className="w-full bg-black py-24">
+      <div 
+        ref={textRef} 
+        className="text-white font-gt-super max-w-[90%] mx-auto text-7xl"
+      >
         Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
-      </p>
-    </div>;
+      </div>
+    </div>
+  );
 };
+
 export default RevealText;
