@@ -25,11 +25,26 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const lastProgressRef = useRef(0);
 
-  // Just testing with frame 1 for now
-  const testFrame = "0001";
+  // Testing different URL formats
+  const testImageNumber = "0001";
+  
+  // Test URLs
+  const urlWithoutSpaces = `/Image%20Sequence/${testImageNumber}.webp`;
+  const absoluteUrlWithoutSpaces = `${window.location.origin}/Image%20Sequence/${testImageNumber}.webp`;
+  const publicPath = `/public/Image%20Sequence/${testImageNumber}.webp`;
+  const absolutePublicPath = `${window.location.origin}/public/Image%20Sequence/${testImageNumber}.webp`;
+  
+  // Bare minimum path - this should work if the files are properly served
+  const simplePath = `/${testImageNumber}.webp`;
   
   useEffect(() => {
     console.log("ImageSequencePlayer mounted");
+    console.log("URL paths being tested:");
+    console.log("- urlWithoutSpaces:", urlWithoutSpaces);
+    console.log("- absoluteUrlWithoutSpaces:", absoluteUrlWithoutSpaces);
+    console.log("- publicPath:", publicPath);
+    console.log("- absolutePublicPath:", absolutePublicPath);
+    console.log("- simplePath:", simplePath);
     
     const container = containerRef.current;
     if (!container) {
@@ -99,32 +114,78 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange]);
 
-  // Test loading a single image with different URL formats to see which works
-  // Adding query param to avoid caching
-  const cacheParam = `?t=${Date.now()}`;
-  
-  // Log what we're attempting to load for debugging
-  console.log(`Attempting to load test image: ${testFrame}.webp`);
-  
-  // Try absolute URL without encoding spaces
-  const imageUrl = `${window.location.origin}/Image Sequence/${testFrame}.webp${cacheParam}`;
-  console.log("Image URL:", imageUrl);
-
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black flex flex-col items-center justify-center">
-      {/* Display the test image */}
-      <img
-        src={imageUrl}
-        alt={`Test frame ${testFrame}`}
-        className="w-full h-full object-cover pointer-events-none"
-        style={{ minHeight: '100vh' }}
-        onLoad={() => console.log("Image loaded successfully!")}
-        onError={(e) => console.error("Image failed to load:", e)}
-      />
-      
-      {/* Also try with encoded URL */}
-      <div className="absolute bottom-4 left-4 right-4 bg-black/80 p-4 text-white text-sm rounded">
-        {`Testing image: ${testFrame}.webp`}
+      <div className="grid grid-cols-2 grid-rows-3 gap-4 p-4 bg-black/90 w-full h-full">
+        {/* Test image 1 */}
+        <div className="relative border border-gray-700 flex flex-col">
+          <div className="text-white text-xs mb-1 bg-black p-1">URL without spaces:</div>
+          <img
+            src={urlWithoutSpaces}
+            alt={`Test 1`}
+            className="w-full h-full object-contain"
+            onLoad={() => console.log("Image 1 loaded successfully!")}
+            onError={(e) => console.error("Image 1 failed to load:", e)}
+          />
+        </div>
+        
+        {/* Test image 2 */}
+        <div className="relative border border-gray-700 flex flex-col">
+          <div className="text-white text-xs mb-1 bg-black p-1">Absolute URL without spaces:</div>
+          <img
+            src={absoluteUrlWithoutSpaces}
+            alt={`Test 2`}
+            className="w-full h-full object-contain"
+            onLoad={() => console.log("Image 2 loaded successfully!")}
+            onError={(e) => console.error("Image 2 failed to load:", e)}
+          />
+        </div>
+        
+        {/* Test image 3 */}
+        <div className="relative border border-gray-700 flex flex-col">
+          <div className="text-white text-xs mb-1 bg-black p-1">Public path:</div>
+          <img
+            src={publicPath}
+            alt={`Test 3`}
+            className="w-full h-full object-contain"
+            onLoad={() => console.log("Image 3 loaded successfully!")}
+            onError={(e) => console.error("Image 3 failed to load:", e)}
+          />
+        </div>
+        
+        {/* Test image 4 */}
+        <div className="relative border border-gray-700 flex flex-col">
+          <div className="text-white text-xs mb-1 bg-black p-1">Absolute public path:</div>
+          <img
+            src={absolutePublicPath}
+            alt={`Test 4`}
+            className="w-full h-full object-contain"
+            onLoad={() => console.log("Image 4 loaded successfully!")}
+            onError={(e) => console.error("Image 4 failed to load:", e)}
+          />
+        </div>
+        
+        {/* Test image 5 */}
+        <div className="relative border border-gray-700 flex flex-col">
+          <div className="text-white text-xs mb-1 bg-black p-1">Simple path:</div>
+          <img
+            src={simplePath}
+            alt={`Test 5`}
+            className="w-full h-full object-contain"
+            onLoad={() => console.log("Image 5 loaded successfully!")}
+            onError={(e) => console.error("Image 5 failed to load:", e)}
+          />
+        </div>
+        
+        {/* Debug info */}
+        <div className="border border-gray-700 p-2 overflow-auto">
+          <div className="text-white text-xs">
+            <p>Origin: {window.location.origin}</p>
+            <p>Pathname: {window.location.pathname}</p>
+            <p>Current URL: {window.location.href}</p>
+            <p>Test image: {testImageNumber}.webp</p>
+          </div>
+        </div>
       </div>
     </div>
   );
