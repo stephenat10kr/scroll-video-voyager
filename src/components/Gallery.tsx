@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface GalleryProps {
   title: string;
@@ -24,13 +24,13 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
               <CarouselContent>
                 {images.map((image, index) => (
                   <CarouselItem key={index}>
-                    <div className="relative aspect-[16/9]">
+                    <AspectRatio ratio={16 / 9} className="bg-black">
                       <img
                         src={image}
                         alt={`Gallery image ${index + 1}`}
                         className="object-cover w-full h-full"
                       />
-                    </div>
+                    </AspectRatio>
                   </CarouselItem>
                 ))}
               </CarouselContent>
