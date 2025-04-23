@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import ScrollVideo from "../components/ScrollVideo";
 import { contentfulClient } from "../lib/contentfulClient";
@@ -11,13 +12,16 @@ const Index = () => {
     let isMounted = true;
     contentfulClient
       .getAssets({
-        'mimetype_group': 'video'
+        'mimetype_group': 'video',
+        'fields.file.fileName': 'HeroTest_1-720-6KeyFrame.mp4' // Specify the exact filename
       })
       .then((response) => {
         if (!isMounted) return;
         if (response.items.length > 0) {
           const { file } = response.items[0].fields;
           setVideoUrl(file.url.startsWith('https://') ? file.url : `https:${file.url}`);
+        } else {
+          console.error("No video found with the specified filename");
         }
       })
       .catch((err) => {
