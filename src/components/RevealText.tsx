@@ -34,10 +34,7 @@ const RevealText = () => {
         start: "top bottom-=100",
         end: "bottom center",
         scrub: 0.5,
-        markers: false, // Set to true for debugging
-        onUpdate: (self) => {
-          console.log("ScrollTrigger progress:", self.progress);
-        }
+        markers: false
       }
     });
 
@@ -48,9 +45,6 @@ const RevealText = () => {
     // Animate each character with a slight stagger
     spans.forEach((span, i) => {
       tl.to(span, {
-        backgroundImage: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
-        backgroundClip: "text",
-        webkitBackgroundClip: "text",
         color: "transparent",
         ease: "power1.inOut",
         duration: 0.1,
@@ -68,8 +62,9 @@ const RevealText = () => {
         ref={textRef} 
         className="text-white font-gt-super max-w-[90%] mx-auto text-7xl"
         style={{
-          WebkitBackgroundClip: "initial",
-          backgroundClip: "initial",
+          background: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
           lineHeight: "1.2",
           wordWrap: "break-word",
           whiteSpace: "pre-wrap"
