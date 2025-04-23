@@ -68,7 +68,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           ref={videoRef}
           src={secureVideoSrc || VIDEO_SRC} 
           playsInline
-          preload={isMobile ? "metadata" : "auto"}
+          preload="auto"
           loop={false}
           muted
           tabIndex={-1}
