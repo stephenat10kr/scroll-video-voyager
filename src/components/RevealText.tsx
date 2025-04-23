@@ -8,34 +8,44 @@ gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
-  const gradientRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const text = textRef.current;
-    const gradient = gradientRef.current;
-    if (!text || !gradient) return;
+    if (!text) return;
 
+    // Split text into characters with wrapper spans
     const chars = text.textContent?.split("") || [];
-    text.innerHTML = chars.map(char => `<span>${char}</span>`).join("");
+    text.innerHTML = chars.map(char => 
+      char === " " ? "<span>&nbsp;</span>" : `<span>${char}</span>`
+    ).join("");
 
+    // Create timeline with ScrollTrigger
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
-        start: "top bottom",
+        start: "top bottom-=100",
         end: "bottom center",
-        scrub: 1,
+        scrub: 0.5,
+        markers: false, // Set to true for debugging
+        onUpdate: (self) => {
+          console.log("ScrollTrigger progress:", self.progress);
+        }
       }
     });
 
-    // Animate each character
+    // Select all spans for animation
     const spans = text.querySelectorAll("span");
+    console.log(`Found ${spans.length} spans to animate`);
+
+    // Animate each character with a slight stagger
     spans.forEach((span, i) => {
       tl.to(span, {
         backgroundImage: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
         backgroundClip: "text",
-        "-webkit-background-clip": "text",
-        "-webkit-text-fill-color": "transparent",
-        duration: 0.05,
+        webkitBackgroundClip: "text",
+        color: "transparent",
+        ease: "power1.inOut",
+        duration: 0.1,
       }, i * 0.01);
     });
 
@@ -49,6 +59,10 @@ const RevealText = () => {
       <div 
         ref={textRef} 
         className="text-white font-gt-super max-w-[90%] mx-auto text-7xl"
+        style={{
+          WebkitBackgroundClip: "initial",
+          backgroundClip: "initial",
+        }}
       >
         Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
       </div>
