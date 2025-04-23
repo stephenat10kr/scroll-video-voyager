@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,15 +21,22 @@ const SCROLL_TEXTS = [
 const SCROLL_EXTRA_PX = 2000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 800;
 
-const ScrollVideo: React.FC<{
-  src?: string;
-}> = ({ src }) => {
+const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const isMobile = useIsMobile();
 
-  const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+  const ensureHttps = (url?: string) => {
+    if (!url) return undefined;
+    return url
+      .replace(/^\/\//, 'https://')
+      .replace(/^http:/, 'https:')
+      .replace(/^ws:/, 'wss:');
+  };
+
+  const secureVideoSrc = ensureHttps(src);
 
   return (
     <div
@@ -50,15 +58,16 @@ const ScrollVideo: React.FC<{
           ref={videoRef}
           src={secureVideoSrc}
           playsInline
-          preload="auto"
+          preload={isMobile ? "metadata" : "auto"}
           loop={false}
           muted
           tabIndex={-1}
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
+          x5-video-player-type="h5"
+          x5-video-player-fullscreen="true"
           className={
-            (isAfterVideo
-              ? "absolute"
-              : "fixed"
-            ) +
+            (isAfterVideo ? "absolute" : "fixed") +
             " top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black transition-[position,top] duration-300"
           }
           style={{

@@ -11,7 +11,7 @@ const Index = () => {
   useEffect(() => {
     let isMounted = true;
     
-    // Fetch video asset directly by ID
+    // Fetch video asset directly by ID with improved URL handling
     contentfulClient
       .getAsset("1VGBBPgvLIZXktdboXT0RP")
       .then((asset) => {
@@ -19,7 +19,10 @@ const Index = () => {
         if (asset && asset.fields && asset.fields.file) {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
-          const secureUrl = file.url.replace(/^\/\//, 'https://').replace(/^http:/, 'https:');
+          const secureUrl = file.url
+            .replace(/^\/\//, 'https://')
+            .replace(/^http:/, 'https:')
+            .replace(/^ws:/, 'wss:');
           setVideoUrl(secureUrl);
         } else {
           console.error("Video asset not found or has invalid structure");
@@ -76,3 +79,4 @@ const Index = () => {
 };
 
 export default Index;
+
