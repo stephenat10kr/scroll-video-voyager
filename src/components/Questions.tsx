@@ -82,7 +82,11 @@ const Questions: React.FC<QuestionsProps> = ({ title }) => {
             ))}
           </TabsList>
           {TABS.map((tab) => (
-            <TabsContent key={tab} value={tab} className="col-start-5 col-span-8">
+            <TabsContent 
+              key={tab} 
+              value={tab} 
+              className="col-start-5 col-span-8"
+            >
               <Accordion type="single" collapsible className="w-full">
                 {QUESTIONS[tab].map((question, index) => (
                   <AccordionItem
