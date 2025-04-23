@@ -58,19 +58,21 @@ const RevealText = () => {
 
   return (
     <div className="w-full bg-black py-24">
-      <div 
-        ref={textRef} 
-        className="text-white font-gt-super max-w-[90%] mx-auto text-7xl"
-        style={{
-          background: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          lineHeight: "1.2",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word"
-        }}
-      >
-        Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
+      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+        <div 
+          ref={textRef} 
+          className="text-white font-gt-super text-7xl col-span-9"
+          style={{
+            background: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            lineHeight: "1.2",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word"
+          }}
+        >
+          Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
+        </div>
       </div>
     </div>
   );
