@@ -18,7 +18,7 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 800; // Black bg after video
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
-  src = VIDEO_SRC,
+  src,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
