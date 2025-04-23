@@ -33,9 +33,9 @@ const RevealText = () => {
       line.parentNode?.insertBefore(wrapper, line);
       wrapper.appendChild(line);
 
-      // Create gradient overlay
+      // Create gradient overlay with improved blend mode
       const gradient = document.createElement('div');
-      gradient.className = 'gradient-overlay absolute inset-0 bg-gradient-to-r from-[#9b87f5] via-[#8B5CF6] to-[#1EAEDB] mix-blend-overlay pointer-events-none';
+      gradient.className = 'gradient-overlay absolute inset-0 bg-gradient-to-r from-[#9b87f5] via-[#8B5CF6] to-[#1EAEDB] mix-blend-overlay opacity-90 pointer-events-none';
       gradient.style.width = '0%';
       wrapper.appendChild(gradient);
     });
@@ -47,7 +47,7 @@ const RevealText = () => {
       color: 'white'
     });
 
-    // Animate each line
+    // Animate each line with more pronounced effect
     splitText.lines?.forEach((line, index) => {
       const gradientElement = line.parentNode?.querySelector('.gradient-overlay');
       if (!gradientElement) return;
@@ -57,17 +57,20 @@ const RevealText = () => {
           trigger: container,
           start: `top+=${index * 50} bottom`,
           end: `top+=${index * 50 + 200} center`,
-          scrub: true,
+          scrub: 0.5, // Smoother scrubbing
           markers: false, // Set to true for debugging
         }
       });
 
-      // Animate gradient width only
+      // Animate gradient width with improved animation
       tl.fromTo(gradientElement, {
-        width: "0%"
+        width: "0%",
+        opacity: 0.9
       }, {
         width: "100%",
-        duration: 1
+        opacity: 1,
+        duration: 1,
+        ease: "power2.inOut"
       });
     });
 
@@ -82,7 +85,7 @@ const RevealText = () => {
       <div ref={containerRef} className="max-w-[90%] mx-auto">
         <p 
           ref={textRef} 
-          className="text-white font-gt-super text-7xl"
+          className="text-white font-gt-super text-4xl md:text-6xl lg:text-7xl"
         >
           {text}
         </p>
