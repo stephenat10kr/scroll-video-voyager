@@ -3,7 +3,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,15 +15,15 @@ type ImageSequencePlayerProps = {
   AFTER_VIDEO_EXTRA_HEIGHT: number;
 };
 
-// Define all possible image path formats to try
+// Define default image paths without requiring toString() on potentially null values
 const IMAGE_PATH_FORMATS = [
-  (frame: number) => `/Image%20Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `/Image Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `./Image%20Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `./Image Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `/Image-Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `Image%20Sequence/${frame.toString().padStart(4, '0')}.webp`,
-  (frame: number) => `Image Sequence/${frame.toString().padStart(4, '0')}.webp`
+  (frame: number) => `/Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `/Image Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `./Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `./Image Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `/Image-Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `Image Sequence/${String(frame).padStart(4, '0')}.webp`
 ];
 
 const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
