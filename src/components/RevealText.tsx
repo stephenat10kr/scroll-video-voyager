@@ -66,10 +66,10 @@ const RevealText = () => {
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
           lineHeight: "1.2",
-          wordBreak: "keep-all", // Prevent words from breaking
-          overflowWrap: "normal",
-          wordWrap: "normal",
-          whiteSpace: "pre-wrap"
+          wordBreak: "break-word", // Allow breaking at appropriate points
+          overflowWrap: "break-word", // Ensure long words can break if necessary
+          whiteSpace: "normal", // Allow text to wrap
+          textOverflow: "clip" // Prevent ellipsis
         }}
       >
         Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
