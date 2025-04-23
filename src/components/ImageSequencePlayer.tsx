@@ -28,14 +28,15 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [currentFrame, setCurrentFrame] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const toast = useToast();
   
   // Generate the correct image path
   const getImagePath = (frameNumber: number) => {
     // Format the frame number with leading zeros
     const paddedNumber = frameNumber.toString().padStart(4, '0');
-    // Return the direct path to the image in the public directory
-    return `/${paddedNumber}.webp`;
+    // Return the path to the image in the Image Sequence directory
+    return `/Image%20Sequence/${paddedNumber}.webp`;
   };
   
   useEffect(() => {
@@ -115,6 +116,46 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange]);
 
+  // Test a sample image to verify the path is correct
+  useEffect(() => {
+    const testImage = new Image();
+    const testPath = getImagePath(1);
+    console.log("Testing image path:", testPath);
+    
+    testImage.onload = () => {
+      console.log(`Test image ${testPath} loaded successfully!`);
+      setErrorMessage(null);
+    };
+    
+    testImage.onerror = () => {
+      console.error(`Test image ${testPath} failed to load`);
+      setErrorMessage(`Failed to load test image. Please check your path: ${testPath}`);
+      
+      // Try alternative paths as a fallback
+      const alternativePaths = [
+        `/Image%20Sequence/0001.webp`,
+        `/Image Sequence/0001.webp`,
+        `./Image%20Sequence/0001.webp`,
+        `./Image Sequence/0001.webp`,
+        `/public/Image%20Sequence/0001.webp`,
+        `/public/Image Sequence/0001.webp`
+      ];
+      
+      let loadedAny = false;
+      alternativePaths.forEach(path => {
+        const altImage = new Image();
+        altImage.onload = () => {
+          console.log(`Alternative path worked: ${path}`);
+          loadedAny = true;
+        };
+        altImage.onerror = () => console.error(`Failed with alternative path: ${path}`);
+        altImage.src = path;
+      });
+    };
+    
+    testImage.src = testPath;
+  }, []);
+
   // Handle image load event
   const handleImageLoad = () => {
     console.log(`Image ${currentFrame} loaded successfully!`);
@@ -132,14 +173,23 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black flex items-center justify-center">
       <div className="relative w-full h-full">
-        <img
-          key={currentFrame} // Key changes will force re-render when frame changes
-          src={getImagePath(currentFrame)}
-          alt={`Frame ${currentFrame}`}
-          className="w-full h-full object-cover"
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-        />
+        {errorMessage ? (
+          <div className="w-full h-full flex items-center justify-center text-white text-center p-4">
+            <div className="bg-red-800/80 p-4 rounded-lg max-w-md">
+              <h3 className="text-xl font-bold mb-2">Image Loading Error</h3>
+              <p>{errorMessage}</p>
+            </div>
+          </div>
+        ) : (
+          <img
+            key={currentFrame} // Key changes will force re-render when frame changes
+            src={getImagePath(currentFrame)}
+            alt={`Frame ${currentFrame}`}
+            className="w-full h-full object-cover"
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+          />
+        )}
         
         {/* Display debugging info */}
         <div className="absolute bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs max-w-xs">
@@ -148,6 +198,9 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
           <div>Origin: {window.location.origin}</div>
           <div>Pathname: {window.location.pathname}</div>
+          <div className="mt-2 text-xs opacity-70">
+            Using URL encoded path: /Image%20Sequence/
+          </div>
         </div>
       </div>
     </div>

@@ -44,10 +44,18 @@ const ScrollVideo: React.FC<{
     console.log("Using:", isMobile ? "ImageSequencePlayer" : "ScrollVideoPlayer");
     console.log("Origin:", window.location.origin);
     
+    // Display a toast if we're in mobile mode
+    if (isMobile) {
+      toast({
+        title: "Mobile Experience",
+        description: "Using image sequence player for better mobile performance",
+      });
+    }
+    
     return () => {
       console.log("ScrollVideo unmounting");
     };
-  }, [isMobile]);
+  }, [isMobile, toast]);
 
   return (
     <div
