@@ -52,19 +52,43 @@ const ScrollVideo: React.FC<{
       console.log("Video URL:", formattedSrc);
     }
     
-    // Ensure video is always paused on initial load for mobile
+    // Mobile-specific setup
     if (videoRef.current && isMobile) {
+      // Immediately set crucial properties to prevent autoplay
       const video = videoRef.current;
+      video.autoplay = false;
+      video.controls = false;
+      video.preload = "none"; // Most aggressive preload setting for mobile
+      
+      // Explicitly pause video and reset time
       video.pause();
       video.currentTime = 0;
       
-      // Add a safety pause for iOS which may try to autoplay
-      const safePause = () => {
+      // Add additional mobile-specific attributes
+      video.setAttribute("webkit-playsinline", "true");
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("x-webkit-airplay", "allow");
+      video.setAttribute("preload", "none");
+      
+      // Set up a recurring pause mechanism
+      const preventAutoplay = () => {
         video.pause();
-        document.removeEventListener('touchstart', safePause);
       };
       
-      document.addEventListener('touchstart', safePause, { once: true });
+      // Catch all playback events
+      video.addEventListener('play', preventAutoplay);
+      video.addEventListener('playing', preventAutoplay);
+      video.addEventListener('loadstart', preventAutoplay);
+      
+      // Safety pause for touch interactions
+      document.addEventListener('touchstart', preventAutoplay, { once: true });
+      
+      return () => {
+        video.removeEventListener('play', preventAutoplay);
+        video.removeEventListener('playing', preventAutoplay);
+        video.removeEventListener('loadstart', preventAutoplay);
+        document.removeEventListener('touchstart', preventAutoplay);
+      };
     }
   }, [formattedSrc, isMobile]);
 
@@ -100,14 +124,13 @@ const ScrollVideo: React.FC<{
         AFTER_VIDEO_EXTRA_HEIGHT={afterVideoExtraHeight}
         isMobile={isMobile}
       >
-        {/* Video */}
+        {/* Video with disabled autoplay and aggressive initial settings */}
         <video
           ref={videoRef}
-          src={formattedSrc}
           playsInline
-          preload="auto"
-          loop={false}
+          preload="none"
           muted
+          loop={false}
           autoPlay={false}
           tabIndex={-1}
           className={

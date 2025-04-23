@@ -38,15 +38,27 @@ const Index = () => {
           
           console.log("Formatted video URL:", url);
           
-          // For mobile, force HTTPS and add cache-busting parameter to avoid autoplay issues
+          // For mobile, add cache busting and autoplay prevention parameters
           if (isMobile) {
-            // Add a parameter to the URL to prevent browser caching which can sometimes trigger autoplay
-            const cacheBuster = `?t=${Date.now()}`;
-            url = url.includes('?') ? `${url}&preventAutoplay=true` : `${url}?preventAutoplay=true`;
-            console.log("Mobile optimized URL:", url);
+            // Add multiple parameters to prevent caching and autoplay
+            const timestamp = Date.now();
+            const preventParam = `noautoplay=${timestamp}`;
+            url = url.includes('?') 
+              ? `${url}&${preventParam}` 
+              : `${url}?${preventParam}`;
+              
+            console.log("Mobile optimized URL with autoplay prevention:", url);
+            
+            // Small delay before setting URL to ensure browser UI is ready
+            setTimeout(() => {
+              if (isMounted) {
+                setVideoUrl(url);
+              }
+            }, 100);
+          } else {
+            // Desktop - set URL immediately
+            setVideoUrl(url);
           }
-          
-          setVideoUrl(url);
         } else {
           console.error("Video asset not found or has invalid structure");
           setError("Video asset not found or has invalid structure");

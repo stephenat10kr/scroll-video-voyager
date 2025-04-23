@@ -39,81 +39,98 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = isMobile ? 0.002 : 0.01; // More responsive but less intensive on mobile
   const frameRef = useRef<number | null>(null);
   const isInitialMount = useRef(true);
+  const initialPauseDone = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
 
-    // Strictly prevent autoplay by explicitly setting these attributes
-    video.controls = false;
+    // CRITICAL: Immediately set these attributes to prevent autoplay
     video.autoplay = false;
+    video.preload = "none"; // More aggressive setting for mobile - load only when needed
+    
+    // CRITICAL: Start with blank source initially on mobile
+    if (isMobile && isInitialMount.current) {
+      // Clear any potentially existing source as a precaution
+      video.removeAttribute('src');
+      video.load();
+    }
+
+    // CRITICAL: Controls and attributes for preventing autoplay
+    video.controls = false;
     video.playsInline = true;
     video.muted = true;
-    video.preload = "metadata"; // Only preload metadata to avoid triggering autoplay
     
-    // Forcefully pause the video when it loads
-    if (isInitialMount.current) {
-      video.currentTime = 0;
-      video.pause();
-      isInitialMount.current = false;
-      
-      // For iOS specifically
-      if (/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) {
-        console.log("Mobile device detected, preventing autoplay");
-        // Using setTimeout to ensure this runs after any browser autoplay attempts
-        setTimeout(() => {
+    // Explicitly pause the video right away
+    video.pause();
+    video.currentTime = 0;
+    
+    // Initialize video source only after other attributes are set
+    // This delayed pattern helps prevent autoplay in some browsers
+    if (isMobile) {
+      setTimeout(() => {
+        // Set source only after we've prepared the video element
+        if (src) {
+          // Process the source URL for mobile
+          let cleanedSrc = "";
+          if (src.startsWith('//')) {
+            cleanedSrc = `https:${src}`;
+          } else if (src.startsWith('http://')) {
+            cleanedSrc = src.replace('http://', 'https://');
+          } else if (!src.startsWith('http')) {
+            cleanedSrc = `https://${src}`;
+          } else {
+            cleanedSrc = src;
+          }
+          
+          // Add cache-busting and autoplay prevention parameter
+          const preventAutoplayParam = Date.now().toString();
+          cleanedSrc = cleanedSrc.includes('?') 
+            ? `${cleanedSrc}&preventAutoplay=${preventAutoplayParam}` 
+            : `${cleanedSrc}?preventAutoplay=${preventAutoplayParam}`;
+            
+          console.log("Mobile: Setting video source with delay:", cleanedSrc);
+          
+          // Set source and immediately pause again
+          video.src = cleanedSrc;
           video.pause();
-          video.currentTime = 0;
-        }, 100);
+          
+          // Force reload after setting source
+          video.load();
+          video.pause();
+        }
+      }, 100); // Small delay to ensure browser has processed previous commands
+    } else {
+      // Desktop behavior - set source immediately
+      if (src) {
+        let cleanedSrc = "";
+        if (src.startsWith('//')) {
+          cleanedSrc = `https:${src}`;
+        } else if (src.startsWith('http://')) {
+          cleanedSrc = src.replace('http://', 'https://');
+        } else if (!src.startsWith('http')) {
+          cleanedSrc = `https://${src}`;
+        } else {
+          cleanedSrc = src;
+        }
+        
+        video.src = cleanedSrc;
       }
     }
-
-    // Set playsinline and webkit-playsinline for iOS
-    video.setAttribute("playsinline", "playsinline");
-    video.setAttribute("webkit-playsinline", "webkit-playsinline");
-
-    // Add iOS-specific attributes to help with playback control
-    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-      video.removeAttribute("autoplay");
-      video.setAttribute("autoplay", "false");
-      video.setAttribute("webkit-playsinline", "true");
-      // iOS Safari specific
-      video.setAttribute("x-webkit-airplay", "allow");
-      
-      // Add click handler to forcefully pause video on mobile
-      const pauseVideo = () => {
-        video.pause();
-      };
-      
-      video.addEventListener('play', pauseVideo);
-      
-      return () => {
-        video.removeEventListener('play', pauseVideo);
-      };
-    }
-
-    // Clean up the source URL
-    let cleanedSrc = "";
-    if (src) {
-      // Handle all URL formats to ensure they have https:
-      if (src.startsWith('//')) {
-        cleanedSrc = `https:${src}`;
-      } else if (src.startsWith('http://')) {
-        cleanedSrc = src.replace('http://', 'https://');
-      } else if (!src.startsWith('http')) {
-        cleanedSrc = `https://${src}`;
-      } else {
-        cleanedSrc = src;
-      }
-      
-      // Explicitly set source
-      video.src = cleanedSrc;
-      
-      // Immediately pause after setting the source to prevent autoplay
+    
+    // CRITICAL: Force pause whenever the browser tries to play the video
+    const forcePause = () => {
+      console.log("Intercepted play attempt - forcing pause");
       video.pause();
-    }
-
+      video.currentTime = 0;
+      initialPauseDone.current = true;
+    };
+    
+    // Catch all potential play events
+    video.addEventListener('play', forcePause);
+    video.addEventListener('playing', forcePause);
+    
     // Handle video errors
     const handleVideoError = () => {
       const errorMsg = video.error 
@@ -162,11 +179,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // CRITICAL: Always pause the video first to prevent autoplay behavior
+        // CRITICAL: Always ensure video is paused before setting time
         video.pause();
         
         // Manually set the currentTime based on scroll position
-        video.currentTime = progress * video.duration;
+        if (video.duration && !isNaN(progress)) {
+          video.currentTime = progress * video.duration;
+        }
         
         // Calculate current text index
         let textIdx: number | null = null;
@@ -188,21 +207,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     // Improved ScrollTrigger configuration for mobile
     const setupScrollTrigger = () => {
-      if (!video.duration) return;
-      
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
+      
+      // Ensure video is paused before setting up ScrollTrigger
+      video.pause();
+      
+      // More conservative scrub setting for mobile to prevent stuttering
+      const scrubValue = isMobile ? 1 : 0.1;
       
       const scrollConfig = {
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.8 : 0.1, // Higher value for mobile for smoother scrubbing
+        scrub: scrubValue,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
-        markers: false, // Disable markers for performance
+        markers: false,
         onUpdate: (self: any) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
@@ -212,11 +235,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           updateVideoFrame(progress);
         },
         onLeave: () => {
-          // Ensure video is paused when scrolling away
           video.pause();
         },
         onEnterBack: () => {
-          // Ensure video is paused when scrolling back
           video.pause();
         }
       };
@@ -228,61 +249,79 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.pause();
     };
 
-    // Mobile-specific load optimizations
-    const loadTimeout = isMobile ? 2000 : 1000; // Longer timeout for mobile
-
-    // Request high priority loading for the video
-    if ('fetchPriority' in HTMLImageElement.prototype) {
-      // @ts-ignore
-      video.fetchPriority = 'high';
-    }
-
-    // Add listener to forcefully pause after any play events
-    const forceVideoPause = () => {
-      console.log("Video tried to play, forcing pause");
-      video.pause();
-    };
-    
-    video.addEventListener('play', forceVideoPause);
-
-    // Set up video loading
+    // Setup events for video loading
     if (video.readyState >= 2) {
-      video.pause(); // Ensure paused state before setup
+      video.pause();
+      console.log("Video already has enough data, setting up ScrollTrigger");
       setupScrollTrigger();
     } else {
-      video.addEventListener("loadedmetadata", () => {
-        video.pause(); // Ensure paused state after metadata loads
+      // Use loadeddata instead of loadedmetadata for more safety
+      video.addEventListener("loadeddata", () => {
+        console.log("Video loadeddata event fired");
+        video.pause();
         setupScrollTrigger();
       });
       
       // Add a specific listener for load success
       video.addEventListener("canplaythrough", () => {
-        console.log("[ScrollVideo] Video can play through");
-        video.pause(); // Ensure paused state after it can play through
+        console.log("Video canplaythrough event fired");
+        video.pause();
         setIsLoaded(true);
+        if (!scrollTriggerRef.current) {
+          setupScrollTrigger();
+        }
       }, { once: true });
       
       // Fallback timeout if video doesn't load properly
       const timeoutId = setTimeout(() => {
+        console.log("Setting up ScrollTrigger after timeout");
         if (!isLoaded && video.readyState >= 1) {
-          console.log("[ScrollVideo] Setting up scroll trigger after timeout");
-          video.pause(); // Ensure paused state before timeout setup
+          video.pause();
           setupScrollTrigger();
         }
-      }, loadTimeout);
+      }, isMobile ? 2000 : 1000);
       
       return () => {
         clearTimeout(timeoutId);
+      };
+    }
+
+    // More aggressive cleanup for iOS and mobile
+    if (isMobile) {
+      // iOS requires multiple pauses to ensure video doesn't autoplay
+      const safetyPauseInterval = setInterval(() => {
+        if (video && !initialPauseDone.current) {
+          console.log("Safety pause interval fired");
+          video.pause();
+          video.currentTime = 0;
+        } else {
+          clearInterval(safetyPauseInterval);
+        }
+      }, 100);
+      
+      // Clear the interval when component unmounts
+      return () => {
+        clearInterval(safetyPauseInterval);
+        window.removeEventListener("resize", resizeSection);
         video.removeEventListener('error', handleVideoError);
-        video.removeEventListener('play', forceVideoPause);
+        video.removeEventListener('play', forcePause);
+        video.removeEventListener('playing', forcePause);
+        
+        if (scrollTriggerRef.current) {
+          scrollTriggerRef.current.kill();
+        }
+        
+        if (frameRef.current) {
+          cancelAnimationFrame(frameRef.current);
+        }
       };
     }
 
     return () => {
       window.removeEventListener("resize", resizeSection);
-      video.removeEventListener("loadedmetadata", setupScrollTrigger);
       video.removeEventListener('error', handleVideoError);
-      video.removeEventListener('play', forceVideoPause);
+      video.removeEventListener('play', forcePause);
+      video.removeEventListener('playing', forcePause);
       
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
