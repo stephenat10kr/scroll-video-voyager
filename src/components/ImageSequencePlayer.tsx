@@ -43,14 +43,18 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // Initialize with default format function to avoid null errors
+  // Always initialize with a valid function reference
   const [workingPathFormat, setWorkingPathFormat] = useState<(frame: number) => string>(DEFAULT_FORMAT);
   const { toast } = useToast();
   const totalFrames = 437; // Total number of frames in the sequence
   
   // Function to get the best image path based on what has worked previously
   const getImagePath = (frameNumber: number) => {
-    // Always use a valid function, even if it's the default one
+    // Ensure workingPathFormat is a function before calling it
+    if (typeof workingPathFormat !== 'function') {
+      console.error('workingPathFormat is not a function, using default format');
+      return DEFAULT_FORMAT(frameNumber);
+    }
     return workingPathFormat(frameNumber);
   };
 
@@ -81,7 +85,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       testImage.onload = () => {
         console.log(`Success: Image loaded with path format ${formatIndex}: ${path}`);
         foundWorkingFormat = true;
-        setWorkingPathFormat(format);
+        setWorkingPathFormat(() => format); // Ensure we store the function reference
         setImageError(false);
         setErrorMessage(null);
         setImageLoaded(true);
@@ -221,7 +225,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       const retryImg = new Image();
       retryImg.onload = () => {
         console.log(`Recovery success: Loaded frame ${currentFrame} with format ${tried}`);
-        setWorkingPathFormat(format);
+        setWorkingPathFormat(() => format); // Pass the function reference correctly
         setImageError(false);
         setErrorMessage(null);
         setImageLoaded(true);
@@ -243,7 +247,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   // Handle manual refresh
   const handleRefresh = () => {
     // Always set to a valid function before attempting to find a new one
-    setWorkingPathFormat(DEFAULT_FORMAT);
+    setWorkingPathFormat(() => DEFAULT_FORMAT);
     setImageError(false);
     setErrorMessage(null);
     setImageLoaded(false);
@@ -263,7 +267,11 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
 
   // Create an array of image elements for preloading adjacent frames
   const createPreloadImages = () => {
-    // Never call preload if workingPathFormat is not a function
+    // Ensure we have a valid function before calling it
+    if (typeof workingPathFormat !== 'function') {
+      return [];
+    }
+    
     const preloadFrames = [];
     // Preload next 3 frames and previous 1 frame
     for (let i = -1; i <= 3; i++) {
@@ -334,7 +342,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         {process.env.NODE_ENV === 'development' && (
           <div className="absolute bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs max-w-xs">
             <div>Current Frame: {currentFrame}</div>
-            <div>Path Format Index: {IMAGE_PATH_FORMATS.indexOf(workingPathFormat)}</div>
+            <div>Path Format Index: {typeof workingPathFormat === 'function' ? IMAGE_PATH_FORMATS.indexOf(workingPathFormat) : 'Invalid'}</div>
             <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
             <div>Origin: {window.location.origin}</div>
             <div>Pathname: {window.location.pathname}</div>
