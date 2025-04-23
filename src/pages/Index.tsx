@@ -4,6 +4,7 @@ import Video from "../components/Video";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
 import Gallery from "../components/Gallery";
+import Questions from "../components/Questions";
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
           address="45 Howard St, New York, NY 10013"
           mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013"
         />
+        <Questions title="QUESTIONS" />
       </div>
     </div>
   );
