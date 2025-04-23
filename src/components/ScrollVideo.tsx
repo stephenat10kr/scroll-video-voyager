@@ -20,11 +20,12 @@ const SCROLL_TEXTS = [
   "Culture"
 ];
 
+// Adjusted scroll values for better performance
 const SCROLL_EXTRA_PX = 2000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 800;
-// Reduce extra spacing on mobile for better performance
-const MOBILE_SCROLL_EXTRA_PX = 1000;
-const MOBILE_AFTER_VIDEO_EXTRA_HEIGHT = 400;
+// More conservative mobile values to reduce stuttering
+const MOBILE_SCROLL_EXTRA_PX = 1200;
+const MOBILE_AFTER_VIDEO_EXTRA_HEIGHT = 500;
 
 const ScrollVideo: React.FC<{
   src?: string;
@@ -48,7 +49,7 @@ const ScrollVideo: React.FC<{
   // Log the video source for debugging
   useEffect(() => {
     if (formattedSrc) {
-      console.log("Mobile optimized video URL:", formattedSrc);
+      console.log("Video URL:", formattedSrc);
     }
   }, [formattedSrc]);
 

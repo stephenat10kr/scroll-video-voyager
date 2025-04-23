@@ -28,7 +28,7 @@ const Index = () => {
           const { file } = asset.fields;
           console.log("Found video asset:", file);
           
-          // Ensure URL has https protocol for mobile compatibility
+          // Ensure URL always has https protocol
           let url = file.url;
           if (url.startsWith('//')) {
             url = `https:${url}`;

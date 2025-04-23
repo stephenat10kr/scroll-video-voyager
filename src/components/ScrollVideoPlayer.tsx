@@ -2,7 +2,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,8 +36,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const lastProgressRef = useRef(0);
-  const progressThreshold = isMobile ? 0.005 : 0.01; // More responsive on mobile
+  const progressThreshold = isMobile ? 0.002 : 0.01; // More responsive but less intensive on mobile
   const frameRef = useRef<number | null>(null);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -50,7 +50,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
-    video.pause();
+    
+    // Prevent autoplay on mobile - set initial time to 0
+    if (isMobile && isInitialMount.current) {
+      video.currentTime = 0;
+      video.pause();
+      isInitialMount.current = false;
+    }
 
     // Set playsinline and webkit-playsinline for iOS
     video.setAttribute("playsinline", "playsinline");
@@ -64,13 +70,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.setAttribute("x-webkit-airplay", "allow");
     }
 
-    // Chrome-specific optimizations
-    video.style.willChange = "contents";
-    if (navigator.userAgent.indexOf("Chrome") > -1) {
-      video.style.transform = "translate3d(0,0,0)";
-    }
-
-    // Clean up the source URL for mobile
+    // Clean up the source URL
     let cleanedSrc = "";
     if (src) {
       // Handle all URL formats to ensure they have https:
@@ -83,8 +83,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       } else {
         cleanedSrc = src;
       }
-      
-      console.log("Mobile video source:", cleanedSrc);
       
       // Explicitly set source
       video.src = cleanedSrc;
@@ -121,10 +119,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
     const segLen = calculateSegmentLength(segmentCount);
 
+    // Optimized update function to reduce stuttering
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       
       // Only update if the progress has changed significantly
+      // This reduces unnecessary updates that can cause stuttering
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -137,6 +137,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
+        // Ensure the video is paused unless we're explicitly changing its time
+        // This prevents autoplay behavior on mobile
+        if (isMobile) {
+          video.pause();
+        }
+        
         video.currentTime = progress * video.duration;
         
         // Calculate current text index
@@ -157,7 +163,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       });
     };
 
-    // Setup ScrollTrigger with improved mobile handling
+    // Improved ScrollTrigger configuration for mobile
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       
@@ -169,10 +175,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.2 : 0.1, // Smoother on mobile
+        scrub: isMobile ? 0.5 : 0.1, // Smoother on mobile with higher value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
+        markers: false, // Disable markers for performance
         onUpdate: (self: any) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
@@ -185,7 +192,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
 
     // Mobile-specific load optimizations
-    const loadTimeout = isMobile ? 1500 : 1000; // Longer timeout for mobile
+    const loadTimeout = isMobile ? 2000 : 1000; // Longer timeout for mobile
 
     // Request high priority loading for the video
     if ('fetchPriority' in HTMLImageElement.prototype) {
