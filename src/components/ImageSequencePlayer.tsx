@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useImagePathFormat } from '@/hooks/useImagePathFormat';
 import { useScrollSequence } from '@/hooks/useScrollSequence';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ImagePreloader } from './ImagePreloader';
 import { ImageDebugInfo } from './ImageDebugInfo';
 import { ImageError } from './ImageError';
@@ -31,6 +32,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [imageError, setImageError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { workingPathFormat, findWorkingPathFormat, setWorkingPathFormat } = useImagePathFormat();
+  const isMobile = useIsMobile();
   
   const getImagePath = (frameNumber: number) => {
     if (typeof workingPathFormat !== 'function') {
@@ -41,7 +43,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   };
 
   useEffect(() => {
-    console.log("ImageSequencePlayer mounted");
+    console.log("ImageSequencePlayer mounted, isMobile:", isMobile);
     
     const container = containerRef.current;
     if (!container) return;
@@ -54,13 +56,18 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     
     resizeSection();
     window.addEventListener("resize", resizeSection);
-    findWorkingPathFormat();
+    
+    // Give mobile devices a bit more time to load initial resources
+    const timeout = setTimeout(() => {
+      findWorkingPathFormat();
+    }, isMobile ? 500 : 0);
     
     return () => {
       console.log("ImageSequencePlayer unmounting");
       window.removeEventListener("resize", resizeSection);
+      clearTimeout(timeout);
     };
-  }, [SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, findWorkingPathFormat]);
+  }, [SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, findWorkingPathFormat, isMobile]);
 
   useScrollSequence({
     containerRef,
@@ -89,21 +96,30 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const handleImageLoad = () => {
     setImageLoaded(true);
     setImageError(false);
+    console.log(`Image loaded successfully: frame ${currentFrame}`);
   };
 
   const handleImageError = () => {
     console.error(`Failed to load image: ${getImagePath(currentFrame)}`);
     setImageError(true);
     setImageLoaded(false);
-    setErrorMessage("Unable to load this frame. Please try refreshing the page.");
+    setErrorMessage(`Unable to load frame ${currentFrame}. Please try refreshing the page.`);
   };
 
   const handleRefresh = () => {
-    setWorkingPathFormat(() => (frame: number) => `/Image Sequence/${String(frame).padStart(4, '0')}.webp`);
+    console.log("Trying to refresh with fixed path format");
+    // Try a simpler path format for mobile
+    const mobileOptimizedFormat = isMobile 
+      ? (frame: number) => `Image Sequence/${String(frame).padStart(4, '0')}.webp`
+      : (frame: number) => `/Image Sequence/${String(frame).padStart(4, '0')}.webp`;
+    
+    setWorkingPathFormat(() => mobileOptimizedFormat);
     setImageError(false);
     setErrorMessage(null);
     setImageLoaded(false);
-    findWorkingPathFormat();
+    
+    // Try again with optimized format
+    setTimeout(() => findWorkingPathFormat(), 300);
   };
 
   return (
@@ -134,6 +150,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           workingPathFormat={workingPathFormat}
           imageLoaded={imageLoaded}
           imageError={imageError}
+          isMobile={isMobile}
         />
       </div>
     </div>

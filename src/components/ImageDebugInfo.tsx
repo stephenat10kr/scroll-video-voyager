@@ -6,6 +6,7 @@ interface ImageDebugInfoProps {
   workingPathFormat: ((frame: number) => string) | null;
   imageLoaded: boolean;
   imageError: boolean;
+  isMobile?: boolean;
 }
 
 export const ImageDebugInfo: React.FC<ImageDebugInfoProps> = ({
@@ -13,6 +14,7 @@ export const ImageDebugInfo: React.FC<ImageDebugInfoProps> = ({
   workingPathFormat,
   imageLoaded,
   imageError,
+  isMobile,
 }) => {
   if (process.env.NODE_ENV !== 'development') return null;
 
@@ -21,6 +23,7 @@ export const ImageDebugInfo: React.FC<ImageDebugInfoProps> = ({
       <div>Current Frame: {currentFrame}</div>
       <div>Path Format Index: {typeof workingPathFormat === 'function' ? '✓' : '✗'}</div>
       <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
+      <div>Device: {isMobile ? "Mobile 📱" : "Desktop 💻"}</div>
       <div>Origin: {window.location.origin}</div>
       <div>Pathname: {window.location.pathname}</div>
     </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SequenceImageProps {
   currentFrame: number;
@@ -16,16 +17,26 @@ export const SequenceImage: React.FC<SequenceImageProps> = ({
   onError,
   imageLoaded,
 }) => {
+  const isMobile = useIsMobile();
+  
+  // Mobile devices may need different styling
+  const objectFit = isMobile ? "contain" : "cover";
+  
   return (
     <>
       <img
         key={`frame-${currentFrame}`}
         src={getImagePath(currentFrame)}
         alt={`Frame ${currentFrame}`}
-        className="w-full h-full object-cover"
+        className={`w-full h-full ${isMobile ? 'max-h-screen' : ''}`}
+        style={{ 
+          objectFit, 
+          opacity: imageLoaded ? 1 : 0,
+          transition: "opacity 0.2s ease"
+        }}
         onLoad={onLoad}
         onError={onError}
-        style={{ opacity: imageLoaded ? 1 : 0 }}
+        loading="eager"
       />
       
       {!imageLoaded && (
