@@ -66,7 +66,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
       >
         <video
           ref={videoRef}
-          src={secureVideoSrc}
+          src={secureVideoSrc || VIDEO_SRC} // Add fallback to VIDEO_SRC constant
           playsInline
           preload={isMobile ? "metadata" : "auto"}
           loop={false}
@@ -82,6 +82,7 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           }
           style={{
             minHeight: "100vh",
+            willChange: "contents",
             ...(isAfterVideo
               ? {
                   top: `calc(${SCROLL_EXTRA_PX}px)`,
