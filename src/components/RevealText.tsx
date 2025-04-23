@@ -24,13 +24,18 @@ const RevealText = () => {
       }
     });
 
-    // Add each line to the timeline with a staggered start
+    // Add each line to the timeline with one after another
+    // Each line will complete before the next one starts
     lines.forEach((line, index) => {
-      tl.to(line, {
-        "--mask-position": "100%",
-        duration: 1, // Duration relative to the timeline
-        ease: "none",
-      }, index * 0.5); // Staggered start time for each line
+      tl.fromTo(line, 
+        { "--mask-position": "0%" },
+        { 
+          "--mask-position": "100%", 
+          duration: 1,
+          ease: "none",
+        },
+        index > 0 ? ">" : 0 // Start after previous animation completes
+      );
     });
 
     return () => {
