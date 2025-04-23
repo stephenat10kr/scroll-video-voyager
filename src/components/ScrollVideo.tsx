@@ -35,7 +35,7 @@ const ScrollVideo: React.FC<{
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const isMobile = useIsMobile();
-  const { toast } = useToast(); // Correctly destructure to get the toast function
+  const { toast } = useToast(); // Correctly destructure the toast function
   
   useEffect(() => {
     // Log environment info for debugging
