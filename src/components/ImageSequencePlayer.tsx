@@ -3,6 +3,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useToast } from '@/hooks/use-toast';
+import { useImagePathFormat } from '@/hooks/useImagePathFormat';
+import { ImagePreloader } from './ImagePreloader';
+import { ImageDebugInfo } from './ImageDebugInfo';
+import { ImageError } from './ImageError';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,19 +19,7 @@ type ImageSequencePlayerProps = {
   AFTER_VIDEO_EXTRA_HEIGHT: number;
 };
 
-// Define default image paths without requiring toString() on potentially null values
-const IMAGE_PATH_FORMATS = [
-  (frame: number) => `/Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `/Image Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `./Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `./Image Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `/Image-Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `Image%20Sequence/${String(frame).padStart(4, '0')}.webp`,
-  (frame: number) => `Image Sequence/${String(frame).padStart(4, '0')}.webp`
-];
-
-// Default format to use before finding the working one
-const DEFAULT_FORMAT = IMAGE_PATH_FORMATS[0];
+const TOTAL_FRAMES = 437;
 
 const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   segmentCount,
@@ -43,82 +35,16 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // Always initialize with a valid function reference
-  const [workingPathFormat, setWorkingPathFormat] = useState<(frame: number) => string>(DEFAULT_FORMAT);
-  const { toast } = useToast();
-  const totalFrames = 437; // Total number of frames in the sequence
+  const { workingPathFormat, findWorkingPathFormat, setWorkingPathFormat } = useImagePathFormat();
   
-  // Function to get the best image path based on what has worked previously
   const getImagePath = (frameNumber: number) => {
-    // Ensure workingPathFormat is a function before calling it
     if (typeof workingPathFormat !== 'function') {
       console.error('workingPathFormat is not a function, using default format');
-      return DEFAULT_FORMAT(frameNumber);
+      return `/Image Sequence/${String(frameNumber).padStart(4, '0')}.webp`;
     }
     return workingPathFormat(frameNumber);
   };
 
-  // Function to test all path formats to find one that works
-  const findWorkingPathFormat = (callback?: () => void) => {
-    let foundWorkingFormat = false;
-    let formatIndex = 0;
-    
-    // Function to test the next format
-    const testNextFormat = () => {
-      if (formatIndex >= IMAGE_PATH_FORMATS.length) {
-        if (!foundWorkingFormat) {
-          setErrorMessage("Unable to load images. Please check your internet connection and try again.");
-          setImageError(true);
-          toast({
-            title: "Image Loading Error",
-            description: "Failed to load image sequence. Please try refreshing the page.",
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-      
-      const format = IMAGE_PATH_FORMATS[formatIndex];
-      const path = format(1); // Test with first frame
-      
-      const testImage = new Image();
-      testImage.onload = () => {
-        console.log(`Success: Image loaded with path format ${formatIndex}: ${path}`);
-        foundWorkingFormat = true;
-        setWorkingPathFormat(() => format); // Ensure we store the function reference
-        setImageError(false);
-        setErrorMessage(null);
-        setImageLoaded(true);
-        
-        toast({
-          title: "Images Loaded",
-          description: "Image sequence is ready for scrolling",
-        });
-        
-        if (callback) callback();
-        
-        // Prefetch first few frames for smoother experience
-        for (let i = 2; i <= 5; i++) {
-          const img = new Image();
-          img.src = format(i);
-        }
-      };
-      
-      testImage.onerror = () => {
-        console.error(`Failed to load test image with format ${formatIndex}: ${path}`);
-        formatIndex++;
-        // Try next format
-        testNextFormat();
-      };
-      
-      testImage.src = path;
-    };
-    
-    // Start testing formats
-    testNextFormat();
-  };
-  
-  // Initialize the scroll trigger and test image paths
   useEffect(() => {
     console.log("ImageSequencePlayer mounted");
     
@@ -137,20 +63,15 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     resizeSection();
     window.addEventListener("resize", resizeSection);
 
-    // Set up scroll trigger
     const segLen = 1 / (segmentCount + 1);
 
     const updateScroll = (progress: number) => {
-      if (Math.abs(progress - lastProgressRef.current) < 0.01) {
-        return;
-      }
+      if (Math.abs(progress - lastProgressRef.current) < 0.01) return;
+      
       lastProgressRef.current = progress;
-
-      // Calculate the current frame based on scroll progress
-      const frameIndex = Math.min(Math.floor(progress * totalFrames) + 1, totalFrames);
+      const frameIndex = Math.min(Math.floor(progress * TOTAL_FRAMES) + 1, TOTAL_FRAMES);
       setCurrentFrame(frameIndex);
 
-      // Update text indices based on scroll
       let textIdx: number | null = null;
       for (let i = 0; i < segmentCount; ++i) {
         if (progress >= segLen * i && progress < segLen * (i + 1)) {
@@ -164,8 +85,6 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       onTextIndexChange(textIdx);
       onAfterVideoChange(progress >= 1);
     };
-
-    console.log("Creating ScrollTrigger in ImageSequencePlayer");
     
     scrollTriggerRef.current = ScrollTrigger.create({
       trigger: container,
@@ -184,10 +103,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         updateScroll(progress);
       }
     });
-
-    console.log("ScrollTrigger created in ImageSequencePlayer");
     
-    // Find a working image path format
     findWorkingPathFormat();
     
     return () => {
@@ -197,126 +113,37 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         scrollTriggerRef.current.kill();
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange, toast]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange, findWorkingPathFormat]);
 
-  // Handle image load event
   const handleImageLoad = () => {
     setImageLoaded(true);
     setImageError(false);
   };
 
-  // Handle image error event and try to recover
   const handleImageError = () => {
     console.error(`Failed to load image: ${getImagePath(currentFrame)}`);
-    
-    // Try all formats for this specific frame
-    let tried = 0;
-    const tryNextFormat = () => {
-      if (tried >= IMAGE_PATH_FORMATS.length) {
-        setImageError(true);
-        setImageLoaded(false);
-        setErrorMessage("Unable to load this frame. Please try refreshing the page.");
-        return;
-      }
-      
-      const format = IMAGE_PATH_FORMATS[tried];
-      const path = format(currentFrame);
-      
-      const retryImg = new Image();
-      retryImg.onload = () => {
-        console.log(`Recovery success: Loaded frame ${currentFrame} with format ${tried}`);
-        setWorkingPathFormat(() => format); // Pass the function reference correctly
-        setImageError(false);
-        setErrorMessage(null);
-        setImageLoaded(true);
-        // Force re-render with new path
-        setCurrentFrame(prev => prev);
-      };
-      
-      retryImg.onerror = () => {
-        tried++;
-        tryNextFormat();
-      };
-      
-      retryImg.src = path;
-    };
-    
-    tryNextFormat();
+    setImageError(true);
+    setImageLoaded(false);
+    setErrorMessage("Unable to load this frame. Please try refreshing the page.");
   };
 
-  // Handle manual refresh
   const handleRefresh = () => {
-    // Always set to a valid function before attempting to find a new one
-    setWorkingPathFormat(() => DEFAULT_FORMAT);
+    setWorkingPathFormat(() => (frame: number) => `/Image Sequence/${String(frame).padStart(4, '0')}.webp`);
     setImageError(false);
     setErrorMessage(null);
     setImageLoaded(false);
-    
-    // Try to find a working path format again
-    findWorkingPathFormat(() => {
-      // Force re-render after finding format
-      setCurrentFrame(1);
-    });
-    
-    // Show toast for better UX
-    toast({
-      title: "Refreshing",
-      description: "Attempting to reload image sequence...",
-    });
-  };
-
-  // Create an array of image elements for preloading adjacent frames
-  const createPreloadImages = () => {
-    // Ensure we have a valid function before calling it
-    if (typeof workingPathFormat !== 'function') {
-      return [];
-    }
-    
-    const preloadFrames = [];
-    // Preload next 3 frames and previous 1 frame
-    for (let i = -1; i <= 3; i++) {
-      if (i === 0) continue; // Skip current frame
-      
-      const frameNum = currentFrame + i;
-      if (frameNum >= 1 && frameNum <= totalFrames) {
-        preloadFrames.push(
-          <img 
-            key={`preload-${frameNum}`}
-            src={getImagePath(frameNum)}
-            alt=""
-            className="hidden"
-            aria-hidden="true"
-          />
-        );
-      }
-    }
-    return preloadFrames;
+    findWorkingPathFormat();
   };
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black flex items-center justify-center">
       <div className="relative w-full h-full">
         {errorMessage ? (
-          <div className="w-full h-full flex items-center justify-center text-white text-center p-4">
-            <div className="bg-black/80 p-6 rounded-lg max-w-md">
-              <h3 className="text-xl font-bold mb-4">Image Loading Error</h3>
-              <p className="mb-4">{errorMessage}</p>
-              <button 
-                className="px-4 py-2 bg-white text-black rounded-md font-medium flex items-center justify-center mx-auto"
-                onClick={handleRefresh}
-              >
-                <span className="mr-2">Refresh</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.168 8A10.003 10.003 0 0 0 12 2C6.477 2 2 6.477 2 12s4.477 10 10 10c4.4 0 8.14-2.833 9.5-6.78" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 8h5.4V2.6" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <ImageError message={errorMessage} onRefresh={handleRefresh} />
         ) : (
           <>
             <img
-              key={`frame-${currentFrame}`} // Key changes will force re-render when frame changes
+              key={`frame-${currentFrame}`}
               src={getImagePath(currentFrame)}
               alt={`Frame ${currentFrame}`}
               className="w-full h-full object-cover"
@@ -331,23 +158,20 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
               </div>
             )}
             
-            {/* Preload adjacent frames for smoother scrolling */}
-            <div aria-hidden="true" className="sr-only">
-              {createPreloadImages()}
-            </div>
+            <ImagePreloader
+              currentFrame={currentFrame}
+              getImagePath={getImagePath}
+              totalFrames={TOTAL_FRAMES}
+            />
           </>
         )}
         
-        {/* Display debugging info in development only */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="absolute bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs max-w-xs">
-            <div>Current Frame: {currentFrame}</div>
-            <div>Path Format Index: {typeof workingPathFormat === 'function' ? IMAGE_PATH_FORMATS.indexOf(workingPathFormat) : 'Invalid'}</div>
-            <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
-            <div>Origin: {window.location.origin}</div>
-            <div>Pathname: {window.location.pathname}</div>
-          </div>
-        )}
+        <ImageDebugInfo
+          currentFrame={currentFrame}
+          workingPathFormat={workingPathFormat}
+          imageLoaded={imageLoaded}
+          imageError={imageError}
+        />
       </div>
     </div>
   );
