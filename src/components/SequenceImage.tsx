@@ -18,15 +18,21 @@ export const SequenceImage: React.FC<SequenceImageProps> = ({
   imageLoaded,
 }) => {
   const isMobile = useIsMobile();
+  const imagePath = getImagePath(currentFrame);
   
-  // Mobile devices may need different styling
+  // Log the path being used
+  React.useEffect(() => {
+    console.log(`Loading frame ${currentFrame} from path: ${imagePath}`);
+  }, [currentFrame, imagePath]);
+  
+  // Mobile devices need different styling
   const objectFit = isMobile ? "contain" : "cover";
   
   return (
     <>
       <img
         key={`frame-${currentFrame}`}
-        src={getImagePath(currentFrame)}
+        src={imagePath}
         alt={`Frame ${currentFrame}`}
         className={`w-full h-full ${isMobile ? 'max-h-screen' : ''}`}
         style={{ 

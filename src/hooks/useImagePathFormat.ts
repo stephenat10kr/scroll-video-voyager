@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -18,16 +18,36 @@ const IMAGE_PATH_FORMATS = [
   (frame: number) => `./Image Sequence/${String(frame).padStart(4, '0')}.webp`,
   (frame: number) => `/Image-Sequence/${String(frame).padStart(4, '0')}.webp`,
   (frame: number) => `Image-Sequence/${String(frame).padStart(4, '0')}.webp`,
+  
+  // Additional fallbacks for mobile browsers
+  (frame: number) => `assets/Image Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => `../Image Sequence/${String(frame).padStart(4, '0')}.webp`,
+  (frame: number) => window.location.origin + `/Image Sequence/${String(frame).padStart(4, '0')}.webp`,
 ];
 
 export const DEFAULT_FORMAT = IMAGE_PATH_FORMATS[0];
 
 export const useImagePathFormat = () => {
-  const [workingPathFormat, setWorkingPathFormat] = useState<(frame: number) => string>(() => DEFAULT_FORMAT);
+  const [workingPathFormat, setWorkingPathFormat] = useState<(frame: number) => string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  // Reset path format when mobile status changes
+  useEffect(() => {
+    console.log("Mobile detection changed:", isMobile);
+    if (workingPathFormat === null) {
+      setWorkingPathFormat(() => DEFAULT_FORMAT);
+    }
+  }, [isMobile, workingPathFormat]);
+
   const findWorkingPathFormat = (callback?: () => void) => {
+    if (isSearching) {
+      console.log("Already searching for a working path format");
+      return;
+    }
+    
+    setIsSearching(true);
     let foundWorkingFormat = false;
     let formatIndex = 0;
     
@@ -43,6 +63,7 @@ export const useImagePathFormat = () => {
       console.log(`Testing path format ${formatIndex + 1}/${reorderedFormats.length}, mobile: ${isMobile}`);
       
       if (formatIndex >= reorderedFormats.length) {
+        setIsSearching(false);
         if (!foundWorkingFormat) {
           console.error("All image path formats failed");
           toast({
@@ -63,6 +84,7 @@ export const useImagePathFormat = () => {
         console.log(`Format ${formatIndex + 1} worked: ${path}`);
         foundWorkingFormat = true;
         setWorkingPathFormat(() => format);
+        setIsSearching(false);
         
         toast({
           title: "Images Loaded",
@@ -82,10 +104,14 @@ export const useImagePathFormat = () => {
       testImage.onerror = () => {
         console.warn(`Format ${formatIndex + 1} failed: ${path}`);
         formatIndex++;
-        testNextFormat();
+        // Add a slight delay to prevent overwhelming the browser
+        setTimeout(testNextFormat, 100);
       };
       
-      testImage.src = path;
+      // Set a timeout to prevent getting stuck
+      setTimeout(() => {
+        testImage.src = path;
+      }, isMobile ? 200 : 0); // Slight delay for mobile
     };
     
     testNextFormat();
@@ -94,6 +120,7 @@ export const useImagePathFormat = () => {
   return {
     workingPathFormat,
     findWorkingPathFormat,
-    setWorkingPathFormat
+    setWorkingPathFormat,
+    isSearching
   };
 };
