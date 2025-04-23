@@ -12,20 +12,25 @@ const RevealText = () => {
     if (!text) return;
 
     const lines = text.querySelectorAll('.line-reveal');
+    
+    // Create a timeline for sequenced animations
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: text,
+        start: "top 80%",
+        end: "bottom 20%",
+        scrub: 1,
+        markers: false,
+      }
+    });
 
+    // Add each line to the timeline with a staggered start
     lines.forEach((line, index) => {
-      gsap.to(line, {
+      tl.to(line, {
         "--mask-position": "100%",
-        duration: 2,
+        duration: 1, // Duration relative to the timeline
         ease: "none",
-        scrollTrigger: {
-          trigger: line,
-          start: "top 80%",
-          end: "bottom 60%",
-          scrub: true,
-          markers: false,
-        },
-      });
+      }, index * 0.5); // Staggered start time for each line
     });
 
     return () => {
@@ -63,4 +68,3 @@ const RevealText = () => {
 };
 
 export default RevealText;
-
