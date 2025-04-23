@@ -2,24 +2,44 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SplitType from 'split-type';
+
 gsap.registerPlugin(ScrollTrigger);
 
 const RevealText = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lineRefs = useRef<HTMLSpanElement[]>([]);
+  const textRef = useRef<HTMLParagraphElement>(null);
 
-  // Split text into lines for individual animation
   const text = "Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.";
-  const lines = text.split('. ');
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || lineRefs.current.length === 0) return;
+    const textElement = textRef.current;
+    if (!container || !textElement) return;
 
-    // Create a timeline for each line
-    lineRefs.current.forEach((lineRef, index) => {
-      const gradientElement = lineRef.querySelector('.gradient-overlay');
-      
+    // Split text into lines based on actual line breaks
+    const splitText = new SplitType(textElement, {
+      types: 'lines',
+      lineClass: 'split-line'
+    });
+
+    // Create wrapper for each line for gradient overlay
+    splitText.lines?.forEach((line) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'relative';
+      line.parentNode?.insertBefore(wrapper, line);
+      wrapper.appendChild(line);
+
+      // Create gradient overlay
+      const gradient = document.createElement('div');
+      gradient.className = 'gradient-overlay absolute inset-0 bg-gradient-to-r from-[#9b87f5] via-[#8B5CF6] to-[#1EAEDB] mix-blend-overlay pointer-events-none';
+      gradient.style.width = '0%';
+      wrapper.appendChild(gradient);
+    });
+
+    // Animate each line
+    splitText.lines?.forEach((line, index) => {
+      const gradientElement = line.parentNode?.querySelector('.gradient-overlay');
       if (!gradientElement) return;
 
       const tl = gsap.timeline({
@@ -31,8 +51,8 @@ const RevealText = () => {
         }
       });
 
-      // Animate each line from hidden to visible
-      tl.fromTo(lineRef, {
+      // Animate line from hidden to visible
+      tl.fromTo(line, {
         y: 50,
         opacity: 0
       }, {
@@ -41,7 +61,7 @@ const RevealText = () => {
         duration: 0.5
       });
 
-      // Animate gradient width from 0 to 100%
+      // Animate gradient width
       tl.fromTo(gradientElement, {
         width: "0%"
       }, {
@@ -52,28 +72,19 @@ const RevealText = () => {
 
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      splitText.revert();
     };
   }, []);
 
   return (
     <div className="w-full bg-black py-24">
-      <div ref={containerRef} className="max-w-[90%] mx-auto space-y-6">
-        {lines.map((line, index) => (
-          <div key={index} className="relative overflow-hidden">
-            <span 
-              ref={el => {
-                if (el) lineRefs.current[index] = el;
-              }}
-              className="block text-white font-gt-super text-7xl opacity-0 transform translate-y-[50px]"
-            >
-              {line}{index < lines.length - 1 ? '.' : ''}
-              <div 
-                className="gradient-overlay absolute inset-0 bg-gradient-to-r from-[#9b87f5] via-[#8B5CF6] to-[#1EAEDB] mix-blend-overlay pointer-events-none"
-                style={{ width: "0%" }}
-              />
-            </span>
-          </div>
-        ))}
+      <div ref={containerRef} className="max-w-[90%] mx-auto">
+        <p 
+          ref={textRef} 
+          className="text-white font-gt-super text-7xl opacity-0"
+        >
+          {text}
+        </p>
       </div>
     </div>
   );
