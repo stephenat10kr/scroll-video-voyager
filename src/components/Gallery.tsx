@@ -36,7 +36,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
               <CarouselNext className="text-white" />
             </Carousel>
           </div>
-          <div className="col-span-12 space-y-6 text-white">
+          <div className="col-start-5 col-end-13 space-y-6 text-white">
             <p className="text-xl">{description}</p>
             <a 
               href={mapUrl}
@@ -54,3 +54,4 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
 };
 
 export default Gallery;
+
