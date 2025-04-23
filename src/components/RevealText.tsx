@@ -13,20 +13,22 @@ const RevealText = () => {
 
     const lines = text.querySelectorAll('.line-reveal');
 
-    lines.forEach((line) => {
-      const tl = gsap.timeline({
+    gsap.set(lines, {
+      backgroundPosition: "0% 0%",
+    });
+
+    lines.forEach((line, index) => {
+      gsap.to(line, {
+        backgroundPosition: "100% 0%",
+        duration: 1,
+        ease: "none",
         scrollTrigger: {
           trigger: line,
           start: "top center",
           end: "bottom center",
-          scrub: 1
-        }
-      });
-
-      tl.to(line, {
-        backgroundPosition: "0% 0%",
-        duration: 1,
-        ease: "none"
+          scrub: 1,
+          markers: true,
+        },
       });
     });
 
@@ -46,13 +48,14 @@ const RevealText = () => {
             key={index}
             className="line-reveal text-7xl font-gt-super relative mb-4 last:mb-0"
             style={{
+              color: "white",
               backgroundImage: "linear-gradient(to right, #FF6B6B, #FFE66D)",
-              backgroundSize: "200% 100%",
-              backgroundPosition: "100% 0%",
+              backgroundSize: "100% 100%",
+              backgroundPosition: "0% 0%",
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              color: "transparent"
+              backgroundRepeat: "no-repeat",
             }}
           >
             {line}{index < lines.length - 1 ? '.' : ''}
