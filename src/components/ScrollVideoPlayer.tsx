@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,14 +34,39 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const lastProgressRef = useRef(0);
   const progressThreshold = 0.01; // Only update if progress change exceeds this threshold
   const frameRef = useRef<number | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
 
+    // Mobile-specific video optimization
+    if (isMobile) {
+      console.log("[ScrollVideo] Mobile device detected, applying mobile optimizations");
+      
+      // Force autoplay and inline playback for mobile
+      video.playsInline = true;
+      video.muted = true;
+      video.autoplay = true;
+      
+      // For iOS Safari specifically
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      
+      // Ensure video starts playing as soon as it can
+      video.addEventListener('canplaythrough', () => {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.error("[ScrollVideo] Mobile play error:", err);
+          });
+        }
+      }, { once: true });
+    }
+
     // Optimize video element
-    video.controls = false;
+    video.controls = isMobile ? true : false;
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
@@ -64,14 +90,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         : undefined;
 
     function logSource(type: string, url: string) {
-      // eslint-disable-next-line no-console
       console.log(`[ScrollVideo] Assigned ${type} video source: ${url}`);
     }
 
     // Only attempt to assign new source if not already loaded
     async function assignSource() {
       if (!origSrc) {
-        // eslint-disable-next-line no-console
         console.log("[ScrollVideo] No src provided.");
         return;
       }
@@ -224,7 +248,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };
