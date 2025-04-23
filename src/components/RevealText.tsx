@@ -67,10 +67,8 @@ const RevealText = () => {
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             lineHeight: "1.2",
-            whiteSpace: "normal",
-            wordBreak: "keep-all",
-            overflowWrap: "normal",
-            maxWidth: "100%"
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word"
           }}
         >
           Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
