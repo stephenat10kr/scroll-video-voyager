@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
+import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -18,11 +19,8 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const isMobile = useIsMobile();
-
-  // Add a dummy state for text index tracking since we don't need it anymore
-  // but the component still requires it
   const [textIndex, setTextIndex] = useState<number | null>(null);
+  const isMobile = useIsMobile();
 
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
 
@@ -54,7 +52,7 @@ const ScrollVideo: React.FC<{
       <ScrollVideoPlayer
         src={secureVideoSrc}
         segmentCount={5}
-        onTextIndexChange={setTextIndex} // Pass the required prop
+        onTextIndexChange={setTextIndex}
         onAfterVideoChange={setIsAfterVideo}
         videoRef={videoRef}
         containerRef={containerRef}
@@ -77,6 +75,17 @@ const ScrollVideo: React.FC<{
           }}
         />
       </ScrollVideoPlayer>
+
+      <ScrollVideoTextOverlay
+        texts={[
+          "Welcome to Lightning Society",
+          "where",
+          "curiosity",
+          "meets",
+          "culture"
+        ]}
+        currentTextIndex={textIndex}
+      />
 
       {!isAfterVideo && (
         <ScrollVideoScrollHint />
