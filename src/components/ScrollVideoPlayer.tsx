@@ -16,6 +16,7 @@ type ScrollVideoPlayerProps = {
   containerRef: React.RefObject<HTMLDivElement>;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
+  debugLog?: (message: string, data?: any) => void;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -28,6 +29,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   containerRef,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
+  debugLog = () => {},
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -37,11 +39,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = isMobile ? 0.03 : 0.01;
   const frameRef = useRef<number | null>(null);
   const attemptedSourcesRef = useRef<Set<string>>(new Set());
+  const scrollStartTimestampRef = useRef<number>(0);
 
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
-    if (!video || !container) return;
+    if (!video || !container) {
+      debugLog("Missing video or container refs");
+      return;
+    }
 
     // Configure video properties
     video.controls = false;
@@ -56,6 +62,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.style.backfaceVisibility = "hidden";
     video.style.webkitBackfaceVisibility = "hidden";
 
+    debugLog("Video element configured", {
+      playsInline: video.playsInline,
+      muted: video.muted,
+      preload: video.preload
+    });
+
     let srcAssigned = false;
 
     async function tryVideoSource(sourceUrl: string, sourceType: string): Promise<boolean> {
@@ -64,19 +76,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       attemptedSourcesRef.current.add(sourceUrl);
-      console.log(`[ScrollVideo] Trying ${sourceType} video source: ${sourceUrl}`);
+      debugLog(`Trying ${sourceType} video source: ${sourceUrl}`);
       
       try {
         const resp = await fetch(sourceUrl, { method: "HEAD" });
+        debugLog(`Source ${sourceType} fetch status: ${resp.status}`, {
+          url: sourceUrl,
+          headers: Array.from(resp.headers.entries())
+        });
+        
         if (resp.ok) {
           if (video.src !== sourceUrl) {
             video.src = sourceUrl;
-            console.log(`[ScrollVideo] Assigned ${sourceType} video source: ${sourceUrl}`);
+            debugLog(`Assigned ${sourceType} video source: ${sourceUrl}`);
           }
           return true;
         }
       } catch (err) {
-        console.log(`[ScrollVideo] Failed to load ${sourceType} source: ${err}`);
+        debugLog(`Failed to load ${sourceType} source`, err);
       }
       
       return false;
@@ -84,7 +101,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     async function assignSource() {
       if (!src) {
-        console.log("[ScrollVideo] No src provided.");
+        debugLog("No src provided.");
         return;
       }
       
@@ -99,15 +116,37 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         if (srcAssigned) return;
       }
       
-      // Try WebM format if supported by browser
-      const webmSrc = src.replace(/\.(mp4|mov)$/i, ".webm");
-      if (video.canPlayType("video/webm")) {
-        srcAssigned = await tryVideoSource(webmSrc, "WebM");
+      // For mobile, prioritize MP4 over WebM (better compatibility)
+      if (isMobile) {
+        const mp4Src = src.replace(/\.(webm|mov)$/i, ".mp4");
+        srcAssigned = await tryVideoSource(mp4Src, "MP4");
         if (srcAssigned) return;
+      } else {
+        // Try WebM format if supported by browser (for desktop)
+        const webmSrc = src.replace(/\.(mp4|mov)$/i, ".webm");
+        if (video.canPlayType("video/webm")) {
+          srcAssigned = await tryVideoSource(webmSrc, "WebM");
+          if (srcAssigned) return;
+        }
       }
       
       // Fall back to original source
-      await tryVideoSource(src, "Original");
+      srcAssigned = await tryVideoSource(src, "Original");
+      
+      // If still no source assigned, try fallback formats
+      if (!srcAssigned) {
+        debugLog("All source attempts failed, trying alternate formats");
+        
+        // Try .mp4 version
+        if (!src.endsWith(".mp4")) {
+          await tryVideoSource(src.replace(/\.(webm|mov)$/i, ".mp4"), "MP4 fallback");
+        }
+        
+        // If in public directory, try directly
+        if (src.includes("contentful.com")) {
+          await tryVideoSource("/videos/HeroTest_1-720.mp4", "Local MP4");
+        }
+      }
     }
 
     assignSource();
@@ -116,6 +155,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const resizeSection = () => {
       if (container) {
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        debugLog("Container resized", {
+          height: container.style.height,
+          windowHeight: window.innerHeight
+        });
       }
     };
     resizeSection();
@@ -125,10 +168,27 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       return 1 / (segments + 1);
     };
     const segLen = calculateSegmentLength(segmentCount);
+    debugLog("Segment length calculated", { segLen, segmentCount });
 
     // Update video frame based on scroll position
     const updateVideoFrame = (progress: number) => {
-      if (!video.duration) return;
+      if (!video.duration) {
+        debugLog("Video has no duration yet");
+        return;
+      }
+      
+      // Log performance for mobile
+      if (isMobile) {
+        const now = performance.now();
+        if (now - scrollStartTimestampRef.current > 500) {
+          debugLog("Scroll performance check", {
+            timeSinceLastUpdate: now - scrollStartTimestampRef.current,
+            progress,
+            lastProgress: lastProgressRef.current
+          });
+          scrollStartTimestampRef.current = now;
+        }
+      }
       
       // Optimize frame updates by only updating when significant change occurs
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
@@ -146,6 +206,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       frameRef.current = requestAnimationFrame(() => {
         try {
           // Update video time based on scroll position
+          if (isMobile) {
+            debugLog(`Setting time to ${newTime.toFixed(2)} (${(progress * 100).toFixed(1)}%)`);
+          }
+          
           video.currentTime = newTime;
           
           // Calculate which text to display
@@ -163,17 +227,32 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           
           onTextIndexChange(textIdx);
           onAfterVideoChange(progress >= 1);
+          
+          if (isMobile && textIdx !== null) {
+            debugLog(`At text segment: ${textIdx + 1} of ${segmentCount}`);
+          }
         } catch (err) {
-          console.error("[ScrollVideo] Frame update error:", err);
+          debugLog("Frame update error", err);
         }
       });
     };
 
     // Set up scroll trigger for controlling video playback
     const setupScrollTrigger = () => {
-      if (!video.duration) return;
+      if (!video.duration) {
+        debugLog("Video has no duration, can't setup ScrollTrigger");
+        return;
+      }
       
-      if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      if (scrollTriggerRef.current) {
+        debugLog("Killing existing ScrollTrigger");
+        scrollTriggerRef.current.kill();
+      }
+      
+      debugLog("Creating ScrollTrigger", {
+        scrubSetting: isMobile ? 0.3 : 0.1,
+        containerHeight: container.style.height
+      });
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
@@ -185,35 +264,52 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         preventOverlaps: true,
         onUpdate: (self) => {
           const progress = self.progress;
-          if (isNaN(progress)) return;
+          if (isNaN(progress)) {
+            debugLog("Invalid progress value", { progress });
+            return;
+          }
           updateVideoFrame(progress);
+        },
+        onToggle: ({ isActive }) => {
+          debugLog(`ScrollTrigger toggle: ${isActive ? 'ACTIVE' : 'INACTIVE'}`);
+        },
+        onRefresh: () => {
+          debugLog("ScrollTrigger refreshed");
         }
       });
       
       setIsLoaded(true);
+      debugLog("ScrollTrigger setup complete");
     };
 
     // Use preload attribute which is standard
     video.preload = "auto";
 
     // Set up video initialization
+    debugLog(`Video readyState: ${video.readyState}`);
     if (video.readyState >= 2) {
+      debugLog("Video metadata already loaded");
       setupScrollTrigger();
     } else {
-      video.addEventListener("loadedmetadata", setupScrollTrigger);
+      debugLog("Waiting for video metadata to load");
+      video.addEventListener("loadedmetadata", () => {
+        debugLog("Video metadata loaded");
+        setupScrollTrigger();
+      });
       
       // Fallback initialization if metadata takes too long
       const timeoutId = setTimeout(() => {
         if (!isLoaded && video.readyState >= 1) {
-          console.log("[ScrollVideo] Using fallback initialization");
+          debugLog("Using fallback initialization after timeout");
           setupScrollTrigger();
         }
-      }, 1000);
+      }, 2000); // Reduced from 1000 to 2000ms to give more time on slow connections
       
       return () => clearTimeout(timeoutId);
     }
 
     return () => {
+      debugLog("ScrollVideoPlayer cleanup");
       window.removeEventListener("resize", resizeSection);
       video.removeEventListener("loadedmetadata", setupScrollTrigger);
       if (scrollTriggerRef.current) {
@@ -223,7 +319,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile, debugLog]);
 
   return <>{children}</>;
 };
