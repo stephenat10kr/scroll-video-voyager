@@ -31,8 +31,8 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
           ].join(" ")}
           style={{
             zIndex: idx === currentTextIndex ? 2 : 1,
-            pointerEvents: "none"
-            // Removed textShadow property
+            pointerEvents: "none",
+            textShadow: "0 2px 4px rgba(0,0,0,0.5)"
           }}
         >
           {text}
