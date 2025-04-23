@@ -1,5 +1,10 @@
 
 import React, { useRef, useEffect, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
 
 // Placeholder video (user can replace with their own!)
 const VIDEO_SRC =
@@ -25,127 +30,104 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTextIndex, setCurrentTextIndex] = useState<number | null>(0);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
-  const lastScrollProgress = useRef(0);
-  const frameRef = useRef<number | null>(null);
+  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
 
+  // Set up GSAP ScrollTrigger for smooth video scrubbing
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    const container = containerRef.current;
+    
+    if (!video || !container) return;
 
-    // Better playback performance settings for Chrome
+    // Better playback performance settings
     video.controls = false;
-    video.pause();
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
-
+    video.pause();
+    
     // Chrome-specific optimizations
     video.style.willChange = "contents";
-    
-    // On Chrome, hardware acceleration can help
     if (navigator.userAgent.indexOf("Chrome") > -1) {
       video.style.transform = "translateZ(0)";
     }
 
-    let duration = 0;
-    const handleLoaded = () => {
-      duration = video.duration;
-    };
-    video.addEventListener("loadedmetadata", handleLoaded);
-
-    // Optimized scroll handler with throttling via requestAnimationFrame
-    const handleScroll = () => {
-      if (frameRef.current !== null) {
-        return; // Skip if we're already processing a frame
+    // Resize the container to allow for scrolling
+    const resizeSection = () => {
+      if (container) {
+        container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
+    };
+    
+    resizeSection();
+    window.addEventListener("resize", resizeSection);
+
+    // Wait for video metadata to load
+    const setupScrollTrigger = () => {
+      if (!video.duration) return;
       
-      frameRef.current = requestAnimationFrame(() => {
-        const section = containerRef.current;
-        if (!section || !video.duration) {
-          frameRef.current = null;
-          return;
-        }
-        
-        const windowH = window.innerHeight;
-        const scrollY =
-          window.scrollY ||
-          window.pageYOffset ||
-          document.documentElement.scrollTop;
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight - windowH;
+      // Clear any existing ScrollTrigger
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+      }
 
-        let scrollProgress =
-          (scrollY - sectionTop) / (sectionHeight <= 0 ? 1 : sectionHeight);
-
-        scrollProgress = Math.min(Math.max(scrollProgress, 0), 1);
-
-        // Only update if progress changed significantly (reduces jank on Chrome)
-        const progressDelta = Math.abs(scrollProgress - lastScrollProgress.current);
-        if (progressDelta > 0.001) {
+      // Create GSAP ScrollTrigger for smooth video scrubbing
+      scrollTriggerRef.current = ScrollTrigger.create({
+        trigger: container,
+        start: "top top",
+        end: `+=${SCROLL_EXTRA_PX}`,
+        scrub: true, // Smooth scrubbing
+        onUpdate: (self) => {
+          // Smoothly update video time based on scroll progress
+          const progress = self.progress;
+          if (isNaN(progress) || !video.duration) return;
+          
           // Use N+1 segments for buffer, where N = number of texts
           const SEGMENTS = SCROLL_TEXTS.length + 1;
           const segLen = 1 / SEGMENTS;
 
-          // Determine which text index to show based on segment.
-          // If in last segment, don't show any text
+          // Determine which text index to show based on segment
           let textIdx: number | null = null;
           for (let i = 0; i < SCROLL_TEXTS.length; ++i) {
-            if (scrollProgress >= segLen * i && scrollProgress < segLen * (i + 1)) {
+            if (progress >= segLen * i && progress < segLen * (i + 1)) {
               textIdx = i;
               break;
             }
           }
-          if (scrollProgress >= segLen * SCROLL_TEXTS.length) {
+          if (progress >= segLen * SCROLL_TEXTS.length) {
             textIdx = null;
           }
           setCurrentTextIndex(textIdx);
 
-          // Seek video with requestAnimationFrame for smoother updates
-          const seekTime = scrollProgress * video.duration;
-          if (Math.abs(video.currentTime - seekTime) > 0.01) {
-            video.currentTime = seekTime;
-          }
+          // Update video time based on scroll progress
+          const seekTime = progress * video.duration;
+          video.currentTime = seekTime;
 
-          // Update progress reference
-          lastScrollProgress.current = scrollProgress;
+          // Check if we're past the main video section
+          setIsAfterVideo(progress >= 1);
         }
-
-        // If we've scrolled past the end of the video, switch to after-video "absolute" mode so it scrolls away.
-        if (scrollProgress >= 1) {
-          setIsAfterVideo(true);
-        } else {
-          setIsAfterVideo(false);
-        }
-        
-        frameRef.current = null;
       });
     };
 
-    const resizeSection = () => {
-      const section = containerRef.current;
-      if (section) {
-        section.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
-      }
-    };
-
-    // Use passive scroll listener for better performance
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", resizeSection);
-    resizeSection();
+    // Set up ScrollTrigger once video metadata is loaded
+    if (video.readyState >= 2) {
+      setupScrollTrigger();
+    } else {
+      video.addEventListener("loadedmetadata", setupScrollTrigger);
+    }
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", resizeSection);
-      video.removeEventListener("loadedmetadata", handleLoaded);
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
+      video.removeEventListener("loadedmetadata", setupScrollTrigger);
+      
+      // Clean up ScrollTrigger
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
       }
     };
   }, []);
 
   // Determine where to place the video when scrolling is past the end
-  // When isAfterVideo, set video to absolute at the bottom of scroll area
-  // Otherwise, keep it fixed while scrolling video
   return (
     <div
       ref={containerRef}
@@ -161,7 +143,6 @@ const ScrollVideo: React.FC<{
         loop={false}
         muted
         tabIndex={-1}
-        // Only fixed while before the end, else becomes absolute & remains visible at bottom of scroll area
         className={
           (isAfterVideo
             ? "absolute"
@@ -180,7 +161,7 @@ const ScrollVideo: React.FC<{
         }}
       />
 
-      {/* Centered Overlayed Titles (each line is its own element, only overlays before end) */}
+      {/* Centered Overlayed Titles */}
       {!isAfterVideo && (
         <div
           id="scroll-video-title"
@@ -222,7 +203,6 @@ const ScrollVideo: React.FC<{
       )}
 
       {/* Below the fold: Black bg section after video is done */}
-      {/* This section remains for continued scrolling */}
       <div
         className="w-full bg-black"
         style={{
