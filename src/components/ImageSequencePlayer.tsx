@@ -1,14 +1,13 @@
 
-import React, { useEffect, useState, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
 import { useImagePathFormat } from '@/hooks/useImagePathFormat';
+import { useScrollSequence } from '@/hooks/useScrollSequence';
 import { ImagePreloader } from './ImagePreloader';
 import { ImageDebugInfo } from './ImageDebugInfo';
 import { ImageError } from './ImageError';
+import { SequenceImage } from './SequenceImage';
 
-gsap.registerPlugin(ScrollTrigger);
+const TOTAL_FRAMES = 437;
 
 type ImageSequencePlayerProps = {
   segmentCount: number;
@@ -19,8 +18,6 @@ type ImageSequencePlayerProps = {
   AFTER_VIDEO_EXTRA_HEIGHT: number;
 };
 
-const TOTAL_FRAMES = 437;
-
 const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   segmentCount,
   onTextIndexChange,
@@ -29,8 +26,6 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
 }) => {
-  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
-  const lastProgressRef = useRef(0);
   const [currentFrame, setCurrentFrame] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -49,10 +44,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     console.log("ImageSequencePlayer mounted");
     
     const container = containerRef.current;
-    if (!container) {
-      console.error("Container ref is null");
-      return;
-    }
+    if (!container) return;
 
     const resizeSection = () => {
       if (container) {
@@ -62,16 +54,23 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     
     resizeSection();
     window.addEventListener("resize", resizeSection);
+    findWorkingPathFormat();
+    
+    return () => {
+      console.log("ImageSequencePlayer unmounting");
+      window.removeEventListener("resize", resizeSection);
+    };
+  }, [SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, findWorkingPathFormat]);
 
-    const segLen = 1 / (segmentCount + 1);
-
-    const updateScroll = (progress: number) => {
-      if (Math.abs(progress - lastProgressRef.current) < 0.01) return;
-      
-      lastProgressRef.current = progress;
-      const frameIndex = Math.min(Math.floor(progress * TOTAL_FRAMES) + 1, TOTAL_FRAMES);
+  useScrollSequence({
+    containerRef,
+    totalFrames: TOTAL_FRAMES,
+    scrollExtraPx: SCROLL_EXTRA_PX,
+    onProgressChange: (frameIndex) => {
       setCurrentFrame(frameIndex);
-
+      const segLen = 1 / (segmentCount + 1);
+      const progress = (frameIndex - 1) / TOTAL_FRAMES;
+      
       let textIdx: number | null = null;
       for (let i = 0; i < segmentCount; ++i) {
         if (progress >= segLen * i && progress < segLen * (i + 1)) {
@@ -83,37 +82,9 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         textIdx = null;
       }
       onTextIndexChange(textIdx);
-      onAfterVideoChange(progress >= 1);
-    };
-    
-    scrollTriggerRef.current = ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: `+=${SCROLL_EXTRA_PX}`,
-      scrub: 0.1,
-      anticipatePin: 1,
-      fastScrollEnd: true,
-      preventOverlaps: true,
-      onUpdate: (self) => {
-        const progress = self.progress;
-        if (isNaN(progress)) {
-          console.warn("Progress is NaN");
-          return;
-        }
-        updateScroll(progress);
-      }
-    });
-    
-    findWorkingPathFormat();
-    
-    return () => {
-      console.log("ImageSequencePlayer unmounting");
-      window.removeEventListener("resize", resizeSection);
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-      }
-    };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, onTextIndexChange, onAfterVideoChange, findWorkingPathFormat]);
+    },
+    onScrollComplete: onAfterVideoChange,
+  });
 
   const handleImageLoad = () => {
     setImageLoaded(true);
@@ -142,21 +113,13 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           <ImageError message={errorMessage} onRefresh={handleRefresh} />
         ) : (
           <>
-            <img
-              key={`frame-${currentFrame}`}
-              src={getImagePath(currentFrame)}
-              alt={`Frame ${currentFrame}`}
-              className="w-full h-full object-cover"
+            <SequenceImage
+              currentFrame={currentFrame}
+              getImagePath={getImagePath}
               onLoad={handleImageLoad}
               onError={handleImageError}
-              style={{ opacity: imageLoaded ? 1 : 0 }}
+              imageLoaded={imageLoaded}
             />
-            
-            {!imageLoaded && !imageError && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-              </div>
-            )}
             
             <ImagePreloader
               currentFrame={currentFrame}
