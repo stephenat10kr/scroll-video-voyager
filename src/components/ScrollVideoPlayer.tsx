@@ -132,9 +132,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        // Use a slightly longer scroll area for mobile to improve scrubbing
-        const extraPixels = isMobile ? SCROLL_EXTRA_PX * 1.5 : SCROLL_EXTRA_PX;
-        container.style.height = `${window.innerHeight + extraPixels + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };
     resizeSection();
@@ -148,21 +146,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
-      
-      // Reduce threshold on mobile for smoother updates
-      const threshold = isMobile ? progressThreshold / 2 : progressThreshold;
-      
-      if (Math.abs(progress - lastProgressRef.current) < threshold) {
+      if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
-      
       lastProgressRef.current = progress;
       const newTime = progress * video.duration;
-      
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
-      
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
         let textIdx: number | null = null;
@@ -183,15 +174,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
-      
-      // Adjust scrubbing speed for mobile
-      const scrubValue = isMobile ? 0.05 : 0.1;
-      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        end: isMobile ? `+=${SCROLL_EXTRA_PX * 1.5}` : `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue,
+        end: `+=${SCROLL_EXTRA_PX}`,
+        scrub: 0.1,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -199,11 +186,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           const progress = self.progress;
           if (isNaN(progress)) return;
           updateVideoFrame(progress);
-          
-          // Debug on mobile
-          if (isMobile) {
-            console.log(`[ScrollVideo] Progress: ${progress.toFixed(2)}, Time: ${(progress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
-          }
         }
       });
       setIsLoaded(true);
