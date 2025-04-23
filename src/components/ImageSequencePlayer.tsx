@@ -274,7 +274,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         preloadFrames.push(
           <img 
             key={`preload-${frameNum}`}
-            src={workingPathFormat(frameNum)}
+            src={getImagePath(frameNum)}
             alt=""
             className="hidden"
             aria-hidden="true"
