@@ -26,6 +26,9 @@ const IMAGE_PATH_FORMATS = [
   (frame: number) => `Image Sequence/${String(frame).padStart(4, '0')}.webp`
 ];
 
+// Default format to use before finding the working one
+const DEFAULT_FORMAT = IMAGE_PATH_FORMATS[0];
+
 const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   segmentCount,
   onTextIndexChange,
@@ -40,19 +43,15 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [workingPathFormat, setWorkingPathFormat] = useState<((frame: number) => string) | null>(null);
+  // Initialize with default format function to avoid null errors
+  const [workingPathFormat, setWorkingPathFormat] = useState<(frame: number) => string>(DEFAULT_FORMAT);
   const { toast } = useToast();
   const totalFrames = 437; // Total number of frames in the sequence
   
   // Function to get the best image path based on what has worked previously
   const getImagePath = (frameNumber: number) => {
-    // If we already know which path format works, use it
-    if (workingPathFormat) {
-      return workingPathFormat(frameNumber);
-    }
-    
-    // Default to first format if we don't know yet
-    return IMAGE_PATH_FORMATS[0](frameNumber);
+    // Always use a valid function, even if it's the default one
+    return workingPathFormat(frameNumber);
   };
 
   // Function to test all path formats to find one that works
@@ -206,13 +205,6 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const handleImageError = () => {
     console.error(`Failed to load image: ${getImagePath(currentFrame)}`);
     
-    // If we haven't found a working format yet, let findWorkingPathFormat handle it
-    if (!workingPathFormat) {
-      setImageError(true);
-      setImageLoaded(false);
-      return;
-    }
-    
     // Try all formats for this specific frame
     let tried = 0;
     const tryNextFormat = () => {
@@ -250,7 +242,8 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
 
   // Handle manual refresh
   const handleRefresh = () => {
-    setWorkingPathFormat(null);
+    // Always set to a valid function before attempting to find a new one
+    setWorkingPathFormat(DEFAULT_FORMAT);
     setImageError(false);
     setErrorMessage(null);
     setImageLoaded(false);
@@ -270,8 +263,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
 
   // Create an array of image elements for preloading adjacent frames
   const createPreloadImages = () => {
-    if (!workingPathFormat) return null;
-    
+    // Never call preload if workingPathFormat is not a function
     const preloadFrames = [];
     // Preload next 3 frames and previous 1 frame
     for (let i = -1; i <= 3; i++) {
@@ -315,17 +307,15 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           </div>
         ) : (
           <>
-            {workingPathFormat && (
-              <img
-                key={`frame-${currentFrame}`} // Key changes will force re-render when frame changes
-                src={workingPathFormat(currentFrame)}
-                alt={`Frame ${currentFrame}`}
-                className="w-full h-full object-cover"
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                style={{ opacity: imageLoaded ? 1 : 0 }}
-              />
-            )}
+            <img
+              key={`frame-${currentFrame}`} // Key changes will force re-render when frame changes
+              src={getImagePath(currentFrame)}
+              alt={`Frame ${currentFrame}`}
+              className="w-full h-full object-cover"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              style={{ opacity: imageLoaded ? 1 : 0 }}
+            />
             
             {!imageLoaded && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -344,7 +334,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         {process.env.NODE_ENV === 'development' && (
           <div className="absolute bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs max-w-xs">
             <div>Current Frame: {currentFrame}</div>
-            <div>Path Format Index: {IMAGE_PATH_FORMATS.indexOf(workingPathFormat || IMAGE_PATH_FORMATS[0])}</div>
+            <div>Path Format Index: {IMAGE_PATH_FORMATS.indexOf(workingPathFormat)}</div>
             <div>Status: {imageLoaded ? "Loaded ✅" : imageError ? "Error ❌" : "Loading..."}</div>
             <div>Origin: {window.location.origin}</div>
             <div>Pathname: {window.location.pathname}</div>
