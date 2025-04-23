@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Fallback video if contentful video fails to load
 const VIDEO_SRC = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const SCROLL_TEXTS = [
@@ -31,14 +32,27 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
 
   const ensureHttps = (url?: string) => {
     if (!url) return undefined;
+    
     // Make sure URL starts with https:// and not http:// or //
     let secureUrl = url
       .replace(/^\/\//, 'https://')
       .replace(/^http:/, 'https:')
       .replace(/^ws:/, 'wss:');
     
-    // Add cache-busting parameter for mobile devices to prevent caching issues
-    if (isMobile) {
+    // For mobile, try to use a lower resolution version if available
+    if (isMobile && secureUrl) {
+      // Check if we can use a mobile-optimized version
+      const fileExtMatch = secureUrl.match(/\.(mp4|webm|mov)$/i);
+      if (fileExtMatch) {
+        const ext = fileExtMatch[1].toLowerCase();
+        // Try mobile optimized version (adding -mobile before extension)
+        secureUrl = secureUrl.replace(
+          new RegExp(`\\.(${ext})$`, 'i'), 
+          `-mobile.${ext}`
+        );
+      }
+      
+      // Add cache-busting parameter
       const cacheBuster = `cb=${Date.now()}`;
       secureUrl += (secureUrl.includes('?') ? '&' : '?') + cacheBuster;
     }
@@ -74,23 +88,18 @@ const ScrollVideo: React.FC<{ src?: string }> = ({ src }) => {
           tabIndex={-1}
           x5-video-player-type="h5"
           x5-video-player-fullscreen="true"
-          autoPlay={true}
-          controls={true}
           className={
-            (isAfterVideo ? "absolute" : "fixed") +
-            " top-0 left-0 w-full h-full object-cover " + 
+            "fixed top-0 left-0 w-full h-full object-cover " + 
             (isMobile ? "" : "pointer-events-none ") +
-            "z-0 bg-black transition-[position,top] duration-300"
+            "z-0 bg-black"
           }
           style={{
             minHeight: "100vh",
             willChange: "contents",
-            ...(isAfterVideo
-              ? {
-                  top: `calc(${SCROLL_EXTRA_PX}px)`,
-                  position: "absolute",
-                }
-              : {}),
+            transform: "translate3d(0,0,0)", // Force hardware acceleration
+            backfaceVisibility: "hidden", // Additional optimization
+            WebkitBackfaceVisibility: "hidden",
+            visibility: isAfterVideo ? "hidden" : "visible", // Hide but don't remove from DOM
           }}
         />
       </ScrollVideoPlayer>
