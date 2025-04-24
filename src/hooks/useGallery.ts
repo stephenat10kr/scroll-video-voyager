@@ -7,7 +7,7 @@ const fetchGallery = async () => {
   try {
     const response = await contentfulClient.getEntries({
       content_type: 'gallery',
-      order: ['fields.order'] // Changed from string to array of strings to match the expected type
+      // Removing the order parameter since the field doesn't exist
     });
     
     console.log('Contentful gallery response:', response);
