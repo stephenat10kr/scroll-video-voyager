@@ -32,7 +32,7 @@ export default function Form({ open, onClose, title }: FormProps) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:w-[540px] bg-[#FF8378]">
-        <SheetHeader className="relative mb-6 pl-[56px]">
+        <SheetHeader className="relative mb-6">
           <Button
             variant="default"
             className="absolute left-0 top-0 p-0 w-[48px] h-[48px] bg-black text-white rounded-full flex items-center justify-center"
@@ -40,7 +40,7 @@ export default function Form({ open, onClose, title }: FormProps) {
           >
             <X className="h-6 w-6 stroke-white" />
           </Button>
-          <h2 className="text-2xl font-gt-super">{title}</h2>
+          <h2 className="mt-[56px] text-2xl font-gt-super">{title}</h2>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
@@ -63,3 +63,4 @@ export default function Form({ open, onClose, title }: FormProps) {
     </Sheet>
   );
 }
+
