@@ -51,9 +51,9 @@ export interface ContentfulGalleryEntry {
     id: string;
   };
   fields: {
-    media: ContentfulAsset;
-    order: number;
-    caption?: string;
+    galleryMedia: ContentfulAsset;
+    orderNumber: number;
+    galleryCaption?: string;
   };
 }
 
