@@ -1,4 +1,11 @@
 
+// Define the structure of a Contentful tag
+interface ContentfulTag {
+  sys: {
+    id: string;
+  };
+}
+
 // Define the structure of a question from Contentful
 export interface ContentfulQuestion {
   sys: {
@@ -9,10 +16,12 @@ export interface ContentfulQuestion {
       }
     }
   };
+  metadata: {
+    tags: ContentfulTag[];
+  };
   fields: {
     question: string;
     answer: string;
-    tag?: string; // Make tag optional since it might not be present in all entries
   };
 }
 
@@ -24,20 +33,3 @@ export interface ContentfulQuestionResponse {
   limit: number;
 }
 
-// Type for Contentful's EntryCollection that we'll use for proper type casting
-export interface ContentfulEntryCollection<T> {
-  items: Array<{
-    sys: {
-      id: string;
-      contentType?: {
-        sys: {
-          id: string;
-        }
-      }
-    };
-    fields: T;
-  }>;
-  total: number;
-  skip: number;
-  limit: number;
-}

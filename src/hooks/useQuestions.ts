@@ -1,27 +1,25 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
-import { ContentfulQuestion, ContentfulQuestionResponse, ContentfulEntryCollection } from "@/types/contentful";
+import { ContentfulQuestion, ContentfulQuestionResponse } from "@/types/contentful";
 import { QuestionData } from "@/components/Questions";
 
-const transformTag = (tag: string) => {
+const transformTag = (tagId: string) => {
   const tagMap: Record<string, string> = {
-    "Community": "THE COMMUNITY",
-    "Space": "THE SPACE",
-    "Memberships": "THE MEMBERSHIPS"
+    "community": "THE COMMUNITY",
+    "space": "THE SPACE",
+    "memberships": "THE MEMBERSHIPS"
   };
-  return tagMap[tag] || tag.toUpperCase();
+  return tagMap[tagId] || tagId.toUpperCase();
 };
 
 const fetchQuestions = async () => {
   try {
-    // Fetch questions from Contentful
     const response = await contentfulClient.getEntries({
-      content_type: 'questions' // Use the content type ID from Contentful
+      content_type: 'questions'
     });
     
     console.log('Contentful raw response:', response);
-    // First cast to unknown, then to our interface to avoid type incompatibility
     return response as unknown as ContentfulQuestionResponse;
   } catch (error) {
     console.error('Error fetching questions from Contentful:', error);
@@ -52,11 +50,11 @@ export const useQuestions = () => {
             return acc;
           }
           
-          // Get the tag from the fields - now it should be visible
-          const tagValue = item.fields.tag || "Community";
-          console.log('Tag value found:', tagValue);
+          // Get the tag from metadata - default to "community" if no tags
+          const tagId = item.metadata?.tags?.[0]?.sys?.id || "community";
+          console.log('Tag ID found:', tagId);
           
-          const transformedTag = transformTag(tagValue);
+          const transformedTag = transformTag(tagId);
           if (!acc[transformedTag]) {
             acc[transformedTag] = [];
           }
@@ -87,3 +85,4 @@ export const useQuestions = () => {
     }
   });
 };
+
