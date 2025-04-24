@@ -32,10 +32,10 @@ export default function Form({ open, onClose, title }: FormProps) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:w-[540px] bg-[#FF8378]">
-        <SheetHeader className="relative mb-6">
+        <SheetHeader className="relative mb-6 pl-[56px]">
           <Button
             variant="default"
-            className="absolute -left-2 top-0 p-0 w-[48px] h-[48px] bg-black text-white rounded-full flex items-center justify-center"
+            className="absolute left-0 top-0 p-0 w-[48px] h-[48px] bg-black text-white rounded-full flex items-center justify-center"
             onClick={onClose}
           >
             <X className="h-6 w-6 stroke-white" />
