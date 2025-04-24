@@ -27,7 +27,7 @@ export const useGallery = () => {
         return [];
       }
       
-      const mediaUrls = data.items
+      const mediaItems = data.items
         .sort((a, b) => (a.fields.orderNumber || 0) - (b.fields.orderNumber || 0))
         .filter(item => {
           if (!item?.fields?.galleryMedia?.fields?.file?.url) {
@@ -36,13 +36,15 @@ export const useGallery = () => {
           }
           return true;
         })
-        .map(item => {
-          const url = item.fields.galleryMedia.fields.file.url;
-          return url.startsWith('//') ? `https:${url}` : url;
-        });
+        .map(item => ({
+          url: item.fields.galleryMedia.fields.file.url.startsWith('//') 
+            ? `https:${item.fields.galleryMedia.fields.file.url}` 
+            : item.fields.galleryMedia.fields.file.url,
+          type: item.fields.galleryMedia.fields.file.contentType
+        }));
       
-      console.log('Processed media URLs:', mediaUrls);
-      return mediaUrls;
+      console.log('Processed media items:', mediaItems);
+      return mediaItems;
     }
   });
 };

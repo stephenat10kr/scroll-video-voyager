@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
 import { useGallery } from "@/hooks/useGallery";
+import MediaItem from "./MediaItem";
 
 interface GalleryProps {
   title: string;
@@ -13,7 +12,7 @@ interface GalleryProps {
 }
 
 const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }) => {
-  const { data: images, isLoading, error } = useGallery();
+  const { data: mediaItems, isLoading, error } = useGallery();
   const api = React.useRef<any>(null);
   
   const scrollPrev = React.useCallback(() => {
@@ -47,12 +46,12 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     );
   }
 
-  if (!images || images.length === 0) {
+  if (!mediaItems || mediaItems.length === 0) {
     return (
       <div className="w-full bg-black py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="text-white text-2xl mb-12">{title}</h2>
-          <p className="text-white/70">No images available</p>
+          <p className="text-white/70">No media available</p>
         </div>
       </div>
     );
@@ -71,15 +70,9 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               className="w-full"
             >
               <CarouselContent>
-                {images.map((image, index) => (
+                {mediaItems.map((item, index) => (
                   <CarouselItem key={index}>
-                    <AspectRatio ratio={16 / 9} className="bg-black">
-                      <img
-                        src={image}
-                        alt={`Gallery image ${index + 1}`}
-                        className="object-cover w-full h-full"
-                      />
-                    </AspectRatio>
+                    <MediaItem url={item.url} type={item.type} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -107,4 +100,3 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
 };
 
 export default Gallery;
-
