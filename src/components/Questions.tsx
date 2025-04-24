@@ -72,10 +72,10 @@ const Questions: React.FC<QuestionsProps> = ({
                     value={`${tab}-${index}`} 
                     className="border-t border-white/20 py-4"
                   >
-                    <AccordionTrigger className="text-white hover:no-underline text-xl">
+                    <AccordionTrigger className="text-white hover:no-underline text-xl text-left">
                       {question.title}
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80">
+                    <AccordionContent className="text-white/80 text-left">
                       {question.content}
                     </AccordionContent>
                   </AccordionItem>
@@ -91,3 +91,4 @@ const Questions: React.FC<QuestionsProps> = ({
 };
 
 export default Questions;
+
