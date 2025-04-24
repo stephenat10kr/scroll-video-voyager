@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
-import { ContentfulQuestion, ContentfulQuestionResponse } from "@/types/contentful";
+import { ContentfulQuestion, ContentfulQuestionResponse, ContentfulEntryCollection } from "@/types/contentful";
 import { QuestionData } from "@/components/Questions";
 
 const transformTag = (tag: string) => {
@@ -15,13 +15,14 @@ const transformTag = (tag: string) => {
 
 const fetchQuestions = async () => {
   try {
-    // Now we can fetch questions and expect the tags to be available
+    // Fetch questions from Contentful
     const response = await contentfulClient.getEntries({
       content_type: 'questions' // Use the content type ID from Contentful
     });
     
     console.log('Contentful raw response:', response);
-    return response as ContentfulQuestionResponse;
+    // First cast to unknown, then to our interface to avoid type incompatibility
+    return response as unknown as ContentfulQuestionResponse;
   } catch (error) {
     console.error('Error fetching questions from Contentful:', error);
     throw error;
@@ -42,7 +43,7 @@ export const useQuestions = () => {
         }
         
         // Transform and group questions by tag
-        const groupedQuestions = response.items.reduce((acc, item: ContentfulQuestion) => {
+        const groupedQuestions = response.items.reduce((acc, item) => {
           console.log('Processing item:', item);
           
           // Check if item has required fields
