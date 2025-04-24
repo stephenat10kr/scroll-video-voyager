@@ -7,7 +7,7 @@ const fetchGallery = async () => {
   try {
     const response = await contentfulClient.getEntries({
       content_type: 'gallery',
-      order: 'fields.order'
+      order: ['fields.order'] // Changed from string to array of strings to match the expected type
     });
     
     console.log('Contentful gallery response:', response);
@@ -34,4 +34,3 @@ export const useGallery = () => {
     }
   });
 };
-
