@@ -3,6 +3,11 @@
 export interface ContentfulQuestion {
   sys: {
     id: string;
+    contentType?: {
+      sys: {
+        id: string;
+      }
+    }
   };
   fields: {
     question: string;
@@ -14,4 +19,7 @@ export interface ContentfulQuestion {
 // Define the structure of the response from Contentful
 export interface ContentfulQuestionResponse {
   items: ContentfulQuestion[];
+  total: number;
+  skip: number;
+  limit: number;
 }

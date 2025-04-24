@@ -15,12 +15,13 @@ const transformTag = (tag: string) => {
 
 const fetchQuestions = async () => {
   try {
-    // The error indicates the content type 'question' doesn't exist
-    // Let's try without specifying a content type first to see what's available
-    const response = await contentfulClient.getEntries();
+    // Now we can fetch questions and expect the tags to be available
+    const response = await contentfulClient.getEntries({
+      content_type: 'questions' // Use the content type ID from Contentful
+    });
     
     console.log('Contentful raw response:', response);
-    return response as any;
+    return response as ContentfulQuestionResponse;
   } catch (error) {
     console.error('Error fetching questions from Contentful:', error);
     throw error;
@@ -41,29 +42,27 @@ export const useQuestions = () => {
         }
         
         // Transform and group questions by tag
-        const groupedQuestions = response.items.reduce((acc, item: any) => {
-          // Make sure the fields exist and look at what fields are actually available
-          console.log('Examining item structure:', item);
+        const groupedQuestions = response.items.reduce((acc, item: ContentfulQuestion) => {
+          console.log('Processing item:', item);
           
-          // Check if item has all required fields with fallbacks
-          const question = item.fields?.question || item.fields?.title || '';
-          const answer = item.fields?.answer || item.fields?.content || item.fields?.description || '';
-          const tag = item.fields?.tag || item.fields?.category || 'Community';
-          
-          // Skip items that don't have usable content
-          if (!question || !answer) {
-            console.warn('Skipping item with missing essential fields:', item);
+          // Check if item has required fields
+          if (!item.fields || !item.fields.question || !item.fields.answer) {
+            console.warn('Skipping item with missing required fields:', item);
             return acc;
           }
           
-          const transformedTag = transformTag(tag);
+          // Get the tag from the fields - now it should be visible
+          const tagValue = item.fields.tag || "Community";
+          console.log('Tag value found:', tagValue);
+          
+          const transformedTag = transformTag(tagValue);
           if (!acc[transformedTag]) {
             acc[transformedTag] = [];
           }
           
           acc[transformedTag].push({
-            title: question,
-            content: answer
+            title: item.fields.question,
+            content: item.fields.answer
           });
           
           return acc;
@@ -71,7 +70,7 @@ export const useQuestions = () => {
 
         console.log('Grouped questions:', groupedQuestions);
         
-        // If we didn't get any questions under our predefined tabs, create empty arrays
+        // Ensure all predefined tabs exist even if empty
         const result = { ...groupedQuestions };
         ["THE COMMUNITY", "THE SPACE", "THE MEMBERSHIPS"].forEach(tab => {
           if (!result[tab]) {
