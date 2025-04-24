@@ -1,10 +1,10 @@
-
 import React from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
+import Footer from "../components/Footer";
 
 const Index = () => {
   return (
@@ -24,6 +24,7 @@ const Index = () => {
           mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013"
         />
         <Questions title="QUESTIONS" />
+        <Footer />
       </div>
     </div>
   );
