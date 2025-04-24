@@ -1,3 +1,4 @@
+
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,11 +29,11 @@ export default function Form({
   };
   return <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:w-[540px] bg-[#FF8378]">
-        <SheetHeader className="relative mb-6">
+        <SheetHeader className="relative mb-12">
           <Button variant="default" className="absolute left-0 top-0 p-0 w-[48px] h-[48px] bg-black text-white rounded-full flex items-center justify-center" onClick={onClose}>
             <X className="h-6 w-6 stroke-white" />
           </Button>
-          <h2 className="mt-[64px] text-2xl font-gt-super">{title}</h2>
+          <h2 className="mt-16 text-2xl font-gt-super">{title}</h2>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
@@ -54,3 +55,4 @@ export default function Form({
       </SheetContent>
     </Sheet>;
 }
+
