@@ -8,7 +8,8 @@ const transformTag = (tagId: string) => {
   const tagMap: Record<string, string> = {
     "community": "THE COMMUNITY",
     "space": "THE SPACE",
-    "memberships": "THE MEMBERSHIPS"
+    "membership": "THE MEMBERSHIPS", // Fixed: changed from "memberships" to "membership"
+    "memberships": "THE MEMBERSHIPS" // Keep this for backward compatibility
   };
   return tagMap[tagId] || tagId.toUpperCase();
 };
@@ -85,4 +86,3 @@ export const useQuestions = () => {
     }
   });
 };
-
