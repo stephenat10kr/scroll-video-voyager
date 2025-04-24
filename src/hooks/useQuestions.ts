@@ -14,7 +14,7 @@ const transformTag = (tag: string) => {
 };
 
 const fetchQuestions = async () => {
-  const response = await contentfulClient.getEntries<ContentfulQuestion>({
+  const response = await contentfulClient.getEntries({
     content_type: 'question'
   });
   return response as ContentfulQuestionResponse;
