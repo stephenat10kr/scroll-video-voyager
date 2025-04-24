@@ -29,9 +29,21 @@ const Questions: React.FC<QuestionsProps> = ({
   }
 
   if (error) {
+    console.error('Error in Questions component:', error);
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="text-white text-2xl mb-12">Failed to load questions</h2>
+        <p className="text-white/70">Please check the console for more details.</p>
+      </div>
+    </div>;
+  }
+
+  // Check if we have questions data
+  if (!questions || Object.keys(questions).length === 0) {
+    return <div className="w-full bg-black py-24">
+      <div className="max-w-[90%] mx-auto">
+        <h2 className="text-white text-2xl mb-12">No questions available</h2>
+        <p className="text-white/70">Please add questions in Contentful with the content type 'question'.</p>
       </div>
     </div>;
   }
@@ -54,7 +66,7 @@ const Questions: React.FC<QuestionsProps> = ({
           {TABS.map(tab => (
             <TabsContent key={tab} value={tab} className="col-start-5 col-span-8">
               <Accordion type="single" collapsible className="w-full">
-                {questions?.[tab]?.map((question, index) => (
+                {questions[tab]?.map((question, index) => (
                   <AccordionItem 
                     key={index} 
                     value={`${tab}-${index}`} 
@@ -67,7 +79,9 @@ const Questions: React.FC<QuestionsProps> = ({
                       {question.content}
                     </AccordionContent>
                   </AccordionItem>
-                ))}
+                )) || (
+                  <p className="text-white/70">No questions available for this category.</p>
+                )}
               </Accordion>
             </TabsContent>
           ))}

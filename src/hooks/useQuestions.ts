@@ -14,34 +14,59 @@ const transformTag = (tag: string) => {
 };
 
 const fetchQuestions = async () => {
-  const response = await contentfulClient.getEntries({
-    content_type: 'question'
-  });
-  return response as ContentfulQuestionResponse;
+  try {
+    const response = await contentfulClient.getEntries({
+      content_type: 'question'
+    });
+    
+    console.log('Contentful response:', response);
+    return response as any; // We'll do the proper type checking in the hook
+  } catch (error) {
+    console.error('Error fetching questions from Contentful:', error);
+    throw error;
+  }
 };
 
 export const useQuestions = () => {
   return useQuery({
     queryKey: ['questions'],
     queryFn: async () => {
-      const response = await fetchQuestions();
-      
-      // Transform and group questions by tag
-      const groupedQuestions = response.items.reduce((acc, item) => {
-        const tag = transformTag(item.fields.tag);
-        if (!acc[tag]) {
-          acc[tag] = [];
+      try {
+        const response = await fetchQuestions();
+        
+        console.log('Processing response:', response);
+        if (!response.items || !Array.isArray(response.items)) {
+          console.error('Invalid response format from Contentful:', response);
+          throw new Error('Invalid response format from Contentful');
         }
         
-        acc[tag].push({
-          title: item.fields.question,
-          content: item.fields.answer
-        });
-        
-        return acc;
-      }, {} as Record<string, QuestionData[]>);
+        // Transform and group questions by tag
+        const groupedQuestions = response.items.reduce((acc, item: any) => {
+          // Make sure the fields exist
+          if (!item.fields || !item.fields.question || !item.fields.answer || !item.fields.tag) {
+            console.warn('Skipping item with missing fields:', item);
+            return acc;
+          }
+          
+          const tag = transformTag(item.fields.tag);
+          if (!acc[tag]) {
+            acc[tag] = [];
+          }
+          
+          acc[tag].push({
+            title: item.fields.question,
+            content: item.fields.answer
+          });
+          
+          return acc;
+        }, {} as Record<string, QuestionData[]>);
 
-      return groupedQuestions;
+        console.log('Grouped questions:', groupedQuestions);
+        return groupedQuestions;
+      } catch (error) {
+        console.error('Error processing questions:', error);
+        throw error;
+      }
     }
   });
 };

@@ -1,4 +1,5 @@
 
+// Define the structure of a question from Contentful
 export interface ContentfulQuestion {
   sys: {
     id: string;
@@ -10,6 +11,7 @@ export interface ContentfulQuestion {
   };
 }
 
+// Define the structure of the response from Contentful
 export interface ContentfulQuestionResponse {
   items: ContentfulQuestion[];
 }
