@@ -1,18 +1,19 @@
 
 import React from "react";
-import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
+import { useGallery } from "@/hooks/useGallery";
 
 interface GalleryProps {
   title: string;
-  images: string[];
   description: string;
   address: string;
   mapUrl: string;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, mapUrl }) => {
+const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }) => {
+  const { data: images, isLoading, error } = useGallery();
   const api = React.useRef<any>(null);
   
   const scrollPrev = React.useCallback(() => {
@@ -22,6 +23,40 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
   const scrollNext = React.useCallback(() => {
     api.current?.scrollNext();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-black py-24">
+        <div className="max-w-[90%] mx-auto">
+          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <div className="w-full h-64 bg-gray-900 animate-pulse rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('Error in Gallery component:', error);
+    return (
+      <div className="w-full bg-black py-24">
+        <div className="max-w-[90%] mx-auto">
+          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <p className="text-white/70">Failed to load gallery images</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="w-full bg-black py-24">
+        <div className="max-w-[90%] mx-auto">
+          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <p className="text-white/70">No images available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-black py-24">
@@ -72,3 +107,4 @@ const Gallery: React.FC<GalleryProps> = ({ title, images, description, address, 
 };
 
 export default Gallery;
+
