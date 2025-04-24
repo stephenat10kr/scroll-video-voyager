@@ -44,7 +44,7 @@ export default function Form({
           </Button>
         </div>
         <SheetHeader className="mb-12">
-          <h2 className="mt-16 text-2xl font-gt-super">{title}</h2>
+          <h2 className="mt-16 text-2xl font-gt-super" dangerouslySetInnerHTML={{ __html: title }} />
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
