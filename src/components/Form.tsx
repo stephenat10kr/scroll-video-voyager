@@ -40,7 +40,7 @@ export default function Form({ open, onClose, title }: FormProps) {
           >
             <X className="h-6 w-6 stroke-white" />
           </Button>
-          <h2 className="mt-[56px] text-2xl font-gt-super">{title}</h2>
+          <h2 className="mt-[64px] text-2xl font-gt-super">{title}</h2>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
