@@ -21,7 +21,7 @@ const Navigation = () => {
       <Form 
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title="Curious? Sign up to hear about upcoming events and membership offerings."
+        title="Curious<br>Sign up to hear about upcoming events and membership offerings."
       />
     </>
   );
