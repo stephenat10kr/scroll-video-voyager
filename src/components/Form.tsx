@@ -1,3 +1,4 @@
+
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,12 +34,11 @@ export default function Form({ open, onClose, title }: FormProps) {
       <SheetContent className="w-full sm:w-[540px] bg-[#FF8378]">
         <SheetHeader className="relative mb-6">
           <Button
-            variant="ghost"
-            size="icon"
-            className="absolute -left-2 top-0"
+            variant="default"
+            className="absolute -left-2 top-0 p-0 w-[48px] h-[48px] bg-black text-white rounded-full flex items-center justify-center"
             onClick={onClose}
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 stroke-white" />
           </Button>
           <h2 className="text-2xl font-gt-super">{title}</h2>
         </SheetHeader>
