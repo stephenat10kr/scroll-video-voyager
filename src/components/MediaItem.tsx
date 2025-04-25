@@ -17,6 +17,9 @@ const MediaItem = ({ url, type }: MediaItemProps) => {
           src={url}
           controls
           playsInline
+          autoPlay
+          muted
+          loop
           className="object-cover w-full h-full"
         />
       </AspectRatio>
