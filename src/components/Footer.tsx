@@ -1,13 +1,12 @@
 
 import { Facebook, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
+import Logo from "./Logo";
 
 const Footer = () => {
   return (
     <footer className="h-[128px] bg-black w-full flex justify-between items-center px-8">
-      <div className="text-white font-sans text-[56px]">
-        LOGO
-      </div>
+      <Logo />
       <div className="flex flex-col items-end gap-4">
         <div className="flex gap-6">
           <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer">
