@@ -1,23 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
-
-interface ContentfulValue {
-  sys: {
-    id: string;
-  };
-  fields: {
-    valueTitle: string;
-    valueText: string[];
-  };
-}
-
-interface ContentfulValuesResponse {
-  items: ContentfulValue[];
-  total: number;
-  skip: number;
-  limit: number;
-}
+import { ContentfulValue, ContentfulValuesResponse } from "@/types/contentful";
 
 const fetchValues = async () => {
   try {
@@ -43,11 +27,16 @@ export const useValues = () => {
         return [];
       }
       
-      return data.items.map(item => ({
+      // Map the data and include orderNumber
+      const mappedValues = data.items.map(item => ({
         id: item.sys.id,
         valueTitle: item.fields.valueTitle || "",
-        valueText: Array.isArray(item.fields.valueText) ? item.fields.valueText : []
+        valueText: Array.isArray(item.fields.valueText) ? item.fields.valueText : [],
+        orderNumber: typeof item.fields.orderNumber === 'number' ? item.fields.orderNumber : 999
       }));
+      
+      // Sort by orderNumber
+      return mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
     }
   });
 };
