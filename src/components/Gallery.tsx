@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
 import { useGallery } from "@/hooks/useGallery";
@@ -14,6 +15,7 @@ interface GalleryProps {
 const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }) => {
   const { data: mediaItems, isLoading, error } = useGallery();
   const api = React.useRef<any>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   
   const scrollPrev = React.useCallback(() => {
     api.current?.scrollPrev();
@@ -22,6 +24,25 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   const scrollNext = React.useCallback(() => {
     api.current?.scrollNext();
   }, []);
+
+  // Update the current index when the carousel changes
+  const onSelect = React.useCallback(() => {
+    if (!api.current) return;
+    setCurrentIndex(api.current.selectedScrollSnap());
+  }, []);
+
+  // Set up event listeners for the carousel
+  React.useEffect(() => {
+    if (!api.current) return;
+    
+    api.current.on("select", onSelect);
+    api.current.on("reInit", onSelect);
+    
+    return () => {
+      if (!api.current) return;
+      api.current.off("select", onSelect);
+    };
+  }, [api, onSelect]);
 
   if (isLoading) {
     return (
@@ -79,7 +100,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
             </Carousel>
             <div className="flex justify-between items-center mt-4">
               <p className="text-white font-sans text-base">
-                {mediaItems[api.current?.selectedScrollSnap() || 0]?.caption || ''}
+                {mediaItems[currentIndex]?.caption || ''}
               </p>
               <div className="flex gap-4">
                 <CustomPrevButton onClick={scrollPrev} />
