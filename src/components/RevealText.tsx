@@ -20,7 +20,20 @@ const RevealText = () => {
         content_type: 'revealText',
         limit: 1
       });
-      return response.items[0] as ContentfulRevealText;
+      
+      // First cast to unknown, then to our type to avoid TypeScript errors
+      const entry = response.items[0];
+      if (entry && entry.sys && entry.fields && 'text' in entry.fields) {
+        return {
+          sys: entry.sys,
+          fields: {
+            text: entry.fields.text as string
+          }
+        } as ContentfulRevealText;
+      }
+      
+      // Return a default value if no content found
+      return null;
     }
   });
 
@@ -98,7 +111,7 @@ const RevealText = () => {
             wordBreak: "normal"
           }}
         >
-          {revealTextContent?.fields.text}
+          {revealTextContent?.fields.text || "Default reveal text"}
         </div>
         <div className="col-span-9">
           <Button 

@@ -70,7 +70,7 @@ export interface ContentfulGalleryResponse {
 export interface ContentfulRevealText {
   sys: {
     id: string;
-    contentType: {
+    contentType?: {
       sys: {
         id: string;
       };
@@ -79,5 +79,4 @@ export interface ContentfulRevealText {
   fields: {
     text: string;
   };
-  contentTypeId?: 'revealText'; // Add this to satisfy EntrySkeletonType
 }
