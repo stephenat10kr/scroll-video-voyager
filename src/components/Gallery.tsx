@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
 import { useGallery } from "@/hooks/useGallery";
@@ -17,35 +17,40 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   const api = React.useRef<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  const scrollPrev = React.useCallback(() => {
+  const scrollPrev = useCallback(() => {
     api.current?.scrollPrev();
   }, []);
   
-  const scrollNext = React.useCallback(() => {
+  const scrollNext = useCallback(() => {
     api.current?.scrollNext();
   }, []);
 
   // Update the current index when the carousel changes
-  const onSelect = React.useCallback(() => {
+  const onSelect = useCallback(() => {
     if (!api.current) return;
-    setCurrentIndex(api.current.selectedScrollSnap());
+    const newIndex = api.current.selectedScrollSnap();
+    console.log("onSelect triggered, new index:", newIndex);
+    setCurrentIndex(newIndex);
   }, []);
 
   // Set up event listeners for the carousel
-  React.useEffect(() => {
+  useEffect(() => {
     if (!api.current) return;
     
+    console.log("Setting up carousel event listeners");
     api.current.on("select", onSelect);
     api.current.on("reInit", onSelect);
     
     return () => {
       if (!api.current) return;
+      console.log("Removing carousel event listeners");
       api.current.off("select", onSelect);
+      api.current.off("reInit", onSelect);
     };
   }, [api, onSelect]);
 
   // For debugging
-  React.useEffect(() => {
+  useEffect(() => {
     if (mediaItems && mediaItems.length > 0) {
       console.log("Current index:", currentIndex);
       console.log("Current caption:", mediaItems[currentIndex]?.caption);
@@ -86,6 +91,9 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     );
   }
 
+  const currentCaption = mediaItems[currentIndex]?.caption || '';
+  console.log("Rendering with current caption:", currentCaption);
+
   return (
     <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
@@ -97,7 +105,9 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                 api.current = carouselApi;
                 // Force an initial selection event
                 if (carouselApi) {
+                  console.log("Carousel API initialized");
                   setTimeout(() => {
+                    console.log("Forcing initial selection");
                     onSelect();
                   }, 0);
                 }
@@ -113,8 +123,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <p className="text-white font-sans text-base">
-                {mediaItems && currentIndex < mediaItems.length ? mediaItems[currentIndex]?.caption || '' : ''}
+              <p className="text-white font-sans text-base" key={currentIndex}>
+                {currentCaption}
               </p>
               <div className="flex gap-4">
                 <CustomPrevButton onClick={scrollPrev} />
