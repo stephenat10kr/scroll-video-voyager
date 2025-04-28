@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
+import { Button } from "@/components/ui/button";
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -67,7 +68,7 @@ const RevealText = () => {
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
         <div 
           ref={textRef} 
-          className="text-white font-gt-super text-7xl col-span-9"
+          className="text-white font-gt-super text-7xl col-span-9 mb-8"
           style={{
             background: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
             WebkitBackgroundClip: "text",
@@ -79,10 +80,17 @@ const RevealText = () => {
         >
           Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
         </div>
+        <div className="col-span-9">
+          <Button 
+            variant="default" 
+            className="h-[48px] rounded-full bg-white text-black hover:bg-white/90"
+          >
+            STAY IN THE LOOP
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default RevealText;
-
