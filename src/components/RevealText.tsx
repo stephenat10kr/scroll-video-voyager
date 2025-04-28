@@ -36,23 +36,23 @@ const RevealText = () => {
           return null;
         }
         
-        // First cast to unknown, then to our type to avoid TypeScript errors
         const entry = response.items[0];
         console.log("First entry sys:", entry.sys);
         console.log("First entry fields:", entry.fields);
         
-        if (entry && entry.sys && entry.fields && 'text' in entry.fields) {
-          console.log("Found valid text content:", entry.fields.text);
+        // Check if the entry has the 'revealText' field (which it does according to logs)
+        if (entry && entry.fields && 'revealText' in entry.fields) {
+          const textContent = entry.fields.revealText as string;
+          console.log("Found valid text content:", textContent);
           return {
             sys: entry.sys,
             fields: {
-              text: entry.fields.text as string
+              text: textContent // Map to the expected 'text' field in our type
             }
           } as ContentfulRevealText;
         }
         
-        console.log("Entry found but missing 'text' field, fields available:", Object.keys(entry.fields));
-        // Return a default value if no content found
+        console.log("Entry found but missing expected field, fields available:", Object.keys(entry.fields));
         return null;
       } catch (err) {
         console.error("Error fetching from Contentful:", err);
