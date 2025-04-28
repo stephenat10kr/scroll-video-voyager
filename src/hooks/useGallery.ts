@@ -40,7 +40,8 @@ export const useGallery = () => {
           url: item.fields.galleryMedia.fields.file.url.startsWith('//') 
             ? `https:${item.fields.galleryMedia.fields.file.url}` 
             : item.fields.galleryMedia.fields.file.url,
-          type: item.fields.galleryMedia.fields.file.contentType
+          type: item.fields.galleryMedia.fields.file.contentType,
+          caption: item.fields.galleryCaption || ''
         }));
       
       console.log('Processed media items:', mediaItems);

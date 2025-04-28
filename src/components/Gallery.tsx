@@ -72,7 +72,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               <CarouselContent>
                 {mediaItems.map((item, index) => (
                   <CarouselItem key={index}>
-                    <MediaItem url={item.url} type={item.type} />
+                    <MediaItem url={item.url} type={item.type} caption={item.caption} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
