@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,14 +15,20 @@ const RevealText = () => {
   const { data: revealTextContent, isLoading } = useQuery({
     queryKey: ['revealText'],
     queryFn: async () => {
+      console.log("Fetching reveal text from Contentful");
       const response = await contentfulClient.getEntries({
         content_type: 'revealText',
         limit: 1
       });
       
+      console.log("Contentful response:", JSON.stringify(response, null, 2));
+      
       // First cast to unknown, then to our type to avoid TypeScript errors
       const entry = response.items[0];
+      console.log("First entry:", entry);
+      
       if (entry && entry.sys && entry.fields && 'text' in entry.fields) {
+        console.log("Found valid text content:", entry.fields.text);
         return {
           sys: entry.sys,
           fields: {
@@ -32,12 +37,15 @@ const RevealText = () => {
         } as ContentfulRevealText;
       }
       
+      console.log("No valid reveal text content found");
       // Return a default value if no content found
       return null;
     }
   });
 
   useEffect(() => {
+    console.log("Current revealTextContent:", revealTextContent);
+    
     const text = textRef.current;
     if (!text) return;
 
