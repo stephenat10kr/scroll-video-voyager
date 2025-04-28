@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -12,34 +13,51 @@ gsap.registerPlugin(ScrollTrigger, TextPlugin);
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
 
-  const { data: revealTextContent, isLoading } = useQuery({
+  const { data: revealTextContent, isLoading, error } = useQuery({
     queryKey: ['revealText'],
     queryFn: async () => {
       console.log("Fetching reveal text from Contentful");
-      const response = await contentfulClient.getEntries({
-        content_type: 'revealText',
-        limit: 1
-      });
-      
-      console.log("Contentful response:", JSON.stringify(response, null, 2));
-      
-      // First cast to unknown, then to our type to avoid TypeScript errors
-      const entry = response.items[0];
-      console.log("First entry:", entry);
-      
-      if (entry && entry.sys && entry.fields && 'text' in entry.fields) {
-        console.log("Found valid text content:", entry.fields.text);
-        return {
-          sys: entry.sys,
-          fields: {
-            text: entry.fields.text as string
-          }
-        } as ContentfulRevealText;
+      try {
+        // Log available content types to see what we have in the space
+        const contentTypes = await contentfulClient.getContentTypes();
+        console.log("Available content types:", contentTypes.items.map(ct => ({ id: ct.sys.id, name: ct.name })));
+        
+        const response = await contentfulClient.getEntries({
+          content_type: 'revealText',
+          limit: 1
+        });
+        
+        console.log("Contentful response status:", response.sys);
+        console.log("Total items found:", response.total);
+        console.log("Response items:", response.items.length);
+        
+        if (response.items.length === 0) {
+          console.log("No entries found for content type 'revealText'");
+          return null;
+        }
+        
+        // First cast to unknown, then to our type to avoid TypeScript errors
+        const entry = response.items[0];
+        console.log("First entry sys:", entry.sys);
+        console.log("First entry fields:", entry.fields);
+        
+        if (entry && entry.sys && entry.fields && 'text' in entry.fields) {
+          console.log("Found valid text content:", entry.fields.text);
+          return {
+            sys: entry.sys,
+            fields: {
+              text: entry.fields.text as string
+            }
+          } as ContentfulRevealText;
+        }
+        
+        console.log("Entry found but missing 'text' field, fields available:", Object.keys(entry.fields));
+        // Return a default value if no content found
+        return null;
+      } catch (err) {
+        console.error("Error fetching from Contentful:", err);
+        throw err;
       }
-      
-      console.log("No valid reveal text content found");
-      // Return a default value if no content found
-      return null;
     }
   });
 
@@ -102,6 +120,10 @@ const RevealText = () => {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    console.error("Error loading reveal text:", error);
   }
 
   return (
