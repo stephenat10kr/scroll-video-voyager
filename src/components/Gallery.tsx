@@ -44,6 +44,14 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     };
   }, [api, onSelect]);
 
+  // For debugging
+  React.useEffect(() => {
+    if (mediaItems && mediaItems.length > 0) {
+      console.log("Current index:", currentIndex);
+      console.log("Current caption:", mediaItems[currentIndex]?.caption);
+    }
+  }, [currentIndex, mediaItems]);
+
   if (isLoading) {
     return (
       <div className="w-full bg-black py-24">
@@ -87,11 +95,17 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
             <Carousel
               setApi={(carouselApi) => {
                 api.current = carouselApi;
+                // Force an initial selection event
+                if (carouselApi) {
+                  setTimeout(() => {
+                    onSelect();
+                  }, 0);
+                }
               }}
               className="w-full"
             >
               <CarouselContent>
-                {mediaItems.map((item, index) => (
+                {mediaItems?.map((item, index) => (
                   <CarouselItem key={index}>
                     <MediaItem url={item.url} type={item.type} caption={item.caption} />
                   </CarouselItem>
@@ -100,7 +114,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
             </Carousel>
             <div className="flex justify-between items-center mt-4">
               <p className="text-white font-sans text-base">
-                {mediaItems[currentIndex]?.caption || ''}
+                {mediaItems && currentIndex < mediaItems.length ? mediaItems[currentIndex]?.caption || '' : ''}
               </p>
               <div className="flex gap-4">
                 <CustomPrevButton onClick={scrollPrev} />
