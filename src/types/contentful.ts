@@ -64,3 +64,13 @@ export interface ContentfulGalleryResponse {
   skip: number;
   limit: number;
 }
+
+// Define the structure of a Contentful reveal text
+export interface ContentfulRevealText {
+  sys: {
+    id: string;
+  };
+  fields: {
+    text: string;
+  };
+}

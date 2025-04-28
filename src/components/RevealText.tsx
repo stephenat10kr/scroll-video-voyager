@@ -4,11 +4,25 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { contentfulClient } from "@/lib/contentfulClient";
+import type { ContentfulRevealText } from "@/types/contentful";
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+
+  const { data: revealTextContent, isLoading } = useQuery({
+    queryKey: ['revealText'],
+    queryFn: async () => {
+      const response = await contentfulClient.getEntries<ContentfulRevealText>({
+        content_type: 'revealText',
+        limit: 1
+      });
+      return response.items[0];
+    }
+  });
 
   useEffect(() => {
     const text = textRef.current;
@@ -23,7 +37,6 @@ const RevealText = () => {
     // Create HTML structure with words and characters wrapped in spans
     const formattedHTML = words
       .map(word => {
-        // Wrap each letter in a span, then wrap the whole word in a div
         const charSpans = word
           .split("")
           .map(char => `<span class="char">${char}</span>`)
@@ -34,7 +47,6 @@ const RevealText = () => {
     
     text.innerHTML = formattedHTML;
 
-    // Create timeline with ScrollTrigger
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
@@ -45,11 +57,9 @@ const RevealText = () => {
       }
     });
 
-    // Select all character spans for animation
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
 
-    // Animate each character with a slight stagger
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
@@ -61,7 +71,17 @@ const RevealText = () => {
     return () => {
       tl.kill();
     };
-  }, []);
+  }, [revealTextContent]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-black py-24">
+        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+          <div className="col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-black py-24">
@@ -78,7 +98,7 @@ const RevealText = () => {
             wordBreak: "normal"
           }}
         >
-          Lightning Society is a space where thinkers, builders and seekers gather. We're here to spark connection, explore possibility and illuminate new ways of being—together.
+          {revealTextContent?.fields.text}
         </div>
         <div className="col-span-9">
           <Button 
