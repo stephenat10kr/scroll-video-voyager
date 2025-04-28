@@ -19,10 +19,26 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   
   const scrollPrev = useCallback(() => {
     api.current?.scrollPrev();
+    // Wait briefly for the scroll to complete, then manually update the current index
+    setTimeout(() => {
+      if (api.current) {
+        const index = api.current.selectedScrollSnap();
+        console.log("scrollPrev - new index:", index);
+        setCurrentIndex(index);
+      }
+    }, 50);
   }, []);
   
   const scrollNext = useCallback(() => {
     api.current?.scrollNext();
+    // Wait briefly for the scroll to complete, then manually update the current index
+    setTimeout(() => {
+      if (api.current) {
+        const index = api.current.selectedScrollSnap();
+        console.log("scrollNext - new index:", index);
+        setCurrentIndex(index);
+      }
+    }, 50);
   }, []);
 
   // Update the current index when the carousel changes
@@ -38,14 +54,19 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     if (!api.current) return;
     
     console.log("Setting up carousel event listeners");
-    api.current.on("select", onSelect);
-    api.current.on("reInit", onSelect);
+    const onSelectHandler = () => {
+      console.log("Select event triggered");
+      onSelect();
+    };
+    
+    api.current.on("select", onSelectHandler);
+    api.current.on("reInit", onSelectHandler);
     
     return () => {
       if (!api.current) return;
       console.log("Removing carousel event listeners");
-      api.current.off("select", onSelect);
-      api.current.off("reInit", onSelect);
+      api.current.off("select", onSelectHandler);
+      api.current.off("reInit", onSelectHandler);
     };
   }, [api, onSelect]);
 
@@ -111,7 +132,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                   setTimeout(() => {
                     console.log("Forcing initial selection");
                     onSelect();
-                  }, 100); // Increased the timeout slightly
+                  }, 100); 
                 }
               }}
               className="w-full"
