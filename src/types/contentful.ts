@@ -1,4 +1,3 @@
-
 // Define the structure of a Contentful tag
 interface ContentfulTag {
   sys: {
@@ -101,6 +100,29 @@ export interface ContentfulValue {
 // Define the structure of the values response from Contentful
 export interface ContentfulValuesResponse {
   items: ContentfulValue[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+// Define the structure of a Contentful video text
+export interface ContentfulVideoText {
+  sys: {
+    id: string;
+    contentType?: {
+      sys: {
+        id: string;
+      };
+    };
+  };
+  fields: {
+    videoText: string[];
+  };
+}
+
+// Define the structure of the video text response from Contentful
+export interface ContentfulVideoTextResponse {
+  items: ContentfulVideoText[];
   total: number;
   skip: number;
   limit: number;

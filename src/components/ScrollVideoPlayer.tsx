@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -41,6 +42,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("Segment count:", segmentCount);
 
     // Optimize video element
     video.controls = false;
@@ -134,12 +136,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     resizeSection();
     window.addEventListener("resize", resizeSection);
 
-    // Pre-calculate segment length to avoid doing it on every scroll
+    // Calculate segment length based on the dynamic segmentCount
     const calculateSegmentLength = (segments: number) => {
       return 1 / (segments + 1);
     };
-    const segLen = calculateSegmentLength(segmentCount);
-
+    
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
@@ -150,18 +151,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
+      
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
+        
+        // Calculate which text should be showing based on current progress
+        const segLen = calculateSegmentLength(segmentCount);
         let textIdx: number | null = null;
+        
         for (let i = 0; i < segmentCount; ++i) {
           if (progress >= segLen * i && progress < segLen * (i + 1)) {
             textIdx = i;
             break;
           }
         }
+        
         if (progress >= segLen * segmentCount) {
           textIdx = null;
         }
+        
         onTextIndexChange(textIdx);
         onAfterVideoChange(progress >= 1);
       });

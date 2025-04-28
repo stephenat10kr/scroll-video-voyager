@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -5,6 +6,7 @@ import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useVideoText } from "../hooks/useVideoText";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,7 +26,18 @@ const ScrollVideo: React.FC<{
   const [textIndex, setTextIndex] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
-
+  
+  // Fetch video text from Contentful
+  const { data: videoTexts, isLoading: textLoading } = useVideoText();
+  
+  // Use the fetched texts or fall back to default texts
+  const textArray = videoTexts && videoTexts.length > 0 
+    ? videoTexts 
+    : ["Welcome to Lightning Society", "where", "curiosity", "meets", "culture"];
+  
+  // Calculate segment count based on text items
+  const segmentCount = textArray.length;
+  
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
@@ -47,7 +60,7 @@ const ScrollVideo: React.FC<{
   }}>
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
-        segmentCount={5} 
+        segmentCount={segmentCount} 
         onTextIndexChange={setTextIndex} 
         onAfterVideoChange={setIsAfterVideo} 
         videoRef={videoRef} 
@@ -63,7 +76,7 @@ const ScrollVideo: React.FC<{
       </ScrollVideoPlayer>
 
       <ScrollVideoTextOverlay 
-        texts={["Welcome to Lightning Society", "where", "curiosity", "meets", "culture"]} 
+        texts={textArray}
         currentTextIndex={textIndex} 
       />
 
