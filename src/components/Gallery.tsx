@@ -77,9 +77,14 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                 ))}
               </CarouselContent>
             </Carousel>
-            <div className="flex justify-end gap-4 mt-4">
-              <CustomPrevButton onClick={scrollPrev} />
-              <CustomNextButton onClick={scrollNext} />
+            <div className="flex justify-between items-center mt-4">
+              <p className="text-white font-sans text-base">
+                {mediaItems[api.current?.selectedScrollSnap() || 0]?.caption || ''}
+              </p>
+              <div className="flex gap-4">
+                <CustomPrevButton onClick={scrollPrev} />
+                <CustomNextButton onClick={scrollNext} />
+              </div>
             </div>
           </div>
           <div className="col-start-5 col-end-13 space-y-6 text-white">
