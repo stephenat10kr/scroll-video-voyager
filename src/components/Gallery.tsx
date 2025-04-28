@@ -53,6 +53,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   useEffect(() => {
     if (mediaItems && mediaItems.length > 0) {
       console.log("Current index:", currentIndex);
+      console.log("Current media item:", mediaItems[currentIndex]);
       console.log("Current caption:", mediaItems[currentIndex]?.caption);
     }
   }, [currentIndex, mediaItems]);
@@ -91,8 +92,9 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     );
   }
 
+  // Make sure we're getting the caption for the current item
   const currentCaption = mediaItems[currentIndex]?.caption || '';
-  console.log("Rendering with current caption:", currentCaption);
+  console.log("Rendering with currentCaption:", currentCaption);
 
   return (
     <div className="w-full bg-black py-24">
@@ -109,7 +111,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                   setTimeout(() => {
                     console.log("Forcing initial selection");
                     onSelect();
-                  }, 0);
+                  }, 100); // Increased the timeout slightly
                 }
               }}
               className="w-full"
@@ -123,9 +125,9 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <p className="text-white font-sans text-base" key={currentIndex}>
+              <div className="text-white font-sans text-base">
                 {currentCaption}
-              </p>
+              </div>
               <div className="flex gap-4">
                 <CustomPrevButton onClick={scrollPrev} />
                 <CustomNextButton onClick={scrollNext} />

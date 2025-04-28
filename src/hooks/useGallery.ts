@@ -36,15 +36,24 @@ export const useGallery = () => {
           }
           return true;
         })
-        .map(item => ({
-          url: item.fields.galleryMedia.fields.file.url.startsWith('//') 
-            ? `https:${item.fields.galleryMedia.fields.file.url}` 
-            : item.fields.galleryMedia.fields.file.url,
-          type: item.fields.galleryMedia.fields.file.contentType,
-          caption: item.fields.galleryCaption || ''
-        }));
+        .map(item => {
+          // Check for caption field and log it for debugging
+          if (item.fields.galleryCaption) {
+            console.log(`Found caption for item ${item.sys.id}:`, item.fields.galleryCaption);
+          } else {
+            console.log(`No caption found for item ${item.sys.id}`);
+          }
+          
+          return {
+            url: item.fields.galleryMedia.fields.file.url.startsWith('//') 
+              ? `https:${item.fields.galleryMedia.fields.file.url}` 
+              : item.fields.galleryMedia.fields.file.url,
+            type: item.fields.galleryMedia.fields.file.contentType,
+            caption: item.fields.galleryCaption || ''
+          };
+        });
       
-      console.log('Processed media items:', mediaItems);
+      console.log('Processed media items with captions:', mediaItems);
       return mediaItems;
     }
   });
