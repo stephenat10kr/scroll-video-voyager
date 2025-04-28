@@ -1,3 +1,4 @@
+
 // Define the structure of a Contentful tag
 interface ContentfulTag {
   sys: {
@@ -69,8 +70,14 @@ export interface ContentfulGalleryResponse {
 export interface ContentfulRevealText {
   sys: {
     id: string;
+    contentType: {
+      sys: {
+        id: string;
+      };
+    };
   };
   fields: {
     text: string;
   };
+  contentTypeId?: 'revealText'; // Add this to satisfy EntrySkeletonType
 }

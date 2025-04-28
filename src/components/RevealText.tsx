@@ -16,11 +16,11 @@ const RevealText = () => {
   const { data: revealTextContent, isLoading } = useQuery({
     queryKey: ['revealText'],
     queryFn: async () => {
-      const response = await contentfulClient.getEntries<ContentfulRevealText>({
+      const response = await contentfulClient.getEntries({
         content_type: 'revealText',
         limit: 1
       });
-      return response.items[0];
+      return response.items[0] as ContentfulRevealText;
     }
   });
 
