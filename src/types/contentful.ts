@@ -80,3 +80,27 @@ export interface ContentfulRevealText {
     text: string;
   };
 }
+
+// Define the structure of a Contentful value
+export interface ContentfulValue {
+  sys: {
+    id: string;
+    contentType?: {
+      sys: {
+        id: string;
+      };
+    };
+  };
+  fields: {
+    valueTitle: string;
+    valueText: string[];
+  };
+}
+
+// Define the structure of the values response from Contentful
+export interface ContentfulValuesResponse {
+  items: ContentfulValue[];
+  total: number;
+  skip: number;
+  limit: number;
+}
