@@ -18,8 +18,9 @@ const Ritual: React.FC<RitualProps> = ({
   isReversed = false
 }) => {
   return (
-    <div className="grid grid-cols-12 gap-4 mb-16 last:mb-0">
-      <div className={`col-span-5 ${isReversed ? 'col-start-8' : 'col-start-1'}`}>
+    <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
+      {/* Image Section */}
+      <div className={`col-span-12 md:col-span-5 ${isReversed ? 'md:col-start-7' : 'md:col-start-1'}`}>
         <AspectRatio ratio={1/1} className="mb-4 md:mb-0">
           <img 
             src={imageSrc} 
@@ -28,7 +29,9 @@ const Ritual: React.FC<RitualProps> = ({
           />
         </AspectRatio>
       </div>
-      <div className={`col-span-5 flex flex-col justify-center ${isReversed ? 'col-start-1' : 'col-start-8'}`}>
+      
+      {/* Text Section */}
+      <div className={`col-span-12 md:col-span-5 flex flex-col justify-center ${isReversed ? 'md:col-start-1' : 'md:col-start-7'}`}>
         <h2 className="text-7xl font-gt-super leading-none mb-6 text-white">
           {title}
         </h2>
