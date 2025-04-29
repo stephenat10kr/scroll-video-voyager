@@ -7,6 +7,9 @@ interface RitualsProps {
 }
 
 const Rituals: React.FC<RitualsProps> = ({ title }) => {
+  // Use the same image for all rituals
+  const commonImage = "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80";
+
   // Sample data for rituals
   const rituals = [
     {
@@ -15,7 +18,7 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
       description: [
         "Immersive events for exploration and discovery. Learn, unlearn, and imagine alongside artists, thinkers, and innovators shaping what's next."
       ],
-      imageSrc: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      imageSrc: commonImage,
       imageAlt: "Group of people at a salon event"
     },
     {
@@ -24,7 +27,7 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
       description: [
         "Gather, ground, and grow. Our rituals offer moments of wellness, intention-setting, and shared presence, designed to connect you more deeply to yourself, to community, and to the city around you."
       ],
-      imageSrc: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      imageSrc: commonImage,
       imageAlt: "People enjoying an art performance"
     },
     {
@@ -33,7 +36,7 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
       description: [
         "Celebration is a way of life. From live music to spontaneous gatherings, our fêtes weave connection, creativity, and conviviality into every corner of the clubhouse, at any hour, whenever the Art & Culture moment calls."
       ],
-      imageSrc: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      imageSrc: commonImage,
       imageAlt: "Colorful celebration event"
     }
   ];
