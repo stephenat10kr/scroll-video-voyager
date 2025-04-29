@@ -28,7 +28,7 @@ const Ritual: React.FC<RitualProps> = ({
           />
         </AspectRatio>
       </div>
-      <div className={`col-span-5 flex flex-col justify-center ${isReversed ? 'col-start-2' : 'col-start-8'}`}>
+      <div className={`col-span-5 flex flex-col justify-center ${isReversed ? 'col-start-1' : 'col-start-8'}`}>
         <h2 className="text-7xl font-gt-super leading-none mb-6 text-white">
           {title}
         </h2>
