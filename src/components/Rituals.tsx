@@ -53,7 +53,7 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
               description={ritual.description}
               imageSrc={ritual.imageSrc}
               imageAlt={ritual.imageAlt}
-              isReversed={index % 2 !== 0}
+              isReversed={index === 1} // Only the second ritual (index 1) should be reversed
             />
           ))}
         </div>
