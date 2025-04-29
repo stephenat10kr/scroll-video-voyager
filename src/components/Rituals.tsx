@@ -1,6 +1,7 @@
 
 import React from "react";
 import Ritual from "./Ritual";
+import RitualReversed from "./RitualReversed";
 
 interface RitualsProps {
   title: string;
@@ -46,16 +47,29 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
       <div className="max-w-[90%] mx-auto">
         <h2 className="text-white text-2xl mb-12">{title}</h2>
         <div className="space-y-24">
-          {rituals.map((ritual, index) => (
-            <Ritual
-              key={ritual.id}
-              title={ritual.title}
-              description={ritual.description}
-              imageSrc={ritual.imageSrc}
-              imageAlt={ritual.imageAlt}
-              isReversed={index === 1} // Only the second ritual (index 1) should be reversed
-            />
-          ))}
+          {/* First ritual: standard layout */}
+          <Ritual
+            title={rituals[0].title}
+            description={rituals[0].description}
+            imageSrc={rituals[0].imageSrc}
+            imageAlt={rituals[0].imageAlt}
+          />
+          
+          {/* Second ritual: reversed layout */}
+          <RitualReversed
+            title={rituals[1].title}
+            description={rituals[1].description}
+            imageSrc={rituals[1].imageSrc}
+            imageAlt={rituals[1].imageAlt}
+          />
+          
+          {/* Third ritual: standard layout */}
+          <Ritual
+            title={rituals[2].title}
+            description={rituals[2].description}
+            imageSrc={rituals[2].imageSrc}
+            imageAlt={rituals[2].imageAlt}
+          />
         </div>
       </div>
     </div>

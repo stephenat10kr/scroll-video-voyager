@@ -7,20 +7,19 @@ interface RitualProps {
   description: string[];
   imageSrc: string;
   imageAlt: string;
-  isReversed?: boolean;
 }
 
+// This is now only for the standard layout (image left, text right)
 const Ritual: React.FC<RitualProps> = ({
   title,
   description,
   imageSrc,
-  imageAlt,
-  isReversed = false
+  imageAlt
 }) => {
   return (
     <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
-      {/* Image Section */}
-      <div className={`col-span-12 md:col-span-5 ${isReversed ? 'md:col-start-8' : 'md:col-start-1'}`}>
+      {/* Image Section - Always on left (cols 1-5) */}
+      <div className="col-span-12 md:col-span-5 md:col-start-1">
         <AspectRatio ratio={1/1} className="mb-4 md:mb-0">
           <img 
             src={imageSrc} 
@@ -30,8 +29,10 @@ const Ritual: React.FC<RitualProps> = ({
         </AspectRatio>
       </div>
       
-      {/* Text Section */}
-      <div className={`col-span-12 md:col-span-5 flex flex-col justify-center ${isReversed ? 'md:col-start-1' : 'md:col-start-8'}`}>
+      {/* Gap at columns 6-7 is created by the grid and gap-8 */}
+      
+      {/* Text Section - Always on right (cols 8-12) */}
+      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
         <h2 className="text-7xl font-gt-super leading-none mb-6 text-white">
           {title}
         </h2>
