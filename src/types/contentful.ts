@@ -127,3 +127,29 @@ export interface ContentfulVideoTextResponse {
   skip: number;
   limit: number;
 }
+
+// Define the structure of a ritual from Contentful
+export interface ContentfulRitual {
+  sys: {
+    id: string;
+    contentType?: {
+      sys: {
+        id: string;
+      }
+    }
+  };
+  fields: {
+    title: string;
+    text: string | string[];
+    image: ContentfulAsset;
+    orderNumber?: number;
+  };
+}
+
+// Define the structure of the rituals response from Contentful
+export interface ContentfulRitualsResponse {
+  items: ContentfulRitual[];
+  total: number;
+  skip: number;
+  limit: number;
+}
