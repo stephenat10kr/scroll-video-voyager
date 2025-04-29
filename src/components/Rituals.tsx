@@ -40,11 +40,9 @@ const Rituals: React.FC<RitualsProps> = ({ title }) => {
 
   return (
     <div className="w-full bg-black py-24">
-      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div className="col-span-12 md:col-span-3">
-          <h2 className="text-white text-2xl mb-8 md:mb-0">{title}</h2>
-        </div>
-        <div className="col-span-12 md:col-span-9">
+      <div className="max-w-[90%] mx-auto">
+        <h2 className="text-white text-2xl mb-12">{title}</h2>
+        <div className="space-y-24">
           {rituals.map((ritual, index) => (
             <Ritual
               key={ritual.id}
