@@ -1,7 +1,9 @@
+
 import React from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
+import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
@@ -13,6 +15,7 @@ const Index = () => {
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
+        <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
           description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge."
