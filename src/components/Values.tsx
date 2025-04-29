@@ -68,11 +68,12 @@ const Values: React.FC<ValuesProps> = ({ title }) => {
           <h2 className="text-white text-2xl">{title}</h2>
         </div>
         <div className="col-span-9">
-          {values.map((value) => (
+          {values.map((value, index) => (
             <Value 
               key={value.id}
               valueTitle={value.valueTitle}
               valueText={value.valueText}
+              isLast={index === values.length - 1}
             />
           ))}
         </div>

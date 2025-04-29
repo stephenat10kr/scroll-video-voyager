@@ -1,14 +1,16 @@
 
 import React from "react";
+import { Separator } from "./ui/separator";
 
 interface ValueProps {
   valueTitle: string;
   valueText: string[];
+  isLast?: boolean;
 }
 
-const Value: React.FC<ValueProps> = ({ valueTitle, valueText }) => {
+const Value: React.FC<ValueProps> = ({ valueTitle, valueText, isLast = false }) => {
   return (
-    <div className="mb-24 last:mb-0">
+    <div className={`${isLast ? '' : 'mb-6'}`}>
       <h2 
         className="text-7xl font-gt-super leading-none mb-6 text-white"
       >
@@ -21,6 +23,10 @@ const Value: React.FC<ValueProps> = ({ valueTitle, valueText }) => {
           </p>
         ))}
       </div>
+      
+      {!isLast && (
+        <Separator className="bg-white h-px mt-24 mb-24" />
+      )}
     </div>
   );
 };
