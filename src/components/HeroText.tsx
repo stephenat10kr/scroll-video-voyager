@@ -27,7 +27,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
         <div className="col-span-12 h-screen flex flex-col justify-center">
           <div className="col-span-12 lg:col-span-5 lg:col-start-1">
             <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WELCOME TO</h2>
-            <div className="w-48 md:w-64 lg:w-80">
+            <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
               <Logo />
             </div>
           </div>
