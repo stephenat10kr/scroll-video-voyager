@@ -53,7 +53,7 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden bg-black" 
+      className="relative w-full min-h-screen overflow-hidden bg-black video-scroll-container" 
       style={{ zIndex: 1 }}
     >
       <ScrollVideoPlayer 

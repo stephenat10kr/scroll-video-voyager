@@ -39,6 +39,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Add CSS for scroll disabling
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .scroll-disabled {
+        pointer-events: none;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
@@ -145,6 +160,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // Check if scrolling in the video section is disabled
+      if (container.classList.contains('scroll-disabled')) {
+        return;
+      }
+      
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
