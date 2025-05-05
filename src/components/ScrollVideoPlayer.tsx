@@ -37,7 +37,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const lastProgressRef = useRef(0);
   const progressThreshold = 0.015;
   const frameRef = useRef<number | null>(null);
-  const isScrollLockedRef = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -149,14 +148,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
-      
-      // If we've reached the end of the video (progress = 1), mark it as complete
-      if (progress >= 1 && !isScrollLockedRef.current) {
-        isScrollLockedRef.current = true;
-        onAfterVideoChange(true);
-      }
-      
-      // Store the progress for comparison on next update
       lastProgressRef.current = progress;
       
       // Call the progress change callback
@@ -164,17 +155,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Update video currentTime based on scroll progress
       const newTime = progress * video.duration;
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Only update video time if we're still scrolling or haven't reached the end
-        if (!isScrollLockedRef.current) {
-          video.currentTime = newTime;
-        }
+        video.currentTime = newTime;
         
         // Calculate which text should be showing based on current progress
         const segLen = calculateSegmentLength(segmentCount);
@@ -192,6 +179,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         }
         
         onTextIndexChange(textIdx);
+        onAfterVideoChange(progress >= 1);
       });
     };
 
@@ -209,11 +197,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onUpdate: (self) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
-          
-          // Only update video if we haven't locked scrolling
-          if (!isScrollLockedRef.current) {
-            updateVideoFrame(progress);
-          }
+          updateVideoFrame(progress);
         }
       });
       setIsLoaded(true);
