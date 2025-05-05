@@ -10,6 +10,7 @@ type ScrollVideoPlayerProps = {
   segmentCount: number;
   onTextIndexChange: (idx: number | null) => void;
   onAfterVideoChange: (after: boolean) => void;
+  onProgressChange?: (progress: number) => void;
   children?: React.ReactNode;
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
@@ -23,6 +24,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   segmentCount,
   onTextIndexChange,
   onAfterVideoChange,
+  onProgressChange,
   children,
   videoRef,
   containerRef,
@@ -147,6 +149,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         return;
       }
       lastProgressRef.current = progress;
+      
+      // Call the progress change callback
+      if (onProgressChange) {
+        onProgressChange(progress);
+      }
+      
       const newTime = progress * video.duration;
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
@@ -267,7 +275,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };

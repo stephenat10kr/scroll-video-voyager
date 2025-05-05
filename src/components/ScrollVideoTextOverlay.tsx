@@ -1,25 +1,23 @@
 
 import React from "react";
-import { useIsMobile } from "../hooks/use-mobile";
+import ScrollVideoContent from "./ScrollVideoContent";
 
 type ScrollVideoTextOverlayProps = {
   texts: string[];
   currentTextIndex: number | null;
+  progress: number;
+  containerRef: React.RefObject<HTMLDivElement>;
 };
 
 const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
   texts,
   currentTextIndex,
+  progress,
+  containerRef
 }) => {
-  const isMobile = useIsMobile();
-  
-  // Return an empty div - no text overlay
   return (
-    <div
-      id="scroll-video-title"
-      className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none"
-    >
-      {/* Text overlay removed */}
+    <div id="scroll-video-title">
+      <ScrollVideoContent progress={progress} containerRef={containerRef} />
     </div>
   );
 };
