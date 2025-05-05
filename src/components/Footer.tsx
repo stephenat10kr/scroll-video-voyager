@@ -6,7 +6,9 @@ import Logo from "./Logo";
 const Footer = () => {
   return (
     <footer className="h-[128px] bg-black w-full flex justify-between items-center px-8">
-      <Logo />
+      <div className="w-auto h-14">
+        <Logo />
+      </div>
       <div className="flex flex-col items-end gap-4">
         <div className="flex gap-6">
           <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer">
