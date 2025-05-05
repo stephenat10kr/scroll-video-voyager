@@ -2,27 +2,25 @@
 import React from "react";
 import Logo from "./Logo";
 
-type ScrollVideoContentProps = {
+type HeroTextProps = {
   progress: number;
   containerRef: React.RefObject<HTMLDivElement>;
 };
 
-const ScrollVideoContent: React.FC<ScrollVideoContentProps> = ({ 
-  progress, 
-  containerRef 
-}) => {
+const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
   // Calculate which section to show based on progress
   // The video is divided into 3 equal sections
   const section = Math.floor(progress * 3);
   const sectionProgress = (progress * 3) % 1;
   
   return (
-    <div className="fixed inset-0 pointer-events-none z-10 overflow-hidden">
+    <div className="relative w-full pointer-events-none z-10 overflow-hidden">
       <div 
-        className="absolute w-full grid grid-cols-12 gap-4 px-4 md:px-8 lg:px-12"
+        className="w-full grid grid-cols-12 gap-4 px-4 md:px-8 lg:px-12"
         style={{ 
-          transform: `translateY(${-progress * 200}vh)`,
-          height: '300vh' // 3x viewport height
+          transform: progress < 1 ? `translateY(${-progress * 200}vh)` : '',
+          height: '300vh', // 3x viewport height
+          opacity: progress > 0.95 ? Math.max(1 - (progress - 0.95) * 20, 0) : 1, // Fade out as video ends
         }}
       >
         {/* Section 1 */}
@@ -69,4 +67,4 @@ const ScrollVideoContent: React.FC<ScrollVideoContentProps> = ({
   );
 };
 
-export default ScrollVideoContent;
+export default HeroText;

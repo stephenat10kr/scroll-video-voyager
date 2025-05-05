@@ -1,6 +1,6 @@
 
 import React from "react";
-import ScrollVideoContent from "./ScrollVideoContent";
+import HeroText from "./HeroText";
 
 type ScrollVideoTextOverlayProps = {
   texts: string[];
@@ -17,7 +17,7 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
 }) => {
   return (
     <div id="scroll-video-title">
-      <ScrollVideoContent progress={progress} containerRef={containerRef} />
+      <HeroText progress={progress} containerRef={containerRef} />
     </div>
   );
 };

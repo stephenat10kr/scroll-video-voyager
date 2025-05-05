@@ -50,9 +50,12 @@ const ScrollVideo: React.FC<{
     }
   }, [secureVideoSrc, isMobile]);
 
-  return <div ref={containerRef} className="relative w-full min-h-screen overflow-hidden bg-black" style={{
-    zIndex: 1
-  }}>
+  return (
+    <div 
+      ref={containerRef} 
+      className="relative w-full min-h-screen overflow-hidden bg-black" 
+      style={{ zIndex: 1 }}
+    >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
         segmentCount={segmentCount} 
@@ -65,10 +68,20 @@ const ScrollVideo: React.FC<{
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
       >
-        <video ref={videoRef} src={secureVideoSrc} playsInline preload="auto" loop={false} muted tabIndex={-1} className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" style={{
-        minHeight: "100vh",
-        opacity: videoLoaded ? 1 : 0
-      }} />
+        <video 
+          ref={videoRef} 
+          src={secureVideoSrc} 
+          playsInline 
+          preload="auto" 
+          loop={false} 
+          muted 
+          tabIndex={-1} 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
+          style={{
+            minHeight: "100vh",
+            opacity: videoLoaded ? 1 : 0
+          }} 
+        />
       </ScrollVideoPlayer>
 
       <ScrollVideoTextOverlay 
@@ -79,7 +92,8 @@ const ScrollVideo: React.FC<{
       />
 
       {!isAfterVideo && <ScrollVideoScrollHint />}
-    </div>;
+    </div>
+  );
 };
 
 export default ScrollVideo;
