@@ -25,6 +25,7 @@ const Index = () => {
         onEnter: () => {
           // When RevealText reaches the top, disable scrolling in the video section
           document.querySelector('.video-scroll-container')?.classList.add('scroll-disabled');
+          console.log("RevealText entered viewport");
         },
         onLeaveBack: () => {
           // When scrolling back up from RevealText, re-enable scrolling in video

@@ -147,6 +147,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
+        // Add extra scroll space to ensure the video plays fully
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };
@@ -163,6 +164,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Check if scrolling in the video section is disabled
       if (container.classList.contains('scroll-disabled')) {
+        // When disabled, we set to the last frame of the video
+        // This ensures the video stays at its final frame when RevealText is at the top
+        if (video.currentTime !== video.duration) {
+          video.currentTime = video.duration;
+        }
         return;
       }
       
@@ -207,6 +213,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      
+      // Make sure our scroll trigger extends beyond the viewport height
+      // This ensures the video continues playing until the RevealText component is reached
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",

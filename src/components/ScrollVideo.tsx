@@ -9,8 +9,8 @@ import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance
-const SCROLL_EXTRA_PX = 2000;
+// Increase scroll distance to ensure video plays fully
+const SCROLL_EXTRA_PX = 2500;
 const AFTER_VIDEO_EXTRA_HEIGHT = 400;
 
 const ScrollVideo: React.FC<{
