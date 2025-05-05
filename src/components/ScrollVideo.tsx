@@ -15,8 +15,10 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 400;
 
 const ScrollVideo: React.FC<{
   src?: string;
+  onVideoComplete?: () => void;
 }> = ({
-  src
+  src,
+  onVideoComplete
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,6 +51,13 @@ const ScrollVideo: React.FC<{
       return () => video.removeEventListener("canplay", handleCanPlay);
     }
   }, [secureVideoSrc, isMobile]);
+
+  // Call onVideoComplete when isAfterVideo changes to true
+  useEffect(() => {
+    if (isAfterVideo && onVideoComplete) {
+      onVideoComplete();
+    }
+  }, [isAfterVideo, onVideoComplete]);
 
   return (
     <div 
