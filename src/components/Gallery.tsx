@@ -149,8 +149,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                 {currentCaption}
               </div>
               <div className="flex gap-4">
-                <CustomPrevButton onClick={scrollPrev} className="bg-[#FFB577] hover:bg-[#FFB577]/90" />
-                <CustomNextButton onClick={scrollNext} className="bg-[#FFB577] hover:bg-[#FFB577]/90" />
+                <CustomPrevButton onClick={scrollPrev} className="bg-transparent hover:bg-transparent" />
+                <CustomNextButton onClick={scrollNext} className="bg-transparent hover:bg-transparent" />
               </div>
             </div>
           </div>

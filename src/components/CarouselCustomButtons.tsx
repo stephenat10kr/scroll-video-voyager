@@ -11,11 +11,11 @@ export const CustomPrevButton = ({ onClick, className }: CustomButtonProps) => (
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_6492_11821)">
         <g clipPath="url(#clip1_6492_11821)">
-          <rect width="16" height="16" transform="translate(16 16)" fill="white" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
-          <path d="M26 20L22 24L26 28" stroke="white"/>
+          <rect width="16" height="16" transform="translate(16 16)" fill="transparent" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
+          <path d="M26 20L22 24L26 28" stroke="#FFB577"/>
         </g>
       </g>
-      <rect x="0.5" y="0.5" width="47" height="47" rx="23.5" stroke="white"/>
+      <rect x="0.5" y="0.5" width="47" height="47" rx="23.5" stroke="#FFB577"/>
       <defs>
         <clipPath id="clip0_6492_11821">
           <rect width="48" height="48" rx="24" fill="white"/>
@@ -33,11 +33,11 @@ export const CustomNextButton = ({ onClick, className }: CustomButtonProps) => (
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_6492_11822)">
         <g clipPath="url(#clip1_6492_11822)">
-          <rect width="16" height="16" transform="translate(16 16)" fill="white" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
-          <path d="M22 28L26 24L22 20" stroke="white"/>
+          <rect width="16" height="16" transform="translate(16 16)" fill="transparent" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
+          <path d="M22 28L26 24L22 20" stroke="#FFB577"/>
         </g>
       </g>
-      <rect x="0.5" y="0.5" width="47" height="47" rx="23.5" stroke="white"/>
+      <rect x="0.5" y="0.5" width="47" height="47" rx="23.5" stroke="#FFB577"/>
       <defs>
         <clipPath id="clip0_6492_11822">
           <rect width="48" height="48" rx="24" fill="white"/>
