@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -48,7 +49,7 @@ const Questions: React.FC<QuestionsProps> = ({
         <h2 className="text-white text-2xl mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className="col-start-5 col-end-13">
           <TabsList className="mb-12 bg-transparent w-full flex justify-start gap-4">
-            {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-white border border-white hover:bg-white/10">
+            {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-white border border-[#FFB577] hover:bg-white/10">
                 {tab}
               </TabsTrigger>)}
           </TabsList>
