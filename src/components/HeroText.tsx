@@ -4,7 +4,7 @@ const HeroText: React.FC = () => {
   return <div className="relative w-full z-10 bg-transparent">
       <div className="w-full max-w-none">
         {/* Section 1 */}
-        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 py-[240px]">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
