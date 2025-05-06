@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Increase scroll distance
 const SCROLL_EXTRA_PX = 2000;
-const AFTER_VIDEO_EXTRA_HEIGHT = 0;
+const AFTER_VIDEO_EXTRA_HEIGHT = "-1vh";
 
 const ScrollVideo: React.FC<{
   src?: string;
