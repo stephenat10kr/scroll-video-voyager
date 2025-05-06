@@ -11,7 +11,7 @@ const HeroText: React.FC = () => {
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WELCOME TO</h2>
+                <h2 className="text-4xl md:text-5xl text-white font-medium mb-4">WELCOME TO</h2>
                 <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
                   <Logo />
                 </div>
@@ -25,7 +25,7 @@ const HeroText: React.FC = () => {
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WHERE</h2>
+                <h2 className="text-4xl md:text-5xl text-white font-medium mb-4">WHERE</h2>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
               </div>
 
@@ -43,7 +43,7 @@ const HeroText: React.FC = () => {
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">MEETS</h2>
+                <h2 className="text-4xl md:text-5xl text-white font-medium mb-4">MEETS</h2>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
