@@ -20,7 +20,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
         style={{ 
           transform: progress < 1 ? `translateY(${-progress * 200}vh)` : '',
           height: '300vh', // 3x viewport height
-          opacity: 1, // Remove fade-out effect
+          opacity: progress > 0.95 ? Math.max(1 - (progress - 0.95) * 20, 0) : 1, // Fade out as video ends
         }}
       >
         {/* Section 1 */}

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
@@ -15,27 +16,30 @@ const Index = () => {
   const revealTextRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Create a ScrollTrigger that will disable scrolling in the video section
-    // immediately when RevealText reaches the top of the viewport
+    // Create a ScrollTrigger that will allow the video to scroll
+    // until the RevealText component is about to reach the top of the viewport
     if (revealTextRef.current) {
       ScrollTrigger.create({
         trigger: revealTextRef.current,
-        // Start the trigger exactly at the top
-        start: "top top",
+        // Start the trigger earlier, when RevealText is 300px below the viewport top
+        start: "top+=300 top",
         onEnter: () => {
-          // When RevealText reaches the top, disable scrolling in the video section
-          // but don't trigger the fade-out
+          // When RevealText approaches the top, disable scrolling in the video section
+          // and trigger the fade-out
           const videoContainer = document.querySelector('.video-scroll-container');
           if (videoContainer) {
             videoContainer.classList.add('scroll-disabled');
-            console.log("RevealText at viewport top, video scroll disabled");
+            videoContainer.classList.add('video-fading-out');
+            console.log("RevealText approaching viewport, video fading out");
           }
         },
         onLeaveBack: () => {
           // When scrolling back up from RevealText, re-enable scrolling in video
+          // and fade the video back in
           const videoContainer = document.querySelector('.video-scroll-container');
           if (videoContainer) {
             videoContainer.classList.remove('scroll-disabled');
+            videoContainer.classList.remove('video-fading-out');
           }
         },
         markers: false

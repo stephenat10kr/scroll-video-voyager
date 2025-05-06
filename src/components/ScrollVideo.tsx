@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,10 +9,11 @@ import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Eliminate extra scroll space by setting these constants to minimal values
-const SCROLL_EXTRA_PX = 0;
-const AFTER_VIDEO_EXTRA_HEIGHT = 0;
-const TRANSITION_BUFFER_PX = 0;
+// Increase scroll distance to ensure video plays fully
+// Add more space to ensure video can be hidden before RevealText is at top
+const SCROLL_EXTRA_PX = 3000;
+const AFTER_VIDEO_EXTRA_HEIGHT = 400;
+const TRANSITION_BUFFER_PX = 300; // Space for the fade-out transition
 
 const ScrollVideo: React.FC<{
   src?: string;
@@ -50,15 +52,31 @@ const ScrollVideo: React.FC<{
     }
   }, [secureVideoSrc, isMobile]);
 
-  // Remove CSS for the fade-out transition
+  // Add CSS for the fade-out transition
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
       .video-scroll-container {
-        transition: none;
+        transition: opacity 0.5s ease-out;
       }
-      .scroll-disabled {
+      .video-fading-out video {
+        opacity: 0 !important;
+        transition: opacity 0.5s ease-out;
+      }
+      .transition-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: black;
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+        z-index: 1;
         pointer-events: none;
+      }
+      .video-fading-out .transition-overlay {
+        opacity: 1;
       }
     `;
     document.head.appendChild(style);
@@ -99,10 +117,10 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoLoaded ? 1 : 0,
-            transition: "none" // Remove transition
+            transition: "opacity 0.5s ease-out"
           }} 
         />
-        {/* Remove transition overlay */}
+        <div className="transition-overlay"></div>
       </ScrollVideoPlayer>
 
       <ScrollVideoTextOverlay 
