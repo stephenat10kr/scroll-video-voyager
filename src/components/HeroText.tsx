@@ -8,10 +8,15 @@ type HeroTextProps = {
 };
 
 const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
+  // Calculate which section to show based on progress
+  // The video is divided into 3 equal sections
+  const section = Math.floor(progress * 3);
+  const sectionProgress = (progress * 3) % 1;
+  
   return (
     <div className="relative w-full pointer-events-none z-10 overflow-hidden">
       <div 
-        className="w-full max-w-none" 
+        className="w-full px-4 md:px-8 lg:px-12"
         style={{ 
           transform: progress < 1 ? `translateY(${-progress * 200}vh)` : '',
           height: '300vh', // 3x viewport height
@@ -19,69 +24,43 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
         }}
       >
         {/* Section 1 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WELCOME TO</h2>
-                <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
-                  <Logo />
-                </div>
+        <div className="h-screen flex flex-col justify-center">
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 lg:col-span-5 lg:col-start-1">
+              <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WELCOME TO</h2>
+              <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
+                <Logo />
               </div>
             </div>
           </div>
         </div>
 
         {/* Section 2 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WHERE</h2>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
-              </div>
-
-              {/* Add debug borders and force the column positioning with inline styles */}
-              <div 
-                className="col-span-12 lg:col-span-4" 
-                style={{ 
-                  gridColumn: '9 / span 4',
-                  marginLeft: 'auto',
-                  width: 'calc(33.333% - 1rem)',
-                  maxWidth: '33.333%'
-                }}
-              >
-                <p className="text-base md:text-lg text-white">
-                  isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
-                </p>
-              </div>
+        <div className="h-screen flex flex-col justify-center">
+          <div className="grid grid-cols-12 gap-4 w-full">
+            <div className="col-span-12 lg:col-span-5 lg:col-start-1">
+              <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">WHERE</h2>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
+            </div>
+            <div className="col-span-12 lg:!col-span-4 lg:!col-start-9 lg:w-1/3 lg:ml-auto">
+              <p className="text-base md:text-lg text-white">
+                isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
+              </p>
             </div>
           </div>
         </div>
 
         {/* Section 3 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">MEETS</h2>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
-              </div>
-              
-              {/* Add debug borders and force the column positioning with inline styles */}
-              <div 
-                className="col-span-12 lg:col-span-4"
-                style={{ 
-                  gridColumn: '9 / span 4', 
-                  marginLeft: 'auto',
-                  width: 'calc(33.333% - 1rem)',
-                  maxWidth: '33.333%'
-                }}
-              >
-                <p className="text-base md:text-lg text-white">
-                  Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
-                </p>
-              </div>
+        <div className="h-screen flex flex-col justify-center">
+          <div className="grid grid-cols-12 gap-4 w-full">
+            <div className="col-span-12 lg:col-span-5 lg:col-start-1">
+              <h2 className="text-2xl md:text-3xl text-white font-medium mb-4">MEETS</h2>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
+            </div>
+            <div className="col-span-12 lg:!col-span-4 lg:!col-start-9 lg:w-1/3 lg:ml-auto">
+              <p className="text-base md:text-lg text-white">
+                Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
+              </p>
             </div>
           </div>
         </div>
