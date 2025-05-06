@@ -26,7 +26,7 @@ const HeroText: React.FC = () => {
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WHERE</h2>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
+                <h1 className="text-7xl text-white font-gt-super mb-6">curiosity</h1>
               </div>
 
               <div className="col-span-12 lg:!col-span-4 lg:!col-start-9">
@@ -44,7 +44,7 @@ const HeroText: React.FC = () => {
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">MEETS</h2>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
+                <h1 className="text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
               <div className="col-span-12 lg:!col-span-4 lg:!col-start-9">
