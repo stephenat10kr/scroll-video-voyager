@@ -16,6 +16,7 @@ type ScrollVideoPlayerProps = {
   containerRef: React.RefObject<HTMLDivElement>;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
+  TRANSITION_BUFFER_PX: number;
   isMobile: boolean;
 };
 
@@ -30,6 +31,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   containerRef,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
+  TRANSITION_BUFFER_PX,
   isMobile,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
@@ -147,8 +149,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        // Add extra scroll space to ensure the video plays fully
-        container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        // Add extra scroll space to ensure the video plays fully and has time to transition out
+        container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT + TRANSITION_BUFFER_PX}px`;
       }
     };
     resizeSection();
@@ -164,11 +166,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Check if scrolling in the video section is disabled
       if (container.classList.contains('scroll-disabled')) {
-        // When disabled, we set to the last frame of the video
-        // This ensures the video stays at its final frame when RevealText is at the top
-        if (video.currentTime !== video.duration) {
-          video.currentTime = video.duration;
-        }
+        // When disabled, don't change the video time - let the fade-out handle visual transition
         return;
       }
       
@@ -188,7 +186,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        video.currentTime = newTime;
+        // Make sure we never set time to the very end to avoid the freeze frame
+        const maxTime = video.duration - 0.01;
+        video.currentTime = Math.min(newTime, maxTime);
         
         // Calculate which text should be showing based on current progress
         const segLen = calculateSegmentLength(segmentCount);
@@ -216,10 +216,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Make sure our scroll trigger extends beyond the viewport height
       // This ensures the video continues playing until the RevealText component is reached
+      // and allows time for the transition buffer
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        end: `+=${SCROLL_EXTRA_PX}`,
+        end: `+=${SCROLL_EXTRA_PX + TRANSITION_BUFFER_PX}`,
         scrub: isMobile ? 0.5 : 0.4, // Increased scrub values for smoother scrolling
         anticipatePin: 1,
         fastScrollEnd: true,
@@ -305,7 +306,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, TRANSITION_BUFFER_PX, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };

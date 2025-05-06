@@ -17,19 +17,30 @@ const Index = () => {
   
   useEffect(() => {
     // Create a ScrollTrigger that will allow the video to scroll
-    // until the RevealText component reaches the top of the viewport
+    // until the RevealText component is about to reach the top of the viewport
     if (revealTextRef.current) {
       ScrollTrigger.create({
         trigger: revealTextRef.current,
-        start: "top top",
+        // Start the trigger earlier, when RevealText is 300px below the viewport top
+        start: "top+=300 top",
         onEnter: () => {
-          // When RevealText reaches the top, disable scrolling in the video section
-          document.querySelector('.video-scroll-container')?.classList.add('scroll-disabled');
-          console.log("RevealText entered viewport");
+          // When RevealText approaches the top, disable scrolling in the video section
+          // and trigger the fade-out
+          const videoContainer = document.querySelector('.video-scroll-container');
+          if (videoContainer) {
+            videoContainer.classList.add('scroll-disabled');
+            videoContainer.classList.add('video-fading-out');
+            console.log("RevealText approaching viewport, video fading out");
+          }
         },
         onLeaveBack: () => {
           // When scrolling back up from RevealText, re-enable scrolling in video
-          document.querySelector('.video-scroll-container')?.classList.remove('scroll-disabled');
+          // and fade the video back in
+          const videoContainer = document.querySelector('.video-scroll-container');
+          if (videoContainer) {
+            videoContainer.classList.remove('scroll-disabled');
+            videoContainer.classList.remove('video-fading-out');
+          }
         },
         markers: false
       });
