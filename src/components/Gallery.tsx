@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
@@ -96,7 +95,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
       <div className="w-full bg-black py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="text-white text-2xl mb-12">{title}</h2>
-          <p className="text-white/70">Failed to load gallery images</p>
+          <p className="text-white/70 text-sm">Failed to load gallery images</p>
         </div>
       </div>
     );
@@ -107,7 +106,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
       <div className="w-full bg-black py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="text-white text-2xl mb-12">{title}</h2>
-          <p className="text-white/70">No media available</p>
+          <p className="text-white/70 text-sm">No media available</p>
         </div>
       </div>
     );
@@ -146,7 +145,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <div className="text-white font-sans text-base">
+              <div className="text-white font-sans text-sm">
                 {currentCaption}
               </div>
               <div className="flex gap-4">
@@ -156,12 +155,12 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
             </div>
           </div>
           <div className="col-start-5 col-end-13 space-y-6 text-white">
-            <p className="text-xl">{description}</p>
+            <p className="text-sm">{description}</p>
             <a 
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block text-xl underline hover:text-gray-300 transition-colors"
+              className="inline-block text-sm underline hover:text-gray-300 transition-colors"
             >
               {address}
             </a>
