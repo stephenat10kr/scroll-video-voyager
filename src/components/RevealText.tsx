@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -110,7 +111,7 @@ const RevealText = () => {
   return <div className="w-full py-24 bg-[#203435]">
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
         <div ref={textRef} className="text-white font-gt-super text-7xl col-span-9 mb-8" style={{
-        background: "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
+        background: "linear-gradient(90deg, #3CAE8F 0%, #3CAE8F 100%)",
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
         lineHeight: "1.2",
