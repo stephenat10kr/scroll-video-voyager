@@ -17,7 +17,12 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
 }) => {
   return (
     <div id="scroll-video-title">
-      <HeroText progress={progress} containerRef={containerRef} />
+      {/* 
+        The HeroText component no longer accepts progress and containerRef props,
+        so we're just rendering it without props now.
+        If we need animated text overlays in the future, consider creating a specialized component.
+      */}
+      <HeroText />
     </div>
   );
 };
