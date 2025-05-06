@@ -48,15 +48,15 @@ export default function Form({
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-base">First name</label>
+            <label className="text-sm">First name</label>
             <Input {...register("firstName")} />
           </div>
           <div className="space-y-2">
-            <label className="text-base">Last name</label>
+            <label className="text-sm">Last name</label>
             <Input {...register("lastName")} />
           </div>
           <div className="space-y-2">
-            <label className="text-base">Email</label>
+            <label className="text-sm">Email</label>
             <Input type="email" {...register("email")} />
           </div>
           <Button type="submit" className="rounded-full px-8">

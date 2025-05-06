@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -33,7 +32,7 @@ const Questions: React.FC<QuestionsProps> = ({
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="text-white text-2xl mb-12">Failed to load questions</h2>
-        <p className="text-white/70">Please check the console for more details.</p>
+        <p className="text-white/70 text-sm">Please check the console for more details.</p>
       </div>
     </div>;
   }
@@ -43,7 +42,7 @@ const Questions: React.FC<QuestionsProps> = ({
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="text-white text-2xl mb-12">No questions available</h2>
-        <p className="text-white/70">Please add questions in Contentful with the content type 'question'.</p>
+        <p className="text-white/70 text-sm">Please add questions in Contentful with the content type 'question'.</p>
       </div>
     </div>;
   }
@@ -75,12 +74,12 @@ const Questions: React.FC<QuestionsProps> = ({
                     <AccordionTrigger className="text-white hover:no-underline text-xl text-left">
                       {question.title}
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 text-left">
+                    <AccordionContent className="text-white/80 text-sm text-left">
                       {question.content}
                     </AccordionContent>
                   </AccordionItem>
                 )) || (
-                  <p className="text-white/70">No questions available for this category.</p>
+                  <p className="text-white/70 text-sm">No questions available for this category.</p>
                 )}
               </Accordion>
             </TabsContent>
@@ -91,4 +90,3 @@ const Questions: React.FC<QuestionsProps> = ({
 };
 
 export default Questions;
-
