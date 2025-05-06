@@ -31,7 +31,7 @@ const HeroText: React.FC = () => {
 
               <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:col-end-13">
                 <div className="flex">
-                  <div className="col-span-8 lg:col-span-8"></div>
+                  <div className="w-4"></div>
                   <p className="text-base md:text-lg text-white">
                     isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                   </p>
@@ -53,7 +53,7 @@ const HeroText: React.FC = () => {
               <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:col-end-13">
                 <div className="col-span-3">
                   <div className="flex">
-                    <div className="col-span-8 lg:col-span-8"></div>
+                    <div className="w-4"></div>
                     <p className="text-base md:text-lg text-white">
                       Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
                     </p>
