@@ -48,9 +48,11 @@ const HeroText: React.FC = () => {
               </div>
               
               <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:col-end-13">
-                <p className="text-base md:text-lg text-white">
-                  Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
-                </p>
+                <div className="container">
+                  <p className="text-base md:text-lg text-white">
+                    Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
