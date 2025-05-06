@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -121,7 +120,7 @@ const RevealText = () => {
           {revealTextContent?.fields.text || "Default reveal text"}
         </div>
         <div className="col-span-9">
-          <Button variant="default" className="h-[48px] rounded-full bg-white text-black hover:bg-white/90">
+          <Button variant="default" className="h-[48px] rounded-full bg-[#FFB577] text-black hover:bg-[#FFB577]/90">
             STAY IN THE LOOP
           </Button>
         </div>

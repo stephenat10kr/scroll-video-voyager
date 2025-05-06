@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
@@ -150,8 +149,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                 {currentCaption}
               </div>
               <div className="flex gap-4">
-                <CustomPrevButton onClick={scrollPrev} />
-                <CustomNextButton onClick={scrollNext} />
+                <CustomPrevButton onClick={scrollPrev} className="bg-[#FFB577] hover:bg-[#FFB577]/90" />
+                <CustomNextButton onClick={scrollNext} className="bg-[#FFB577] hover:bg-[#FFB577]/90" />
               </div>
             </div>
           </div>
