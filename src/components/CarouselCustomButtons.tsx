@@ -1,8 +1,13 @@
 
 import React from "react";
 
-export const CustomPrevButton = ({ onClick }: { onClick?: () => void }) => (
-  <button onClick={onClick} className="relative">
+export interface CustomButtonProps {
+  onClick?: () => void;
+  className?: string;
+}
+
+export const CustomPrevButton = ({ onClick, className }: CustomButtonProps) => (
+  <button onClick={onClick} className={`relative ${className || ''}`}>
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_6492_11821)">
         <g clipPath="url(#clip1_6492_11821)">
@@ -23,8 +28,8 @@ export const CustomPrevButton = ({ onClick }: { onClick?: () => void }) => (
   </button>
 );
 
-export const CustomNextButton = ({ onClick }: { onClick?: () => void }) => (
-  <button onClick={onClick} className="relative">
+export const CustomNextButton = ({ onClick, className }: CustomButtonProps) => (
+  <button onClick={onClick} className={`relative ${className || ''}`}>
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_6492_11822)">
         <g clipPath="url(#clip1_6492_11822)">
