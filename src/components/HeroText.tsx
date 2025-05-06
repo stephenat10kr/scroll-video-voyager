@@ -1,10 +1,7 @@
-
 import React from "react";
 import Logo from "./Logo";
-
 const HeroText: React.FC = () => {
-  return (
-    <div className="relative w-full z-10 bg-transparent">
+  return <div className="relative w-full z-10 bg-transparent">
       <div className="w-full max-w-none">
         {/* Section 1 */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
@@ -31,7 +28,7 @@ const HeroText: React.FC = () => {
 
               <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:col-end-13">
                 <div className="flex">
-                  <div className="w-4"></div>
+                  <div className="w-20"></div>
                   <p className="text-base md:text-lg text-white">
                     isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                   </p>
@@ -64,8 +61,6 @@ const HeroText: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default HeroText;
