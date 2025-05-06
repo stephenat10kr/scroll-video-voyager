@@ -28,7 +28,7 @@ const HeroText: React.FC = () => {
 
               <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:col-end-13">
                 <div className="flex">
-                  <div className="w-20"></div>
+                  <div className="col-span-3"></div>
                   <p className="text-base md:text-lg text-white">
                     isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                   </p>
