@@ -11,7 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Increase scroll distance to ensure video plays fully
 // Add more space to ensure video can be hidden before RevealText is at top
-const SCROLL_EXTRA_PX = 1000;
+const SCROLL_EXTRA_PX = 3000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 400;
 const TRANSITION_BUFFER_PX = 300; // Space for the fade-out transition
 
