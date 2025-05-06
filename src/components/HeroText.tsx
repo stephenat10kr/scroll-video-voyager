@@ -8,7 +8,7 @@ const HeroText: React.FC = () => {
       <div className="w-full max-w-none">
         {/* Section 1 */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="w-full">
+          <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WELCOME TO</h2>
@@ -22,7 +22,7 @@ const HeroText: React.FC = () => {
 
         {/* Section 2 */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="w-full">
+          <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WHERE</h2>
@@ -40,7 +40,7 @@ const HeroText: React.FC = () => {
 
         {/* Section 3 */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
-          <div className="w-full">
+          <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">MEETS</h2>
