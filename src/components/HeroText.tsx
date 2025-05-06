@@ -28,7 +28,7 @@ const HeroText: React.FC = () => {
 
               <div className="col-span-8 lg:col-span-8"></div>
               <div className="col-span-4 lg:col-span-4">
-                <p className="text-sm md:text-sm text-white mt-20">
+                <p className="text-sm md:text-sm text-white mt-30">
                   isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                 </p>
               </div>
