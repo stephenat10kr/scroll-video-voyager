@@ -41,16 +41,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
                 <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
               </div>
 
-              {/* Add debug borders and force the column positioning with inline styles */}
-              <div 
-                className="col-span-12 lg:col-span-4" 
-                style={{ 
-                  gridColumn: '9 / span 4',
-                  marginLeft: 'auto',
-                  width: 'calc(33.333% - 1rem)',
-                  maxWidth: '33.333%'
-                }}
-              >
+              <div className="col-span-12 lg:!col-span-4 lg:!col-start-9">
                 <p className="text-base md:text-lg text-white">
                   isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                 </p>
@@ -68,16 +59,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
                 <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
-              {/* Add debug borders and force the column positioning with inline styles */}
-              <div 
-                className="col-span-12 lg:col-span-4"
-                style={{ 
-                  gridColumn: '9 / span 4', 
-                  marginLeft: 'auto',
-                  width: 'calc(33.333% - 1rem)',
-                  maxWidth: '33.333%'
-                }}
-              >
+              <div className="col-span-12 lg:!col-span-4 lg:!col-start-9">
                 <p className="text-base md:text-lg text-white">
                   Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
                 </p>
