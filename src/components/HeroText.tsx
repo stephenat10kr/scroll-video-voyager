@@ -41,7 +41,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
               <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">curiosity</h1>
             </div>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9">
-              <p className="text-base md:text-lg text-white">
+              <p className="text-base md:text-lg text-white col-span-4 col-start-9">
                 isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
               </p>
             </div>
@@ -56,7 +56,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
               <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-gt-super mb-6">culture</h1>
             </div>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9">
-              <p className="text-base md:text-lg text-white">
+              <p className="text-base md:text-lg text-white col-span-4 col-start-9">
                 Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
               </p>
             </div>
