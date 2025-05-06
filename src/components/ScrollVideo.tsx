@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Increase scroll distance
 const SCROLL_EXTRA_PX = 2000;
-const AFTER_VIDEO_EXTRA_HEIGHT = 400;
+const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
