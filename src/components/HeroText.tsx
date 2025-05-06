@@ -2,24 +2,12 @@
 import React from "react";
 import Logo from "./Logo";
 
-type HeroTextProps = {
-  progress: number;
-  containerRef: React.RefObject<HTMLDivElement>;
-};
-
-const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
+const HeroText: React.FC = () => {
   return (
-    <div className="relative w-full pointer-events-none z-10 overflow-hidden">
-      <div 
-        className="w-full max-w-none" 
-        style={{ 
-          transform: progress < 1 ? `translateY(${-progress * 200}vh)` : '',
-          height: '300vh', // 3x viewport height
-          opacity: progress > 0.95 ? Math.max(1 - (progress - 0.95) * 20, 0) : 1, // Fade out as video ends
-        }}
-      >
+    <div className="relative w-full z-10 bg-black">
+      <div className="w-full max-w-none">
         {/* Section 1 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
@@ -33,7 +21,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
         </div>
 
         {/* Section 2 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
@@ -51,7 +39,7 @@ const HeroText: React.FC<HeroTextProps> = ({ progress, containerRef }) => {
         </div>
 
         {/* Section 3 */}
-        <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="container mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
