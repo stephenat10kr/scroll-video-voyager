@@ -12,7 +12,7 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
   const isVideo = type.startsWith('video/');
 
   return (
-    <AspectRatio ratio={16 / 9} className="bg-black">
+    <AspectRatio ratio={16 / 9} className="bg-black rounded-lg overflow-hidden">
       {isVideo ? (
         <video
           src={url}
@@ -21,13 +21,13 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
           autoPlay
           muted
           loop
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full rounded-lg"
         />
       ) : (
         <img
           src={url}
           alt={caption || "Gallery media"}
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full rounded-lg"
         />
       )}
     </AspectRatio>

@@ -20,11 +20,11 @@ const Ritual: React.FC<RitualProps> = ({
     <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1">
-        <AspectRatio ratio={1/1} className="mb-4 md:mb-0">
+        <AspectRatio ratio={1/1} className="mb-4 md:mb-0 rounded-lg overflow-hidden">
           <img 
             src={imageSrc} 
             alt={imageAlt} 
-            className="object-cover w-full h-full"
+            className="object-cover w-full h-full rounded-lg"
           />
         </AspectRatio>
       </div>
