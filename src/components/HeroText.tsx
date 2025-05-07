@@ -30,8 +30,8 @@ const HeroText: React.FC = () => {
               <div className="col-span-8 lg:col-span-8"></div>
               <div className="flex w-full">
                 <div className="col-span-4 lg:col-span-8"></div>
-                <div className="col-start-5 col-end-13 lg:col-start-9 lg:col-end-13">
-                  <p className="text-sm md:text-sm text-white">
+                <div className="col-start-5 col-end-13 lg:col-start-9 lg:col-end-13 w-full">
+                  <p className="text-sm md:text-sm text-white w-full">
                     isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                   </p>
                 </div>
