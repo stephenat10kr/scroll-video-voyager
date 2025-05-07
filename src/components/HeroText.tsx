@@ -1,4 +1,3 @@
-
 import React from "react";
 import Logo from "./Logo";
 const HeroText: React.FC = () => {
@@ -49,7 +48,7 @@ const HeroText: React.FC = () => {
                 <h1 className="text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
-              <div className="col-span-8 lg:col-span-8"></div>
+              <div className="col-span-8 lg:col-span-4"></div>
               <div className="col-span-4 lg:col-span-12 w-full bg-[#FEF7CD]">
                 <p className="text-sm md:text-sm text-white">
                   Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
