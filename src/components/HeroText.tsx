@@ -1,3 +1,4 @@
+
 import React from "react";
 import Logo from "./Logo";
 const HeroText: React.FC = () => {
@@ -27,8 +28,9 @@ const HeroText: React.FC = () => {
               </div>
 
               <div className="col-span-8 lg:col-span-8"></div>
-              <div className="col-span-4 lg:col-span-4">
-                <p className="text-sm md:text-sm text-white">
+              <div className="flex w-full">
+                <div className="col-span-4 lg:col-span-8"></div>
+                <p className="col-span-8 lg:col-span-4 col-start-5 col-end-13 lg:col-start-9 lg:col-end-13 text-sm md:text-sm text-white">
                   isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
                 </p>
               </div>
