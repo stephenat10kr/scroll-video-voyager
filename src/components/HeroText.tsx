@@ -28,16 +28,11 @@ const HeroText: React.FC = () => {
                 <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WHERE</h2>
                 <h1 className="text-7xl text-white font-gt-super mb-6">curiosity</h1>
               </div>
-
-              <div className="col-span-4 lg:col-span-8 bg-blue-500"></div>
-              <div className="flex w-full col-span-4 lg:col-span-12 bg-[#F2FCE2]">
-                <div className="w-full bg-red-500">
-                  <div className="empty-div"></div>
-                  <p className="text-sm md:text-sm text-white">
-                    isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
-                  </p>
-                </div>
-              </div>
+              
+              <div className="col-span-4 md:col-span-8"></div>
+              <p className="text-sm md:text-sm text-white col-span-8 md:col-span-4">
+                isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
+              </p>
             </div>
           </div>
         </div>
