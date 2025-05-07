@@ -41,7 +41,7 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5 py-[240px]">
-                <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">MEETS</h2>
+                <h2 className="text-2xl text-white font-medium mb-4 md:text-lg">MEETS</h2>
                 <h1 className="text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
