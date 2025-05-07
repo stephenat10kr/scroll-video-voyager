@@ -29,10 +29,12 @@ const HeroText: React.FC = () => {
 
               <div className="col-span-4 lg:col-span-8"></div>
               <div className="flex w-full col-span-4 lg:col-span-12">
-                <div className="empty-div"></div>
-                <p className="text-sm md:text-sm text-white">
-                  isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
-                </p>
+                <div className="w-full">
+                  <div className="empty-div"></div>
+                  <p className="text-sm md:text-sm text-white">
+                    isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
