@@ -8,7 +8,7 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WELCOME TO</h2>
+                <h2 className="text-2xl text-white font-medium mb-4 md:text-lg">WELCOME TO</h2>
                 <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
                   <Logo />
                 </div>
