@@ -1,5 +1,8 @@
+
 import React from "react";
 import Logo from "./Logo";
+import { useIsMobile } from "../hooks/use-mobile";
+
 const HeroText: React.FC = () => {
   return <div className="relative w-full z-10 bg-transparent">
       <div className="w-full max-w-none">
@@ -48,7 +51,7 @@ const HeroText: React.FC = () => {
                 <h1 className="text-7xl text-white font-gt-super mb-6">culture</h1>
               </div>
               
-              <div className="col-span-8"></div>
+              <div className="col-span-4 md:col-span-8"></div>
               <p className="text-sm md:text-sm text-white col-span-4">
                 Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
               </p>
