@@ -27,7 +27,7 @@ const HeroText: React.FC = () => {
                 <h1 className="text-7xl text-white font-gt-super mb-6">curiosity</h1>
               </div>
 
-              <div className="col-span-4 lg:col-span-8"></div>
+              <div className="col-span-4 lg:col-span-8 bg-blue-500"></div>
               <div className="flex w-full col-span-4 lg:col-span-12 bg-[#F2FCE2]">
                 <div className="w-full bg-red-500">
                   <div className="empty-div"></div>
