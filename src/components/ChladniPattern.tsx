@@ -13,7 +13,6 @@ interface ChladniPatternProps {
 
 const ChladniPattern: React.FC<ChladniPatternProps> = ({ className }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const initialized = useRef<boolean>(false);
 
   useEffect(() => {
@@ -72,11 +71,14 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ className }) => {
         rgba.canvas.style.left = "0";
         rgba.canvas.style.width = "100%";
         rgba.canvas.style.height = "100%";
+        rgba.canvas.style.pointerEvents = "none"; // Add this line to prevent canvas from capturing pointer events
         
-        // Update the uniform when mouse moves
-        window.addEventListener('mousemove', e => {
+        // Update the uniform when mouse moves - use a passive event listener
+        const handleMouseMove = (e: MouseEvent) => {
           rgba.xy([e.clientX/window.innerWidth, e.clientY/window.innerHeight]);
-        });
+        };
+        
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
         
         // Trigger animation even without mouse movement
         let time = 0;
@@ -97,7 +99,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ className }) => {
   return (
     <div 
       ref={containerRef}
-      className={`absolute inset-0 w-full h-full overflow-hidden opacity-50 ${className || ""}`}
+      className={`absolute inset-0 w-full h-full overflow-hidden opacity-50 pointer-events-none ${className || ""}`}
       style={{ zIndex: 0 }}
     ></div>
   );
