@@ -2,7 +2,6 @@
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
-import ChladniBackground from "./ChladniBackground";
 
 interface ValuesProps {
   title: string;
@@ -17,10 +16,8 @@ const Values: React.FC<ValuesProps> = ({
     error
   } = useValues();
 
-  // Loading state
   if (isLoading) {
-    return (
-      <div className="w-full bg-black py-24">
+    return <div className="w-full bg-black py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden xs:block sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -34,15 +31,12 @@ const Values: React.FC<ValuesProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
 
-  // Error state
   if (error) {
     console.error("Error loading values:", error);
-    return (
-      <div className="w-full bg-black py-24">
+    return <div className="w-full bg-black py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -51,14 +45,11 @@ const Values: React.FC<ValuesProps> = ({
             <p className="body-text text-white/70">Failed to load values</p>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
 
-  // Empty state
   if (!values || values.length === 0) {
-    return (
-      <div className="w-full bg-black py-24">
+    return <div className="w-full bg-black py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -67,25 +58,19 @@ const Values: React.FC<ValuesProps> = ({
             <p className="body-text text-white/70">No values available</p>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
 
-  // Loaded state with ChladniBackground
-  return (
-    <ChladniBackground>
-      <div className="w-full py-24 bg-[#203435] bg-opacity-90">
-        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="hidden sm:block col-span-3">
-            <h2 className="title-sm text-white">{title}</h2>
-          </div>
-          <div className="col-span-12 sm:col-span-9">
-            {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
-          </div>
+  return <div className="w-full py-24 bg-[#203435]">
+      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+        <div className="hidden sm:block col-span-3">
+          <h2 className="title-sm text-white">{title}</h2>
+        </div>
+        <div className="col-span-12 sm:col-span-9">
+          {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
         </div>
       </div>
-    </ChladniBackground>
-  );
+    </div>;
 };
 
 export default Values;
