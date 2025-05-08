@@ -13,7 +13,7 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   return (
-    <div className={`w-full ${isLast ? '' : 'mb-6'}`}>
+    <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
       <h2 className="title-md text-white mb-6 text-center">
         {valueTitle}
       </h2>
