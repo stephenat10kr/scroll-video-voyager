@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -14,8 +15,10 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
+  pauseOnMobile?: boolean;
 }> = ({
-  src
+  src,
+  pauseOnMobile = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,13 +44,21 @@ const ScrollVideo: React.FC<{
         if (isMobile) {
           video.play().catch(err => {
             console.error("Mobile video play error:", err);
+          }).finally(() => {
+            // Always make sure the video is paused on mobile if pauseOnMobile is true
+            if (pauseOnMobile) {
+              setTimeout(() => {
+                video.pause();
+                console.log("Video paused on mobile");
+              }, 0);
+            }
           });
         }
       };
       video.addEventListener("canplay", handleCanPlay);
       return () => video.removeEventListener("canplay", handleCanPlay);
     }
-  }, [secureVideoSrc, isMobile]);
+  }, [secureVideoSrc, isMobile, pauseOnMobile]);
 
   return (
     <div 
@@ -66,6 +77,7 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
+        pauseOnMobile={pauseOnMobile}
       >
         <video 
           ref={videoRef} 
