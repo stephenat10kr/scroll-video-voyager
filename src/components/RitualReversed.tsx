@@ -35,11 +35,11 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       
       {/* Image Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8">
-        <AspectRatio ratio={1/1} className="mb-4 md:mb-0 rounded-lg overflow-hidden">
+        <AspectRatio ratio={1/1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
           <img 
             src={imageSrc} 
             alt={imageAlt} 
-            className="object-cover w-full h-full rounded-lg"
+            className="object-cover w-full h-full"
           />
         </AspectRatio>
       </div>
