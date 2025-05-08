@@ -63,6 +63,9 @@ const Values: React.FC<ValuesProps> = ({
   
   return <ChladniPattern>
       <div className="w-full py-24">
+        <div className="max-w-[90%] mx-auto mb-16">
+          <h2 className="title-md text-center" style={{ color: colors.coral }}>{title}</h2>
+        </div>
         {content()}
       </div>
     </ChladniPattern>;
