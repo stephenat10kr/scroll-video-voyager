@@ -153,7 +153,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </div>
             </div>
           </div>
-          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-white px-4 md:px-0">
+          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-white">
             <p className="text-sm">{description}</p>
             <a 
               href={mapUrl}
