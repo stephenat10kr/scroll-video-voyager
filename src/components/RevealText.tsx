@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -103,7 +104,7 @@ const RevealText = () => {
   }, [revealTextContent]);
 
   if (isLoading) {
-    return <div className="w-full bg-black py-24">
+    return <div className="w-full bg-darkGreen py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
         </div>
@@ -114,10 +115,10 @@ const RevealText = () => {
     console.error("Error loading reveal text:", error);
   }
 
-  return <div className="w-full py-24 bg-[#203435]">
+  return <div className="w-full py-24 bg-darkGreen">
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div ref={textRef} className="title-lg text-white col-span-12 md:col-span-9 mb-8" style={{
-        background: "linear-gradient(90deg, #3CAE8F 0%, #3CAE8F 100%)",
+        <div ref={textRef} className="title-lg text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
+        background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
         lineHeight: "1.2",
@@ -127,7 +128,7 @@ const RevealText = () => {
           {revealTextContent?.fields.text || "Default reveal text"}
         </div>
         <div className="col-span-12 md:col-span-9">
-          <Button variant="default" className="h-[48px] rounded-full bg-[#FFB577] text-black hover:bg-[#FFB577]/90">
+          <Button variant="default" className="h-[48px] rounded-full bg-coral text-black hover:bg-coral/90">
             STAY IN THE LOOP
           </Button>
         </div>
