@@ -1,4 +1,6 @@
+
 import React, { useEffect, useRef, useState } from 'react';
+import colors from '@/lib/theme';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
@@ -288,7 +290,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     <div 
       ref={containerRef}
       className="relative w-full h-full bg-[#203435]"
-      style={{ position: 'relative', overflow: 'hidden' }}
+      style={{ position: 'relative', overflow: 'hidden', backgroundColor: colors.darkGreen }}
     >
       <canvas 
         ref={canvasRef}
