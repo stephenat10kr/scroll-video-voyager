@@ -67,68 +67,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     }
 
     // --- Begin: Video source selection and logging ---
-    // Figure out the possible alternatives based on the src extension
     let srcAssigned = false;
-    const origSrc = src || "";
-    const webmSrc =
-      origSrc.match(/\.(mp4|mov)$/i) !== null
-        ? origSrc.replace(/\.(mp4|mov)$/i, ".webm")
-        : origSrc.match(/\.webm$/i)
-        ? origSrc
-        : undefined;
-
-    function logSource(type: string, url: string) {
-      console.log(`[ScrollVideo] Assigned ${type} video source: ${url}`);
+    
+    if (!src) {
+      console.log("[ScrollVideo] No src provided.");
+      return;
     }
 
-    // Only attempt to assign new source if not already loaded
-    async function assignSource() {
-      if (!origSrc) {
-        console.log("[ScrollVideo] No src provided.");
-        return;
-      }
-      
-      // For mobile, prefer MP4 format
-      if (isMobile) {
-        if (video.src !== origSrc) {
-          video.src = origSrc;
-          const extension = origSrc.split(".").pop() || "unknown";
-          logSource(`Mobile ${extension.toUpperCase()}`, origSrc);
-        }
-        srcAssigned = true;
-        return;
-      }
-      
-      // For desktop, prefer WebM if supported
-      if (webmSrc && video.canPlayType("video/webm")) {
-        // Test if the file exists (HEAD request)
-        try {
-          const resp = await fetch(webmSrc, { method: "HEAD" });
-          if (resp.ok) {
-            if (video.src !== webmSrc) {
-              video.src = webmSrc;
-              logSource("WebM", webmSrc);
-            }
-            srcAssigned = true;
-            return;
-          }
-        } catch {
-          // not available, fallback
-        }
-      }
-      
-      // Fallback to the originally provided source
-      if (!srcAssigned) {
-        if (video.src !== origSrc) {
-          video.src = origSrc;
-          const extension = origSrc.split(".").pop() || "unknown";
-          logSource(extension.toUpperCase(), origSrc);
-        }
-      }
+    // For mobile or desktop, use the provided source
+    if (video.src !== src) {
+      video.src = src;
+      const extension = src.split(".").pop() || "unknown";
+      console.log(`[ScrollVideo] Assigned ${extension.toUpperCase()} video source: ${src}`);
     }
-
-    assignSource();
-
+    srcAssigned = true;
     // --- End: Video source selection and logging ---
 
     const resizeSection = () => {
@@ -217,38 +169,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if ('fetchPriority' in HTMLImageElement.prototype) {
       // @ts-ignore - TypeScript doesn't know about fetchPriority yet
       video.fetchPriority = 'high';
-    }
-
-    // Load video at a lower resolution initially if available
-    const tryLowerResVersion = () => {
-      const lowResSrc = src?.replace(/\.(mp4|mov|webm)$/, '-low.$1');
-      if (lowResSrc && lowResSrc !== src) {
-        fetch(lowResSrc, { method: 'HEAD' })
-          .then(response => {
-            if (response.ok && !isLoaded) {
-              video.src = lowResSrc;
-              video.addEventListener('canplaythrough', () => {
-                // Once low-res is ready, switch to high-res in background
-                if (src) {
-                  const highResVideo = new Image();
-                  highResVideo.src = src;
-                  highResVideo.onload = () => {
-                    if (!isLoaded) {
-                      video.src = src;
-                    }
-                  };
-                }
-              }, { once: true });
-            }
-          })
-          .catch(() => {
-            // Low-res version not available
-          });
-      }
-    };
-    
-    if (!isMobile) {
-      tryLowerResVersion();
     }
 
     if (video.readyState >= 2) {
