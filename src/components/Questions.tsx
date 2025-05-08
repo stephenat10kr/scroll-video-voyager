@@ -25,6 +25,7 @@ const Questions: React.FC<QuestionsProps> = ({
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-white mb-12">Loading questions...</h2>
+        <p className="body-text text-white/70">Please wait while we fetch the questions.</p>
       </div>
     </div>;
   }
@@ -33,7 +34,7 @@ const Questions: React.FC<QuestionsProps> = ({
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-white mb-12">Failed to load questions</h2>
-        <p className="text-white/70 text-sm">Please check the console for more details.</p>
+        <p className="body-text text-white/70">Please check the console for more details.</p>
       </div>
     </div>;
   }
@@ -41,7 +42,7 @@ const Questions: React.FC<QuestionsProps> = ({
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-white mb-12">No questions available</h2>
-        <p className="text-white/70 text-sm">Please add questions in Contentful with the content type 'question'.</p>
+        <p className="body-text text-white/70">Please add questions in Contentful with the content type 'question'.</p>
       </div>
     </div>;
   }
@@ -60,13 +61,13 @@ const Questions: React.FC<QuestionsProps> = ({
           {TABS.map(tab => <TabsContent key={tab} value={tab} className="col-start-5 col-span-8">
               <Accordion type="single" collapsible className="w-full">
                 {questions[tab]?.map((question, index) => <AccordionItem key={index} value={`${tab}-${index}`} className="border-t border-white/20 py-4">
-                    <AccordionTrigger className="text-white hover:no-underline text-xl text-left">
+                    <AccordionTrigger className="body-text text-white hover:no-underline text-left">
                       {question.title}
                     </AccordionTrigger>
-                    <AccordionContent className="text-white/80 text-sm text-left">
+                    <AccordionContent className="body-text text-white/80 text-left">
                       {question.content}
                     </AccordionContent>
-                  </AccordionItem>) || <p className="text-white/70 text-sm">No questions available for this category.</p>}
+                  </AccordionItem>) || <p className="body-text text-white/70">No questions available for this category.</p>}
               </Accordion>
             </TabsContent>)}
         </Tabs>
