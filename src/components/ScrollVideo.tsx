@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoElement from "./ScrollVideoElement";
@@ -28,6 +29,12 @@ const ScrollVideo: React.FC<{
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
+
+  // Handle video loaded state change
+  const handleVideoLoadedChange = (loaded: boolean) => {
+    console.log("[ScrollVideo] Video loaded state changed:", loaded);
+    setVideoLoaded(loaded);
+  };
   
   return (
     <div 
@@ -41,6 +48,7 @@ const ScrollVideo: React.FC<{
         onTextIndexChange={setTextIndex} 
         onAfterVideoChange={setIsAfterVideo}
         onProgressChange={setProgress}
+        onLoadedChange={handleVideoLoadedChange}
         videoRef={videoRef} 
         containerRef={containerRef} 
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 

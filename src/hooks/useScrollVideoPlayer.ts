@@ -13,6 +13,7 @@ type UseScrollVideoPlayerProps = {
   onTextIndexChange: (idx: number | null) => void;
   onAfterVideoChange: (after: boolean) => void;
   onProgressChange?: (progress: number) => void;
+  onLoadedChange?: (loaded: boolean) => void; // New callback prop
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
@@ -26,6 +27,7 @@ export const useScrollVideoPlayer = ({
   onTextIndexChange,
   onAfterVideoChange,
   onProgressChange,
+  onLoadedChange,
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
@@ -33,8 +35,15 @@ export const useScrollVideoPlayer = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.002; // Using the value as requested
+  const progressThreshold = 0.002;
   const frameRef = useRef<number | null>(null);
+
+  // Call onLoadedChange whenever isLoaded changes
+  useEffect(() => {
+    if (onLoadedChange) {
+      onLoadedChange(isLoaded);
+    }
+  }, [isLoaded, onLoadedChange]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -136,11 +145,12 @@ export const useScrollVideoPlayer = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.4, // Increased scrub values for smoother scrolling
+        scrub: isMobile ? 0.5 : 0.4,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -150,6 +160,7 @@ export const useScrollVideoPlayer = ({
           updateVideoFrame(progress);
         }
       });
+      
       setIsLoaded(true);
       
       // For mobile, attempt to trigger video playback after scroll
@@ -193,7 +204,7 @@ export const useScrollVideoPlayer = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, onLoadedChange, src, isLoaded, isMobile]);
 
   return {
     isLoaded

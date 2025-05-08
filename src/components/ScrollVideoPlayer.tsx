@@ -8,6 +8,7 @@ type ScrollVideoPlayerProps = {
   onTextIndexChange: (idx: number | null) => void;
   onAfterVideoChange: (after: boolean) => void;
   onProgressChange?: (progress: number) => void;
+  onLoadedChange?: (loaded: boolean) => void; // New callback prop
   children?: React.ReactNode;
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
@@ -22,6 +23,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   onTextIndexChange,
   onAfterVideoChange,
   onProgressChange,
+  onLoadedChange,
   children,
   videoRef,
   containerRef,
@@ -38,6 +40,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     onTextIndexChange,
     onAfterVideoChange,
     onProgressChange,
+    onLoadedChange, // Pass the callback to the hook
     SCROLL_EXTRA_PX,
     AFTER_VIDEO_EXTRA_HEIGHT,
     isMobile
