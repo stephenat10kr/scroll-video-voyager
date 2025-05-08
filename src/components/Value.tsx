@@ -11,7 +11,7 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   return <div className={`${isLast ? '' : 'mb-6'}`}>
-      <h2 className="title-md text-white mb-6">
+      <h2 className="title-md text-white mb-6 text-center">
         {valueTitle}
       </h2>
       <div className="space-y-1">
