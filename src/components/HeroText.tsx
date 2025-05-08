@@ -12,7 +12,7 @@ const HeroText: React.FC = () => {
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5 flex flex-col items-center space-y-12">
                 <h2 className="title-sm text-white mb-0 text-center">WELCOME TO</h2>
-                <div className="w-full flex justify-center items-center">
+                <div className="flex justify-center items-center">
                   <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-center">
                     <Logo />
                   </div>
