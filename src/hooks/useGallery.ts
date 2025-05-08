@@ -45,8 +45,7 @@ export const useGallery = () => {
           }
           
           return {
-            id: item.sys.id, // Add id property
-            mediaUrl: item.fields.galleryMedia.fields.file.url.startsWith('//') 
+            url: item.fields.galleryMedia.fields.file.url.startsWith('//') 
               ? `https:${item.fields.galleryMedia.fields.file.url}` 
               : item.fields.galleryMedia.fields.file.url,
             type: item.fields.galleryMedia.fields.file.contentType,

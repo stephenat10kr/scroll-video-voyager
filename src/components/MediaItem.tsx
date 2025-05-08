@@ -1,44 +1,36 @@
 
 import React from "react";
-import { AspectRatio } from "./ui/aspect-ratio";
-import colors from "@/lib/theme";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface MediaItemProps {
-  item: {
-    id: string;
-    mediaUrl: string;
-    caption?: string;
-    type?: string;
-  };
-  textColor?: string;
+  url: string;
+  type: string;
+  caption?: string;
 }
 
-const MediaItem = ({ item, textColor = colors.darkGreen }: MediaItemProps) => {
-  const isVideo = item.type?.includes('video');
-  
+const MediaItem = ({ url, type, caption }: MediaItemProps) => {
+  const isVideo = type.startsWith('video/');
+
   return (
-    <div className="mb-8">
-      <AspectRatio ratio={3 / 2} className="rounded-lg overflow-hidden mb-2">
-        {isVideo ? (
-          <video 
-            src={item.mediaUrl} 
-            controls
-            className="object-cover w-full h-full"
-          />
-        ) : (
-          <img 
-            src={item.mediaUrl} 
-            alt={item.caption || "Gallery image"} 
-            className="object-cover w-full h-full" 
-          />
-        )}
-      </AspectRatio>
-      {item.caption && (
-        <p className="text-sm" style={{ color: textColor }}>
-          {item.caption}
-        </p>
+    <AspectRatio ratio={16 / 9} className="bg-[#203435] rounded-lg overflow-hidden">
+      {isVideo ? (
+        <video
+          src={url}
+          controls
+          playsInline
+          autoPlay
+          muted
+          loop
+          className="object-cover w-full h-full rounded-lg"
+        />
+      ) : (
+        <img
+          src={url}
+          alt={caption || "Gallery media"}
+          className="object-cover w-full h-full rounded-lg"
+        />
       )}
-    </div>
+    </AspectRatio>
   );
 };
 
