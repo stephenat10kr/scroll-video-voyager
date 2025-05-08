@@ -1,8 +1,6 @@
-
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
-
 const HeroText: React.FC = () => {
   return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
@@ -36,7 +34,7 @@ const HeroText: React.FC = () => {
         </div>
 
         {/* Section 3 */}
-        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 grid grid-cols-12 gap-8 ">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 py-[240px]">
               <h2 className="title-sm text-white mb-4 text-center">MEETS</h2>
