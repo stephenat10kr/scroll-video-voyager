@@ -13,7 +13,7 @@ const Navigation = () => {
         <div></div> {/* Empty div to maintain flexbox spacing */}
         <Button 
           variant="default" 
-          className="h-[48px] rounded-full bg-[#FFB577] text-black hover:bg-[#FFB577]/90"
+          className="h-[48px] rounded-full bg-coral text-darkGreen hover:bg-coral/90"
           onClick={() => setIsFormOpen(true)}
         >
           JOIN <Plus className="ml-1" />
