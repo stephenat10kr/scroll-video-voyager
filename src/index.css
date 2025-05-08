@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +50,11 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Global color system */
+    --rose-white: 14 100% 97%;
+    --dark-green: 183 21% 17%;
+    --coral: 28 100% 73%;
   }
 
   .dark {
@@ -148,3 +154,4 @@
     animation: fade-in 0.5s ease-in-out forwards;
   }
 }
+
