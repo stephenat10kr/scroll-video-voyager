@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -7,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
+
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+
   const {
     data: revealTextContent,
     isLoading,
@@ -59,6 +61,7 @@ const RevealText = () => {
       }
     }
   });
+
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -98,19 +101,22 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
+
   if (isLoading) {
     return <div className="w-full bg-black py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
+          <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
         </div>
       </div>;
   }
+
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+
   return <div className="w-full py-24 bg-[#203435]">
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div ref={textRef} className="title-lg text-white col-span-9 mb-8" style={{
+        <div ref={textRef} className="title-lg text-white col-span-12 md:col-span-9 mb-8" style={{
         background: "linear-gradient(90deg, #3CAE8F 0%, #3CAE8F 100%)",
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
@@ -120,7 +126,7 @@ const RevealText = () => {
       }}>
           {revealTextContent?.fields.text || "Default reveal text"}
         </div>
-        <div className="col-span-9">
+        <div className="col-span-12 md:col-span-9">
           <Button variant="default" className="h-[48px] rounded-full bg-[#FFB577] text-black hover:bg-[#FFB577]/90">
             STAY IN THE LOOP
           </Button>
@@ -128,4 +134,5 @@ const RevealText = () => {
       </div>
     </div>;
 };
+
 export default RevealText;
