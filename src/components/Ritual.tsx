@@ -1,8 +1,6 @@
-
 import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
-
 interface RitualProps {
   title: string;
   description: string[];
@@ -17,7 +15,7 @@ const Ritual: React.FC<RitualProps> = ({
   imageSrc,
   imageAlt
 }) => {
-  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-24">
+  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-48">
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1">
         <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
@@ -30,12 +28,9 @@ const Ritual: React.FC<RitualProps> = ({
                 </clipPath>
               </defs>
             </svg>
-            <img 
-              src={imageSrc} 
-              alt={imageAlt} 
-              className="object-cover w-full h-full"
-              style={{ clipPath: "url(#starMask)" }}
-            />
+            <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full" style={{
+            clipPath: "url(#starMask)"
+          }} />
           </div>
         </AspectRatio>
       </div>
@@ -44,11 +39,15 @@ const Ritual: React.FC<RitualProps> = ({
       
       {/* Text Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
-        <h2 className="title-md mb-6" style={{ color: colors.darkGreen }}>
+        <h2 className="title-md mb-6" style={{
+        color: colors.darkGreen
+      }}>
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="text-sm" style={{ color: colors.darkGreen }}>
+          {description.map((paragraph, idx) => <p key={idx} className="text-sm" style={{
+          color: colors.darkGreen
+        }}>
               {paragraph}
             </p>)}
         </div>
