@@ -83,7 +83,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="title-sm text-white mb-12">{title}</h2>
+          <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
           <div className="w-full h-64 bg-gray-900 animate-pulse rounded-lg"></div>
         </div>
       </div>
@@ -95,8 +95,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="title-sm text-white mb-12">{title}</h2>
-          <p className="body-text text-white/70">Failed to load gallery images</p>
+          <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
+          <p className="body-text text-[#FFF4F1]/70">Failed to load gallery images</p>
         </div>
       </div>
     );
@@ -106,8 +106,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="title-sm text-white mb-12">{title}</h2>
-          <p className="body-text text-white/70">No media available</p>
+          <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
+          <p className="body-text text-[#FFF4F1]/70">No media available</p>
         </div>
       </div>
     );
@@ -120,7 +120,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   return (
     <div className="w-full bg-[#203435] py-24">
       <div className="max-w-[90%] mx-auto">
-        <h2 className="title-sm text-white mb-12">{title}</h2>
+        <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-4 md:gap-8 lg:gap-12">
           <div className="col-span-12 overflow-hidden">
             <Carousel
@@ -145,7 +145,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <div className="body-text text-white">
+              <div className="body-text text-[#FFF4F1]">
                 {currentCaption}
               </div>
               <div className="flex gap-4">
@@ -154,13 +154,13 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </div>
             </div>
           </div>
-          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-white">
+          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-[#FFF4F1]">
             <p className="body-text">{description}</p>
             <a 
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="body-text inline-block underline hover:text-gray-300 transition-colors"
+              className="body-text inline-block underline hover:text-[#FFF4F1]/80 transition-colors"
             >
               {address}
             </a>
