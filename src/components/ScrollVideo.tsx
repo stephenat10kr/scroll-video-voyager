@@ -100,6 +100,26 @@ const ScrollVideo: React.FC<{
     }
   }, [secureVideoSrc, isMobile]);
 
+  // Add auto-scroll effect for mobile to trigger video appearance
+  useEffect(() => {
+    if (isMobile) {
+      const triggerScroll = () => {
+        console.log("Triggering auto-scroll on mobile");
+        // Scroll down by 1px and then immediately back to maintain user's position
+        window.scrollBy(0, 1);
+        setTimeout(() => {
+          // Optional: scroll back to original position
+          // window.scrollBy(0, -1);
+        }, 100);
+      };
+      
+      // Delay the scroll to ensure everything is loaded
+      const scrollTimeoutId = setTimeout(triggerScroll, 800);
+      
+      return () => clearTimeout(scrollTimeoutId);
+    }
+  }, [isMobile]);
+
   return (
     <div 
       ref={containerRef} 
