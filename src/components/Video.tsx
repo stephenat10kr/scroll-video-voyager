@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 
@@ -13,12 +13,10 @@ const Video = () => {
     : undefined;
   
   // Log for debugging
-  useEffect(() => {
-    console.log('Video component - videoSrc:', videoSrc);
-    console.log('Video component - asset data:', videoAsset);
-    console.log('Video component - loading:', isLoading);
-    console.log('Video component - error:', error);
-  }, [videoAsset, isLoading, error, videoSrc]);
+  console.log('Video component - videoSrc:', videoSrc);
+  console.log('Video component - asset data:', videoAsset);
+  console.log('Video component - loading:', isLoading);
+  console.log('Video component - error:', error);
 
   return (
     <ScrollVideo src={videoSrc} />

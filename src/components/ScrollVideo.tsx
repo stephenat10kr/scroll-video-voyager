@@ -1,12 +1,15 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
-import ScrollVideoElement from "./ScrollVideoElement";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
 
-// Increase scroll distance to give more room for scrubbing
-const SCROLL_EXTRA_PX = 3000;  // Increased from 2000
+gsap.registerPlugin(ScrollTrigger);
+
+// Increase scroll distance
+const SCROLL_EXTRA_PX = 2000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
@@ -21,53 +24,31 @@ const ScrollVideo: React.FC<{
   const [textIndex, setTextIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const isMobile = useIsMobile();
-  
-  // Ensure the src URL has the correct protocol for iOS
-  let secureVideoSrc = undefined;
-  if (src) {
-    secureVideoSrc = src.replace(/^\/\//, 'https://');
-    secureVideoSrc = secureVideoSrc.replace(/^http:/, 'https:');
-    console.log("Video source URL:", secureVideoSrc);
-  }
+  const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Empty array for text overlay (effectively removing it)
   const textArray: string[] = [];
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
-
-  // Handle video loaded state change
-  const handleVideoLoadedChange = (loaded: boolean) => {
-    console.log("[ScrollVideo] Video loaded state changed:", loaded);
-    setVideoLoaded(loaded);
-  };
   
-  // Update progress for debugging
-  const handleProgressChange = (newProgress: number) => {
-    setProgress(newProgress);
-    console.log(`[ScrollVideo] Progress: ${Math.round(newProgress * 100)}%`);
-  };
-  
-  // Log to browser console for debugging iOS issues
   useEffect(() => {
-    if (isMobile) {
-      console.log("Running on mobile device");
-      
-      // Force a repaint for iOS Safari which sometimes needs this
-      if (videoRef.current) {
-        setTimeout(() => {
-          if (videoRef.current) {
-            const display = videoRef.current.style.display;
-            videoRef.current.style.display = 'none';
-            // Force a repaint by accessing offsetHeight
-            videoRef.current.offsetHeight;
-            videoRef.current.style.display = display;
-          }
-        }, 100);
-      }
+    const video = videoRef.current;
+    if (video && secureVideoSrc) {
+      const handleCanPlay = () => {
+        console.log("Video can play now");
+        setVideoLoaded(true);
+        if (isMobile) {
+          video.play().catch(err => {
+            console.error("Mobile video play error:", err);
+          });
+        }
+      };
+      video.addEventListener("canplay", handleCanPlay);
+      return () => video.removeEventListener("canplay", handleCanPlay);
     }
-  }, [videoLoaded, isMobile]);
-  
+  }, [secureVideoSrc, isMobile]);
+
   return (
     <div 
       ref={containerRef} 
@@ -79,18 +60,26 @@ const ScrollVideo: React.FC<{
         segmentCount={segmentCount} 
         onTextIndexChange={setTextIndex} 
         onAfterVideoChange={setIsAfterVideo}
-        onProgressChange={handleProgressChange}
-        onLoadedChange={handleVideoLoadedChange}
+        onProgressChange={setProgress}
         videoRef={videoRef} 
         containerRef={containerRef} 
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
       >
-        <ScrollVideoElement
-          videoRef={videoRef}
-          src={secureVideoSrc}
-          videoLoaded={videoLoaded}
+        <video 
+          ref={videoRef} 
+          src={secureVideoSrc} 
+          playsInline 
+          preload="auto" 
+          loop={false} 
+          muted 
+          tabIndex={-1} 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
+          style={{
+            minHeight: "100vh",
+            opacity: videoLoaded ? 1 : 0
+          }} 
         />
       </ScrollVideoPlayer>
 
