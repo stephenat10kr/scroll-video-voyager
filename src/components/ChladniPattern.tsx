@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 interface ChladniPatternProps {
@@ -165,7 +166,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
       
       // Clear and set viewport
-      gl.clearColor(0, 0, 0, 1);
+      gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
       gl.clear(gl.COLOR_BUFFER_BIT);
       
       // Use the program
@@ -210,7 +211,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full"
+      className="relative w-full h-full bg-[#203435]"
       style={{ position: 'relative', overflow: 'hidden' }}
     >
       <canvas 
