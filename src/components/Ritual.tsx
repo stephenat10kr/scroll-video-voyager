@@ -1,5 +1,8 @@
+
 import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
+import colors from "@/lib/theme";
+
 interface RitualProps {
   title: string;
   description: string[];
@@ -26,11 +29,11 @@ const Ritual: React.FC<RitualProps> = ({
       
       {/* Text Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
-        <h2 className="title-md text-[#148065] mb-6">
+        <h2 className="title-md mb-6" style={{ color: colors.darkGreen }}>
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="text-[#203435] text-sm">
+          {description.map((paragraph, idx) => <p key={idx} className="text-sm" style={{ color: colors.darkGreen }}>
               {paragraph}
             </p>)}
         </div>

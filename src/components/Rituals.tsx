@@ -3,6 +3,7 @@ import React from "react";
 import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
 import { useRituals } from "@/hooks/useRituals";
+import colors from "@/lib/theme";
 
 interface RitualsProps {
   title: string;
@@ -24,14 +25,14 @@ const Rituals: React.FC<RitualsProps> = ({
   // Show loading state
   if (isLoading) {
     return (
-      <div className="w-full bg-[#C5EADA] py-24 relative">
+      <div className="w-full py-24 relative" style={{ backgroundColor: colors.coral }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#C5EADA"/>
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral}/>
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
-          <h2 className="text-[#148065] text-2xl mb-12">{title}</h2>
+          <h2 className="text-2xl mb-12" style={{ color: colors.darkGreen }}>{title}</h2>
           <div className="space-y-24">
             {[1, 2, 3].map(i => <div key={i} className="grid grid-cols-12 gap-8 mb-16">
                 <div className="col-span-12 md:col-span-5 md:col-start-1 h-64 bg-gray-800 animate-pulse" />
@@ -50,15 +51,15 @@ const Rituals: React.FC<RitualsProps> = ({
   if (error || !rituals) {
     console.error('Error loading rituals:', error);
     return (
-      <div className="w-full bg-[#C5EADA] py-24 relative">
+      <div className="w-full py-24 relative" style={{ backgroundColor: colors.coral }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#C5EADA"/>
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral}/>
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
-          <h2 className="text-[#148065] text-2xl mb-12">{title}</h2>
-          <p className="text-red-500">Unable to load rituals. Please try again later.</p>
+          <h2 className="text-2xl mb-12" style={{ color: colors.darkGreen }}>{title}</h2>
+          <p style={{ color: colors.darkGreen }}>Unable to load rituals. Please try again later.</p>
         </div>
       </div>
     );
@@ -86,15 +87,15 @@ const Rituals: React.FC<RitualsProps> = ({
   }];
 
   return (
-    <div className="w-full py-24 bg-[#C5EADA] relative">
+    <div className="w-full py-24 relative" style={{ backgroundColor: colors.coral }}>
       {/* Curved top SVG */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-full">
         <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#C5EADA"/>
+          <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral}/>
         </svg>
       </div>
       <div className="mx-auto max-w-[90%] relative">
-        <h2 className="text-[#148065] title-sm mb-12">{title}</h2>
+        <h2 className="title-sm mb-12" style={{ color: colors.darkGreen }}>{title}</h2>
         <div className="space-y-24 max-w-[90%] mx-auto">
           {displayRituals.map((ritual, index) => {
             // Use the appropriate component based on the ritual's index
