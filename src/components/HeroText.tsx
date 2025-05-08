@@ -1,6 +1,8 @@
+
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
+
 const HeroText: React.FC = () => {
   return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
@@ -26,10 +28,11 @@ const HeroText: React.FC = () => {
               <h1 className="title-lg text-white mb-6 text-center">curiosity</h1>
             </div>
             
-            <div className="col-span-4 md:col-span-8"></div>
-            <p className="body-text text-white col-span-8 md:col-span-4">
-              isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
-            </p>
+            <div className="grid grid-cols-12 gap-4">
+              <p className="body-text text-white col-start-9 col-span-4">
+                isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
+              </p>
+            </div>
           </div>
         </div>
 
