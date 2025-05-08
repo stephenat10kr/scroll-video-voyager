@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -21,6 +22,51 @@ export default {
 			fontFamily: {
 				'gt-super': ['GT-Super-Display-Bold', 'serif'],
 				'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', "Noto Sans", 'sans-serif'],
+			},
+			fontSize: {
+				// Title-Lg
+				'title-lg': ['96px', {
+					lineHeight: '1.1',
+					letterSpacing: '-0.02em',
+					fontWeight: '700',
+				}],
+				'title-lg-mobile': ['48px', {
+					lineHeight: '1.1',
+					letterSpacing: '-0.02em',
+					fontWeight: '700',
+				}],
+				
+				// Title-Md
+				'title-md': ['72px', {
+					lineHeight: '1.1',
+					letterSpacing: '-0.02em',
+					fontWeight: '700',
+				}],
+				'title-md-mobile': ['48px', {
+					lineHeight: '1.1',
+					letterSpacing: '-0.02em',
+					fontWeight: '700',
+				}],
+				
+				// Title-Sm
+				'title-sm': ['20px', {
+					lineHeight: '1.4',
+					fontWeight: '400',
+				}],
+				'title-sm-mobile': ['18px', {
+					lineHeight: '1.4',
+					fontWeight: '400',
+				}],
+				
+				// Body
+				'body': ['20px', {
+					lineHeight: '1.6',
+					fontWeight: '400',
+				}],
+				'body-mobile': ['18px', {
+					lineHeight: '1.6',
+					fontWeight: '400',
+				}],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

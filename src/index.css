@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -91,6 +90,7 @@
   }
 }
 
+/* Font imports */
 @font-face {
   font-family: 'GT-Super-Display-Bold';
   src: url('/fonts/GT-Super-Display-Bold.woff2') format('woff2'),
@@ -100,6 +100,9 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @keyframes fade-in {
   from { opacity: 0; }
@@ -112,12 +115,31 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 
   .font-gt-super {
     font-family: 'GT-Super-Display-Bold', serif;
     font-weight: bold;
+  }
+}
+
+/* Typography utility classes */
+@layer components {
+  .title-lg {
+    @apply font-gt-super text-title-lg-mobile md:text-title-lg;
+  }
+
+  .title-md {
+    @apply font-gt-super text-title-md-mobile md:text-title-md;
+  }
+
+  .title-sm {
+    @apply font-sans text-title-sm-mobile md:text-title-sm;
+  }
+
+  .body-text {
+    @apply font-sans text-body-mobile md:text-body;
   }
 }
 

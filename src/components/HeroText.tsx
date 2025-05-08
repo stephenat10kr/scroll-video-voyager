@@ -11,7 +11,7 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5">
-                <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WELCOME TO</h2>
+                <h2 className="title-sm text-white mb-4">WELCOME TO</h2>
                 <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-top-left">
                   <Logo />
                 </div>
@@ -25,12 +25,12 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5 py-[240px]">
-                <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">WHERE</h2>
-                <h1 className="text-7xl text-white font-gt-super mb-6">curiosity</h1>
+                <h2 className="title-sm text-white mb-4">WHERE</h2>
+                <h1 className="title-lg text-white mb-6">curiosity</h1>
               </div>
               
               <div className="col-span-4 md:col-span-8"></div>
-              <p className="text-sm md:text-sm text-white col-span-8 md:col-span-4">
+              <p className="body-text text-white col-span-8 md:col-span-4">
                 isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
               </p>
             </div>
@@ -42,12 +42,12 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5 py-[240px]">
-                <h2 className="text-2xl md:text-2xl text-white font-medium mb-4">MEETS</h2>
-                <h1 className="text-7xl text-white font-gt-super mb-6">culture</h1>
+                <h2 className="title-sm text-white mb-4">MEETS</h2>
+                <h1 className="title-lg text-white mb-6">culture</h1>
               </div>
               
               <div className="col-span-4 md:col-span-8"></div>
-              <p className="text-sm md:text-sm text-white col-span-8 md:col-span-4">
+              <p className="body-text text-white col-span-8 md:col-span-4">
                 Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
               </p>
             </div>

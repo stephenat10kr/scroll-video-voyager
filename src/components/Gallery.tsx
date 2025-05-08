@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
@@ -82,7 +83,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <h2 className="title-sm text-white mb-12">{title}</h2>
           <div className="w-full h-64 bg-gray-900 animate-pulse rounded-lg"></div>
         </div>
       </div>
@@ -94,8 +95,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="text-white text-2xl mb-12">{title}</h2>
-          <p className="text-white/70 text-sm">Failed to load gallery images</p>
+          <h2 className="title-sm text-white mb-12">{title}</h2>
+          <p className="body-text text-white/70">Failed to load gallery images</p>
         </div>
       </div>
     );
@@ -105,8 +106,8 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
     return (
       <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
-          <h2 className="text-white text-2xl mb-12">{title}</h2>
-          <p className="text-white/70 text-sm">No media available</p>
+          <h2 className="title-sm text-white mb-12">{title}</h2>
+          <p className="body-text text-white/70">No media available</p>
         </div>
       </div>
     );
@@ -119,7 +120,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   return (
     <div className="w-full bg-[#203435] py-24">
       <div className="max-w-[90%] mx-auto">
-        <h2 className="text-white text-2xl mb-12">{title}</h2>
+        <h2 className="title-sm text-white mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-4 md:gap-8 lg:gap-12">
           <div className="col-span-12 overflow-hidden">
             <Carousel
@@ -144,7 +145,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <div className="text-white font-sans text-sm">
+              <div className="body-text text-white">
                 {currentCaption}
               </div>
               <div className="flex gap-4">
@@ -154,12 +155,12 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
             </div>
           </div>
           <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-white">
-            <p className="text-sm">{description}</p>
+            <p className="body-text">{description}</p>
             <a 
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block text-sm underline hover:text-gray-300 transition-colors"
+              className="body-text inline-block underline hover:text-gray-300 transition-colors"
             >
               {address}
             </a>
