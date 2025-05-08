@@ -17,7 +17,6 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
-  pauseOnMobile?: boolean;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -32,7 +31,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
-  pauseOnMobile = false,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -54,22 +52,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
-    
-    // Ensure the video is initially paused
     video.pause();
 
     // Mobile-specific optimizations
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
-      
-      // Ensure video is paused on mobile if pauseOnMobile is true
-      if (pauseOnMobile) {
-        setTimeout(() => {
-          video.pause();
-          console.log("Video initially paused on mobile in ScrollVideoPlayer");
-        }, 0);
-      }
     }
 
     // Chrome-specific optimizations still apply
@@ -166,6 +154,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         }
       });
       setIsLoaded(true);
+      
+      // For mobile, attempt to trigger video playback after scroll
+      if (isMobile) {
+        const touchStart = () => {
+          video.play().catch(err => console.log("Mobile play attempt:", err));
+        };
+        document.addEventListener('touchstart', touchStart, { once: true });
+        return () => document.removeEventListener('touchstart', touchStart);
+      }
     };
 
     // Request high priority loading for the video
@@ -199,7 +196,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, pauseOnMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };
