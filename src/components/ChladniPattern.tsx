@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 
 interface ChladniPatternProps {
@@ -89,9 +88,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float threshold = 0.05 + 0.03 * sin(scrollFactor * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // Use alpha channel for transparency instead of color intensity
-        // Pattern is always white (1.0, 1.0, 1.0) with varying opacity (col)
-        gl_FragColor = vec4(1.0, 1.0, 1.0, col);
+        // Set 30% opacity (0.3) while keeping white color (1.0, 1.0, 1.0)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.3);
       }
     `;
     
@@ -302,7 +300,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           width: '100%',
           height: '100%',
           zIndex: 0,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          opacity: 0.3 // Adding 30% opacity here as well (redundant with shader change, but ensures compatibility)
         }}
       />
       <div className="relative z-10">
