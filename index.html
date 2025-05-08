@@ -38,20 +38,24 @@
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Ensure any canvas created is properly styled
+      // Use MutationObserver to detect when the canvas is added to the DOM
+      const observer = new MutationObserver(() => {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+          canvas.style.position = 'fixed';
+          canvas.style.top = '0';
+          canvas.style.left = '0';
+          canvas.style.width = '100vw';
+          canvas.style.height = '100vh';
+          canvas.style.zIndex = '-1';
+          canvas.style.pointerEvents = 'none';
+          observer.disconnect(); // Stop observing once the canvas is styled
+        }
+      });
+
+      // Start observing the body for added child nodes
       document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          const canvas = document.querySelector('canvas');
-          if (canvas) {
-            canvas.style.position = 'fixed';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-            canvas.style.width = '100vw';
-            canvas.style.height = '100vh';
-            canvas.style.zIndex = '-1';
-            canvas.style.pointerEvents = 'none';
-          }
-        }, 100);
+        observer.observe(document.body, { childList: true, subtree: true });
       });
     </script>
   </body>

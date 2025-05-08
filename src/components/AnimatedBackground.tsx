@@ -38,18 +38,6 @@ const AnimatedBackground: React.FC = () => {
       // Store reference for cleanup
       rgbaInstanceRef.current = rgba;
 
-      // Direct styling of the canvas element
-      const canvas = document.querySelector('canvas');
-      if (canvas) {
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
-        canvas.style.zIndex = '-1';
-        canvas.style.pointerEvents = 'none';
-      }
-
       // Add mouse move event listener
       const handleMouseMove = (e: MouseEvent) => {
         rgba.xy([e.x/window.innerWidth, e.y/window.innerHeight]);
