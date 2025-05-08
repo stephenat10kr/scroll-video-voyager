@@ -7,10 +7,10 @@ const Video = () => {
   // Use the specific Contentful asset ID for the scrub-optimized video
   const { data: videoAsset, isLoading, error } = useContentfulAsset("1A0xTn5l44SvzrObLYLQmG");
   
-  // Use undefined as fallback instead of local video reference
+  // Fallback to local video if Contentful asset is not available
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
-    : undefined;
+    : "/videos/HeroTest_1-720.mp4";
   
   // Log for debugging
   console.log('Video component - videoSrc:', videoSrc);
