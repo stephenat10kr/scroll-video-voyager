@@ -1,3 +1,4 @@
+
 import React from "react";
 interface ValueProps {
   valueTitle: string;
@@ -10,11 +11,11 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   return <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
-      <h2 className="title-md text-white mb-6 text-center py-[56px]">
+      <h2 className="title-md text-[#C5EADA] mb-6 text-center py-[56px]">
         {valueTitle}
       </h2>
       <div className="space-y-1">
-        {valueText.map((text, index) => <p key={index} className="title-sm text-white text-center">
+        {valueText.map((text, index) => <p key={index} className="title-sm text-[#C5EADA] text-center">
             {text}
           </p>)}
       </div>
