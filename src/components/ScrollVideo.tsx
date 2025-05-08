@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoElement from "./ScrollVideoElement";
 import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
@@ -42,6 +42,26 @@ const ScrollVideo: React.FC<{
     console.log("[ScrollVideo] Video loaded state changed:", loaded);
     setVideoLoaded(loaded);
   };
+  
+  // Log to browser console for debugging iOS issues
+  useEffect(() => {
+    if (isMobile) {
+      console.log("Running on mobile device");
+      
+      // Force a repaint for iOS Safari which sometimes needs this
+      if (videoRef.current) {
+        setTimeout(() => {
+          if (videoRef.current) {
+            const display = videoRef.current.style.display;
+            videoRef.current.style.display = 'none';
+            // Force a repaint by accessing offsetHeight
+            videoRef.current.offsetHeight;
+            videoRef.current.style.display = display;
+          }
+        }, 100);
+      }
+    }
+  }, [videoLoaded, isMobile]);
   
   return (
     <div 

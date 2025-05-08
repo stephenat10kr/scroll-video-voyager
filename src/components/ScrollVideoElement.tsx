@@ -30,17 +30,19 @@ const ScrollVideoElement: React.FC<ScrollVideoElementProps> = ({
       ref={videoRef} 
       src={src} 
       playsInline 
-      webkit-playsinline=""
+      muted
       preload="auto" 
       loop={false} 
-      muted 
-      tabIndex={-1} 
+      tabIndex={-1}
       className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
       style={{
         minHeight: "100vh",
         opacity: videoLoaded ? 1 : 0,
         transition: "opacity 0.3s ease-in-out"
-      }} 
+      }}
+      // iOS-specific attributes as proper HTML5 attributes
+      // Remove invalid attribute and use proper attribute syntax
+      data-wk-playsinline="true"
     />
   );
 };

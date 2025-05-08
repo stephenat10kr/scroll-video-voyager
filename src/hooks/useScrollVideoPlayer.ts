@@ -37,6 +37,7 @@ export const useScrollVideoPlayer = ({
   const lastProgressRef = useRef(0);
   const progressThreshold = 0.002;
   const frameRef = useRef<number | null>(null);
+  const loadAttempts = useRef(0);
 
   // Call onLoadedChange whenever isLoaded changes
   useEffect(() => {
@@ -53,6 +54,10 @@ export const useScrollVideoPlayer = ({
     console.log("Mobile detection:", isMobile);
     console.log("Segment count:", segmentCount);
 
+    // Check if running on iOS
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    console.log("iOS device detected:", isiOS);
+
     // Optimize video element for all devices, especially iOS
     video.controls = false;
     video.playsInline = true;
@@ -64,10 +69,14 @@ export const useScrollVideoPlayer = ({
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
-      // iOS requires these attributes
       video.setAttribute("x-webkit-airplay", "allow");
       video.setAttribute("disablePictureInPicture", "");
       video.setAttribute("crossorigin", "anonymous");
+      
+      if (isiOS) {
+        // iOS Safari needs these additional helpers
+        video.load(); // Force reload the video element
+      }
     }
 
     // Chrome-specific optimizations still apply
@@ -147,7 +156,11 @@ export const useScrollVideoPlayer = ({
     };
 
     const setupScrollTrigger = () => {
-      if (!video.duration) return;
+      if (!video.duration) {
+        console.log("Video duration not available yet, cannot setup ScrollTrigger");
+        return;
+      }
+      
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
       
       scrollTriggerRef.current = ScrollTrigger.create({
@@ -176,39 +189,62 @@ export const useScrollVideoPlayer = ({
       video.fetchPriority = 'high';
     }
 
-    // iOS often requires a time delay before setup
-    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    // iOS is very finicky with video loading - use multiple strategies
+    const trySetup = () => {
+      loadAttempts.current += 1;
+      console.log(`Setup attempt ${loadAttempts.current}, readyState: ${video.readyState}`);
+      
+      if (video.duration) {
+        setupScrollTrigger();
+        return true;
+      } else if (video.readyState >= 2) {
+        setupScrollTrigger();
+        return true;
+      }
+      
+      return false;
+    };
     
-    if (video.readyState >= 2) {
-      setupScrollTrigger();
-    } else {
-      // Add multiple event listeners to catch when video is ready on iOS
-      const setupVideo = () => {
-        if (!isLoaded) setupScrollTrigger();
-      };
-      
-      video.addEventListener("loadedmetadata", setupVideo);
-      video.addEventListener("loadeddata", setupVideo);
-      video.addEventListener("canplay", setupVideo);
-      
-      // Safety timeout - if metadata doesn't load in a reasonable time
-      const timeoutId = setTimeout(() => {
-        if (!isLoaded && video.readyState >= 1) {
-          console.log("Setting up ScrollTrigger after timeout");
-          setupScrollTrigger();
+    // Multiple ways to detect when video is ready on iOS
+    const setupVideo = () => {
+      if (!isLoaded) {
+        const success = trySetup();
+        console.log(`Setup attempt result: ${success ? "success" : "failed"}`);
+      }
+    };
+    
+    // Add multiple event listeners to catch when video is ready
+    video.addEventListener("loadedmetadata", setupVideo);
+    video.addEventListener("loadeddata", setupVideo);
+    video.addEventListener("canplay", setupVideo);
+    video.addEventListener("canplaythrough", setupVideo);
+    video.addEventListener("durationchange", setupVideo);
+    
+    // Safety timeout - if metadata doesn't load in a reasonable time
+    const timeoutId = setTimeout(() => {
+      if (!isLoaded) {
+        console.log("Setting up ScrollTrigger after timeout");
+        trySetup();
+        
+        // Last resort for iOS - force a time update
+        if (isiOS && !isLoaded) {
+          console.log("iOS special handling - forcing time update");
+          // Set current time to 0.01 to force iOS to initialize the video
+          video.currentTime = 0.01;
+          setTimeout(() => trySetup(), 50);
         }
-      }, 1000);
-      
-      return () => {
-        clearTimeout(timeoutId);
-        video.removeEventListener("loadedmetadata", setupVideo);
-        video.removeEventListener("loadeddata", setupVideo);
-        video.removeEventListener("canplay", setupVideo);
-      };
-    }
-
+      }
+    }, 1000);
+    
     return () => {
       window.removeEventListener("resize", resizeSection);
+      clearTimeout(timeoutId);
+      video.removeEventListener("loadedmetadata", setupVideo);
+      video.removeEventListener("loadeddata", setupVideo);
+      video.removeEventListener("canplay", setupVideo);
+      video.removeEventListener("canplaythrough", setupVideo);
+      video.removeEventListener("durationchange", setupVideo);
+      
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
