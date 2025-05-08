@@ -69,7 +69,7 @@ const Rituals: React.FC<RitualsProps> = ({
   }];
   return <div className="w-full py-24 bg-[#203435]">
       <div className="mx-auto">
-        <h2 className="text-white title-sm mb-12">{title}</h2>
+        <h2 className="text-white title-sm mb-12 max-w-[90%] mx-auto">{title}</h2>
         <div className="space-y-24 max-w-[90%] mx-auto">
           {displayRituals.map((ritual, index) => {
           // Use the appropriate component based on the ritual's index
