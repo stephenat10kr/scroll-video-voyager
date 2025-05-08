@@ -15,7 +15,7 @@ const Value: React.FC<ValueProps> = ({
         {valueTitle}
       </h2>
       <div className="space-y-1">
-        {valueText.map((text, index) => <p key={index} className="title-sm text-white">
+        {valueText.map((text, index) => <p key={index} className="title-sm text-white text-center">
             {text}
           </p>)}
       </div>
