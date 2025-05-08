@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -38,8 +39,14 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
+        // On mobile, we still need to trigger play initially so browser allows playback,
+        // but we'll pause it immediately after
         if (isMobile) {
-          video.play().catch(err => {
+          video.play().then(() => {
+            // Pause the video after it starts playing
+            video.pause();
+            console.log("Video paused on mobile after initial load");
+          }).catch(err => {
             console.error("Mobile video play error:", err);
           });
         }
