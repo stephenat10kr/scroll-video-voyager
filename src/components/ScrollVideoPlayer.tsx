@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -58,6 +57,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
+      
+      // Set initial frame for mobile devices
+      // Wait for video to have metadata before setting time
+      const setInitialFrame = () => {
+        if (video.readyState >= 1 && video.duration) {
+          // Set to frame 2 (approximated as a small time value)
+          // Assuming 30fps, frame 2 would be around 0.067 seconds
+          video.currentTime = 0.067;
+          console.log("Mobile: Set initial frame to approx frame 2");
+        }
+      };
+      
+      // Try to set initial frame if metadata is already loaded
+      if (video.readyState >= 1) {
+        setInitialFrame();
+      } else {
+        // Otherwise wait for metadata to load
+        video.addEventListener("loadedmetadata", setInitialFrame, { once: true });
+      }
     }
 
     // Chrome-specific optimizations still apply
