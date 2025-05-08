@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -36,8 +37,16 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
-      // Remove mobile-specific immediate visibility
-      // This allows the fade-in transition to work on all devices
+      // Force initial visibility for mobile devices
+      if (isMobile) {
+        // Immediately make video element visible
+        setVideoVisible(true);
+        console.log("Mobile detected: Forcing initial video visibility");
+        
+        // Force loading of the first frame
+        video.currentTime = 0.001;
+        video.load();
+      }
       
       const handleCanPlay = () => {
         console.log("Video can play now");
@@ -48,17 +57,10 @@ const ScrollVideo: React.FC<{
         video.pause();
         console.log("Video paused on load");
         
-        // For mobile, we still need to attempt play first to prepare the video
-        // then immediately pause it to ensure it's ready for scrubbing
+        // For mobile, we need to ensure a frame is displayed
         if (isMobile) {
-          video.play().then(() => {
-            video.pause();
-            console.log("Mobile video played then paused");
-          }).catch(err => {
-            console.error("Mobile video play error:", err);
-            // Even if play fails, ensure video is visible
-            setVideoVisible(true);
-          });
+          // Set the currentTime to show the first frame
+          video.currentTime = 0.001;
         }
       };
       
@@ -66,23 +68,95 @@ const ScrollVideo: React.FC<{
       const handleLoadedData = () => {
         console.log("Video data loaded");
         setVideoVisible(true);
+        
+        // Set the currentTime to show the first frame for mobile
+        if (isMobile) {
+          video.currentTime = 0.001;
+        }
+      };
+      
+      // Add loadedmetadata event which might fire earlier on some devices
+      const handleLoadedMetadata = () => {
+        console.log("Video metadata loaded");
+        setVideoVisible(true);
+        
+        // Set the currentTime to show the first frame for mobile
+        if (isMobile) {
+          video.currentTime = 0.001;
+        }
+      };
+      
+      // Add error handling
+      const handleError = (e: Event) => {
+        console.error("Video error:", e);
+        // Even if there's an error, ensure video is visible
+        setVideoVisible(true);
       };
       
       video.addEventListener("canplay", handleCanPlay);
       video.addEventListener("loadeddata", handleLoadedData);
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
+      video.addEventListener("error", handleError);
       
-      // Use the same timeout for both mobile and desktop (300ms)
+      // Add a safety timeout to ensure visibility regardless of events
+      const shortTimeoutId = setTimeout(() => {
+        // Force visibility after a very short delay
+        if (isMobile) {
+          setVideoVisible(true);
+          console.log("Mobile video visibility forced by short timeout");
+        }
+      }, 100);
+      
+      // Use a longer timeout as a fallback for all devices
       const timeoutId = setTimeout(() => {
         setVideoVisible(true);
+        console.log("Video visibility forced by fallback timeout");
+        
+        // If video still hasn't loaded its first frame, try to force it
+        if (isMobile && video.readyState < 2) {
+          video.load();
+          video.currentTime = 0.001;
+        }
       }, 300);
       
       return () => {
         video.removeEventListener("canplay", handleCanPlay);
         video.removeEventListener("loadeddata", handleLoadedData);
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        video.removeEventListener("error", handleError);
+        clearTimeout(shortTimeoutId);
         clearTimeout(timeoutId);
       };
     }
   }, [secureVideoSrc, isMobile]);
+
+  // Add document-level interaction detection
+  useEffect(() => {
+    // Global interaction handler for mobile devices
+    if (isMobile) {
+      const handleInteraction = () => {
+        console.log("User interaction detected");
+        setVideoVisible(true);
+        
+        const video = videoRef.current;
+        if (video) {
+          // Try to display the first frame
+          if (video.readyState >= 1) {
+            video.currentTime = 0.001;
+          }
+        }
+      };
+      
+      // Listen for any user interaction
+      document.addEventListener('touchstart', handleInteraction, { once: true });
+      document.addEventListener('click', handleInteraction, { once: true });
+      
+      return () => {
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('click', handleInteraction);
+      };
+    }
+  }, [isMobile]);
 
   return (
     <div 
@@ -114,9 +188,9 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible ? 1 : 0,
-            transition: "opacity 0.3s ease-in-out", // Apply the same transition for all devices
-            display: "block", // Ensure it's always displayed
-            visibility: "visible" // Ensure it's always visible
+            transition: "opacity 0.3s ease-in-out",
+            display: "block",
+            visibility: "visible"
           }} 
         />
       </ScrollVideoPlayer>

@@ -69,6 +69,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Ensure muted state for autoplay capability
       video.muted = true;
+      
+      // Force the first frame to display immediately
+      if (video.readyState >= 1) {
+        video.currentTime = 0.001;
+      }
     } else {
       // Chrome-specific optimizations still apply
       video.style.willChange = "contents";
@@ -149,16 +154,22 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
-      if (!video.duration) return;
+      
+      // For mobile, try to render a frame immediately without waiting for duration
+      if (isMobile) {
+        video.currentTime = 0.001;
+      }
+      
+      // Check if video duration is available
+      if (!video.duration && !isMobile) {
+        console.log("Video duration not yet available, waiting...");
+        return;
+      }
+      
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
       
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
-      
-      // For mobile, try to render a frame immediately to make video visible
-      if (isMobile && video.duration > 0) {
-        video.currentTime = 0;
-      }
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
@@ -178,20 +189,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
       setupCompleted.current = true;
       
-      // For mobile, attempt to trigger video playback after scroll
-      if (isMobile) {
-        const touchStart = () => {
-          // Remove immediate visibility setting to allow transition to work
-          video.play().then(() => {
-            // Immediately pause after play to ensure it's ready for scrubbing
-            video.pause();
-            console.log("Mobile video played then paused on touch");
-          }).catch(err => console.log("Mobile play attempt:", err));
-        };
-        
-        document.addEventListener('touchstart', touchStart, { once: true });
-        return () => document.removeEventListener('touchstart', touchStart);
-      }
+      console.log("ScrollTrigger setup completed");
     };
 
     // Request high priority loading for the video
@@ -200,48 +198,42 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.fetchPriority = 'high';
     }
 
-    if (video.readyState >= 2) {
+    // For mobile devices, we'll set up ScrollTrigger even without duration
+    if (isMobile) {
       setupScrollTrigger();
-    } else {
-      // For mobile devices, add more event listeners to ensure video loads properly
-      const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
+    } else if (video.readyState >= 2) {
+      setupScrollTrigger();
+    }
+
+    // Set up event listeners regardless of initial state
+    const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
-      const handleVideoReady = () => {
-        if (!setupCompleted.current) {
-          console.log("Setting up ScrollTrigger after video event");
-          setupScrollTrigger();
-        }
-        
-        // Remove immediate visibility enforcement for mobile to allow fade-in
-        
-        // Clean up event listeners after setup
-        if (setupCompleted.current) {
-          setupEvents.forEach(event => {
-            video.removeEventListener(event, handleVideoReady);
-          });
-        }
-      };
+    const handleVideoReady = () => {
+      if (!setupCompleted.current) {
+        console.log("Setting up ScrollTrigger after video event");
+        setupScrollTrigger();
+      }
       
-      setupEvents.forEach(event => {
-        video.addEventListener(event, handleVideoReady);
-      });
-      
-      // Use consistent timeout for both mobile and desktop
-      const timeoutId = setTimeout(() => {
-        if (!setupCompleted.current && video.readyState >= 1) {
-          console.log("Setting up ScrollTrigger after timeout");
-          setupScrollTrigger();
-        }
-      }, 300); // Use 300ms for both mobile and desktop
-      
-      return () => {
-        clearTimeout(timeoutId);
+      // Clean up event listeners after setup
+      if (setupCompleted.current) {
         setupEvents.forEach(event => {
           video.removeEventListener(event, handleVideoReady);
         });
-      };
-    }
-
+      }
+    };
+    
+    setupEvents.forEach(event => {
+      video.addEventListener(event, handleVideoReady);
+    });
+    
+    // Safety timeout to ensure ScrollTrigger gets set up
+    const timeoutId = setTimeout(() => {
+      if (!setupCompleted.current) {
+        console.log("Setting up ScrollTrigger after timeout");
+        setupScrollTrigger();
+      }
+    }, 300);
+    
     return () => {
       window.removeEventListener("resize", resizeSection);
       if (scrollTriggerRef.current) {
@@ -250,6 +242,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
+      setupEvents.forEach(event => {
+        video.removeEventListener(event, handleVideoReady);
+      });
+      clearTimeout(timeoutId);
       setupCompleted.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
