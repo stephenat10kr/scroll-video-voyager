@@ -51,7 +51,7 @@ const Questions: React.FC<QuestionsProps> = ({
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
         <h2 className="text-white text-2xl mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
-          <TabsList className="mb-12 bg-transparent w-full flex flex-wrap justify-start gap-4">
+          <TabsList className="mb-12 bg-transparent w-full flex flex-wrap justify-start gap-4 h-auto">
             {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-[#FFB577] border border-[#FFB577] hover:bg-white/10">
                 {tab}
               </TabsTrigger>)}
