@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -37,13 +36,8 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
-      // Immediately make video visible for mobile
-      if (isMobile) {
-        setVideoVisible(true);
-        video.style.opacity = "1";
-        video.style.visibility = "visible";
-        video.style.display = "block";
-      }
+      // Remove mobile-specific immediate visibility
+      // This allows the fade-in transition to work on all devices
       
       const handleCanPlay = () => {
         console.log("Video can play now");
@@ -64,7 +58,6 @@ const ScrollVideo: React.FC<{
             console.error("Mobile video play error:", err);
             // Even if play fails, ensure video is visible
             setVideoVisible(true);
-            video.style.opacity = "1";
           });
         }
       };
@@ -73,24 +66,15 @@ const ScrollVideo: React.FC<{
       const handleLoadedData = () => {
         console.log("Video data loaded");
         setVideoVisible(true);
-        // Ensure visibility on mobile
-        if (isMobile) {
-          video.style.opacity = "1";
-          video.style.visibility = "visible";
-        }
       };
       
       video.addEventListener("canplay", handleCanPlay);
       video.addEventListener("loadeddata", handleLoadedData);
       
-      // Set a shorter timeout for mobile to ensure video appears quickly
+      // Use the same timeout for both mobile and desktop (300ms)
       const timeoutId = setTimeout(() => {
         setVideoVisible(true);
-        if (isMobile) {
-          video.style.opacity = "1";
-          video.style.visibility = "visible";
-        }
-      }, isMobile ? 100 : 300);
+      }, 300);
       
       return () => {
         video.removeEventListener("canplay", handleCanPlay);
@@ -130,7 +114,7 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible ? 1 : 0,
-            transition: isMobile ? "none" : "opacity 0.3s ease-in-out",
+            transition: "opacity 0.3s ease-in-out", // Apply the same transition for all devices
             display: "block", // Ensure it's always displayed
             visibility: "visible" // Ensure it's always visible
           }} 
