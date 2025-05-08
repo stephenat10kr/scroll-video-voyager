@@ -7,6 +7,7 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
+import CurvedShape from "../components/CurvedShape";
 
 const Index = () => {
   return (
@@ -16,6 +17,7 @@ const Index = () => {
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
+        <CurvedShape fill="#203435" />
         <Gallery 
           title="SPACE"
           description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge."
