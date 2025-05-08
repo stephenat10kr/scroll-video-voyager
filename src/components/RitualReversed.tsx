@@ -24,7 +24,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         </h2>
         <div className="space-y-4">
           {description.map((paragraph, idx) => (
-            <p key={idx} className="text-white text-sm">
+            <p key={idx} className="text-[#203435] text-sm">
               {paragraph}
             </p>
           ))}
