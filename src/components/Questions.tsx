@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -23,7 +24,7 @@ const Questions: React.FC<QuestionsProps> = ({
   if (isLoading) {
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
-        <h2 className="text-white text-2xl mb-12">Loading questions...</h2>
+        <h2 className="title-sm text-white mb-12">Loading questions...</h2>
       </div>
     </div>;
   }
@@ -31,7 +32,7 @@ const Questions: React.FC<QuestionsProps> = ({
     console.error('Error in Questions component:', error);
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
-        <h2 className="text-white text-2xl mb-12">Failed to load questions</h2>
+        <h2 className="title-sm text-white mb-12">Failed to load questions</h2>
         <p className="text-white/70 text-sm">Please check the console for more details.</p>
       </div>
     </div>;
@@ -39,7 +40,7 @@ const Questions: React.FC<QuestionsProps> = ({
   if (!questions || Object.keys(questions).length === 0) {
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
-        <h2 className="text-white text-2xl mb-12">No questions available</h2>
+        <h2 className="title-sm text-white mb-12">No questions available</h2>
         <p className="text-white/70 text-sm">Please add questions in Contentful with the content type 'question'.</p>
       </div>
     </div>;
@@ -49,7 +50,7 @@ const Questions: React.FC<QuestionsProps> = ({
   const tabsClassName = isMobile ? "col-start-1 col-end-13" : "col-start-5 col-end-13";
   return <div className="w-full py-24 bg-[#203435]">
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
-        <h2 className="text-white text-2xl mb-12 col-span-12">{title}</h2>
+        <h2 className="title-sm text-white mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
           <TabsList className="mb-12 bg-transparent w-full flex flex-wrap justify-start gap-4 h-auto">
             {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-[#FFB577] border border-[#FFB577] hover:bg-white/10">
