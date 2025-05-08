@@ -1,9 +1,7 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
-import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
 
@@ -201,8 +199,6 @@ const ScrollVideo: React.FC<{
         progress={progress}
         containerRef={containerRef}
       />
-
-      {!isAfterVideo && <ScrollVideoScrollHint />}
     </div>
   );
 };
