@@ -88,8 +88,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float threshold = 0.05 + 0.03 * sin(scrollFactor * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // Set 30% opacity (0.3) while keeping white color (1.0, 1.0, 1.0)
-        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.3);
+        // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
       }
     `;
     
@@ -301,7 +301,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: 0.3 // Adding 30% opacity here as well (redundant with shader change, but ensures compatibility)
+          opacity: 0.5 // Updated opacity from 0.3 to 0.5 (50%)
         }}
       />
       <div className="relative z-10">
