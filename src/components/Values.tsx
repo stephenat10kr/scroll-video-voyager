@@ -3,11 +3,9 @@ import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
-
 interface ValuesProps {
   title: string;
 }
-
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
@@ -21,7 +19,7 @@ const Values: React.FC<ValuesProps> = ({
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden xs:block sm:block md:block col-span-3">
-            <h2 className="title-sm text-coral">{title}</h2>
+            <h2 className="title-sm text-[#C5EADA]">{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
             <div className="mb-24 animate-pulse">
@@ -37,20 +35,20 @@ const Values: React.FC<ValuesProps> = ({
       console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm text-coral">{title}</h2>
+            <h2 className="title-sm text-[#C5EADA]">{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
-            <p className="body-text text-coral/70">Failed to load values</p>
+            <p className="body-text text-[#C5EADA]/70">Failed to load values</p>
           </div>
         </div>;
     }
     if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm text-coral">{title}</h2>
+            <h2 className="title-sm text-[#C5EADA]">{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
-            <p className="body-text text-coral/70">No values available</p>
+            <p className="body-text text-[#C5EADA]/70">No values available</p>
           </div>
         </div>;
     }
@@ -62,7 +60,7 @@ const Values: React.FC<ValuesProps> = ({
   };
   
   return <ChladniPattern>
-      <div className="w-full py-24 bg-darkGreen">
+      <div className="w-full py-24">
         {content()}
       </div>
     </ChladniPattern>;
