@@ -4,8 +4,8 @@ import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 
 const Video = () => {
-  // Use the specific Contentful asset ID for the scrub-optimized video
-  const { data: videoAsset, isLoading, error } = useContentfulAsset("1A0xTn5l44SvzrObLYLQmG");
+  // Use the specific Contentful asset ID for the Drone video
+  const { data: videoAsset, isLoading, error } = useContentfulAsset("77uUIlgXhePi9dHFFNkQvX");
   
   // Fallback to local video if Contentful asset is not available
   const videoSrc = videoAsset?.fields?.file?.url 
