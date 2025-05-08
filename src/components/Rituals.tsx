@@ -1,10 +1,13 @@
+
 import React from "react";
 import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
 import { useRituals } from "@/hooks/useRituals";
+
 interface RitualsProps {
   title: string;
 }
+
 const Rituals: React.FC<RitualsProps> = ({
   title
 }) => {
@@ -20,8 +23,14 @@ const Rituals: React.FC<RitualsProps> = ({
 
   // Show loading state
   if (isLoading) {
-    return <div className="w-full bg-black py-24">
-        <div className="max-w-[90%] mx-auto">
+    return (
+      <div className="w-full bg-black py-24 relative">
+        <div className="absolute top-0 left-0 right-0 w-full">
+          <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#203435"/>
+          </svg>
+        </div>
+        <div className="max-w-[90%] mx-auto relative">
           <h2 className="text-white text-2xl mb-12">{title}</h2>
           <div className="space-y-24">
             {[1, 2, 3].map(i => <div key={i} className="grid grid-cols-12 gap-8 mb-16">
@@ -33,18 +42,26 @@ const Rituals: React.FC<RitualsProps> = ({
               </div>)}
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Show error state
   if (error || !rituals) {
     console.error('Error loading rituals:', error);
-    return <div className="w-full bg-black py-24">
-        <div className="max-w-[90%] mx-auto">
+    return (
+      <div className="w-full bg-black py-24 relative">
+        <div className="absolute top-0 left-0 right-0 w-full">
+          <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#203435"/>
+          </svg>
+        </div>
+        <div className="max-w-[90%] mx-auto relative">
           <h2 className="text-white text-2xl mb-12">{title}</h2>
           <p className="text-red-500">Unable to load rituals. Please try again later.</p>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Use fallback data if no rituals are available
@@ -67,20 +84,30 @@ const Rituals: React.FC<RitualsProps> = ({
     imageSrc: fallbackImage,
     imageAlt: "Colorful celebration event"
   }];
-  return <div className="w-full py-24 bg-[#203435]">
-      <div className="mx-auto max-w-[90%]">
+
+  return (
+    <div className="w-full py-24 bg-[#203435] relative">
+      {/* Curved top SVG */}
+      <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-full">
+        <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill="#203435"/>
+        </svg>
+      </div>
+      <div className="mx-auto max-w-[90%] relative">
         <h2 className="text-white title-sm mb-12">{title}</h2>
         <div className="space-y-24 max-w-[90%] mx-auto">
           {displayRituals.map((ritual, index) => {
-          // Use the appropriate component based on the ritual's index
-          if (index % 2 === 1) {
-            return <RitualReversed key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
-          } else {
-            return <Ritual key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
-          }
-        })}
+            // Use the appropriate component based on the ritual's index
+            if (index % 2 === 1) {
+              return <RitualReversed key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
+            } else {
+              return <Ritual key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
+            }
+          })}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Rituals;
