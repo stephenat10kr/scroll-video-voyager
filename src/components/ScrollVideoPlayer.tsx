@@ -52,7 +52,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
+    
+    // Explicitly pause the video during initialization
     video.pause();
+    console.log("Video paused during initialization");
 
     // Mobile-specific optimizations
     if (isMobile) {
@@ -139,6 +142,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      
+      // Ensure video is paused before setting up ScrollTrigger
+      video.pause();
+      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
@@ -158,7 +165,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // For mobile, attempt to trigger video playback after scroll
       if (isMobile) {
         const touchStart = () => {
-          video.play().catch(err => console.log("Mobile play attempt:", err));
+          video.play().then(() => {
+            // Immediately pause after play to ensure it's ready for scrubbing
+            video.pause();
+            console.log("Mobile video played then paused on touch");
+          }).catch(err => console.log("Mobile play attempt:", err));
         };
         document.addEventListener('touchstart', touchStart, { once: true });
         return () => document.removeEventListener('touchstart', touchStart);

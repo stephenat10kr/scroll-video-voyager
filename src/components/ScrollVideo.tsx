@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -38,8 +39,18 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
+        
+        // Always pause the video when it can play
+        video.pause();
+        console.log("Video paused on load");
+        
+        // For mobile, we still need to attempt play first to prepare the video
+        // then immediately pause it to ensure it's ready for scrubbing
         if (isMobile) {
-          video.play().catch(err => {
+          video.play().then(() => {
+            video.pause();
+            console.log("Mobile video played then paused");
+          }).catch(err => {
             console.error("Mobile video play error:", err);
           });
         }
