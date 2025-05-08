@@ -27,6 +27,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     console.log('WebGL initialized successfully');
     
+    // Enable alpha blending for transparency
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
     // Set canvas size to match container
     const resizeCanvas = () => {
       const { width, height } = container.getBoundingClientRect();
@@ -88,8 +92,9 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float threshold = 0.05 + 0.03 * sin(scrollFactor * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // Keep the pattern monochromatic white
-        gl_FragColor = vec4(vec3(col), 1.0);
+        // Use alpha channel for transparency instead of color intensity
+        // Pattern is always white (1.0, 1.0, 1.0) with varying opacity (col)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, col);
       }
     `;
     
