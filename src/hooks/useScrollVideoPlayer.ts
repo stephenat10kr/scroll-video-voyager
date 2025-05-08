@@ -13,7 +13,7 @@ type UseScrollVideoPlayerProps = {
   onTextIndexChange: (idx: number | null) => void;
   onAfterVideoChange: (after: boolean) => void;
   onProgressChange?: (progress: number) => void;
-  onLoadedChange?: (loaded: boolean) => void; // New callback prop
+  onLoadedChange?: (loaded: boolean) => void;
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
@@ -53,17 +53,21 @@ export const useScrollVideoPlayer = ({
     console.log("Mobile detection:", isMobile);
     console.log("Segment count:", segmentCount);
 
-    // Optimize video element
+    // Optimize video element for all devices, especially iOS
     video.controls = false;
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
     video.pause();
 
-    // Mobile-specific optimizations - but don't autoplay
+    // iOS/Mobile-specific optimizations
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
+      // iOS requires these attributes
+      video.setAttribute("x-webkit-airplay", "allow");
+      video.setAttribute("disablePictureInPicture", "");
+      video.setAttribute("crossorigin", "anonymous");
     }
 
     // Chrome-specific optimizations still apply
@@ -80,7 +84,7 @@ export const useScrollVideoPlayer = ({
       return;
     }
 
-    // For mobile or desktop, use the provided source
+    // Use the provided source for all devices
     if (video.src !== src) {
       video.src = src;
       const extension = src.split(".").pop() || "unknown";
@@ -163,8 +167,6 @@ export const useScrollVideoPlayer = ({
       });
       
       setIsLoaded(true);
-      
-      // Removed mobile-specific autoplay behavior to ensure consistent experience
       console.log("Video can play now");
     };
 
@@ -174,10 +176,20 @@ export const useScrollVideoPlayer = ({
       video.fetchPriority = 'high';
     }
 
+    // iOS often requires a time delay before setup
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
-      video.addEventListener("loadedmetadata", setupScrollTrigger);
+      // Add multiple event listeners to catch when video is ready on iOS
+      const setupVideo = () => {
+        if (!isLoaded) setupScrollTrigger();
+      };
+      
+      video.addEventListener("loadedmetadata", setupVideo);
+      video.addEventListener("loadeddata", setupVideo);
+      video.addEventListener("canplay", setupVideo);
       
       // Safety timeout - if metadata doesn't load in a reasonable time
       const timeoutId = setTimeout(() => {
@@ -186,12 +198,17 @@ export const useScrollVideoPlayer = ({
           setupScrollTrigger();
         }
       }, 1000);
-      return () => clearTimeout(timeoutId);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        video.removeEventListener("loadedmetadata", setupVideo);
+        video.removeEventListener("loadeddata", setupVideo);
+        video.removeEventListener("canplay", setupVideo);
+      };
     }
 
     return () => {
       window.removeEventListener("resize", resizeSection);
-      video.removeEventListener("loadedmetadata", setupScrollTrigger);
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }

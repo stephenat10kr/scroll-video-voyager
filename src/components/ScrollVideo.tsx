@@ -22,7 +22,14 @@ const ScrollVideo: React.FC<{
   const [textIndex, setTextIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const isMobile = useIsMobile();
-  const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+  
+  // Ensure the src URL has the correct protocol for iOS
+  let secureVideoSrc = undefined;
+  if (src) {
+    secureVideoSrc = src.replace(/^\/\//, 'https://');
+    secureVideoSrc = secureVideoSrc.replace(/^http:/, 'https:');
+    console.log("Video source URL:", secureVideoSrc);
+  }
   
   // Empty array for text overlay (effectively removing it)
   const textArray: string[] = [];

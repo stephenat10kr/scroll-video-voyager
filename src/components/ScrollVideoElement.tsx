@@ -15,13 +15,22 @@ const ScrollVideoElement: React.FC<ScrollVideoElementProps> = ({
   // Log when the component receives a videoLoaded update
   useEffect(() => {
     console.log("[ScrollVideoElement] Video loaded state:", videoLoaded);
-  }, [videoLoaded]);
+    
+    // iOS-specific fix: Apply inline styles directly to the video element
+    if (videoRef.current) {
+      videoRef.current.playsInline = true;
+      videoRef.current.setAttribute('playsinline', '');
+      videoRef.current.setAttribute('webkit-playsinline', '');
+      videoRef.current.muted = true;
+    }
+  }, [videoLoaded, videoRef]);
 
   return (
     <video 
       ref={videoRef} 
       src={src} 
       playsInline 
+      webkit-playsinline=""
       preload="auto" 
       loop={false} 
       muted 
