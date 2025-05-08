@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Separator } from "./ui/separator";
 interface ValueProps {
@@ -10,7 +11,7 @@ const Value: React.FC<ValueProps> = ({
   valueText,
   isLast = false
 }) => {
-  return <div className={`${isLast ? '' : 'mb-6'}`}>
+  return <div className={`w-full ${isLast ? '' : 'mb-6'}`}>
       <h2 className="title-md text-white mb-6 text-center">
         {valueTitle}
       </h2>
