@@ -19,7 +19,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
     <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
       {/* Text Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center">
-        <h2 className="text-7xl font-gt-super leading-none mb-6 text-white">
+        <h2 className="title-md text-white mb-6">
           {title}
         </h2>
         <div className="space-y-4">
