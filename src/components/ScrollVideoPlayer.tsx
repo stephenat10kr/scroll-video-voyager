@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -35,8 +34,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Lowering the progressThreshold from 0.015 to 0.003 to ensure more frames are displayed
-  const progressThreshold = 0.003; 
+  // Lowering the progressThreshold from 0.003 to 0.001 for even smoother frame display
+  const progressThreshold = 0.001; 
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
