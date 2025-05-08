@@ -2,6 +2,7 @@
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
+import ChladniPattern from "./ChladniPattern";
 
 interface ValuesProps {
   title: string;
@@ -61,8 +62,10 @@ const Values: React.FC<ValuesProps> = ({
       </div>;
   }
 
-  return <div className="w-full py-24 bg-[#203435]">
-      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+  return (
+    <div className="w-full py-24 bg-[#203435] relative">
+      <ChladniPattern />
+      <div className="grid grid-cols-12 max-w-[90%] mx-auto relative z-10">
         <div className="hidden sm:block col-span-3">
           <h2 className="title-sm text-white">{title}</h2>
         </div>
@@ -70,7 +73,8 @@ const Values: React.FC<ValuesProps> = ({
           {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Values;
