@@ -65,13 +65,14 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ className }) => {
       if (containerRef.current) {
         containerRef.current.appendChild(rgba.canvas);
         
-        // Make the canvas fill the container
+        // Apply styles to ensure the canvas is visually positioned correctly
+        // but doesn't interfere with interactions
         rgba.canvas.style.position = "absolute";
         rgba.canvas.style.top = "0";
         rgba.canvas.style.left = "0";
         rgba.canvas.style.width = "100%";
         rgba.canvas.style.height = "100%";
-        rgba.canvas.style.pointerEvents = "none"; // Add this line to prevent canvas from capturing pointer events
+        rgba.canvas.style.pointerEvents = "none"; // Prevent canvas from capturing pointer events
         
         // Update the uniform when mouse moves - use a passive event listener
         const handleMouseMove = (e: MouseEvent) => {
@@ -100,7 +101,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ className }) => {
     <div 
       ref={containerRef}
       className={`absolute inset-0 w-full h-full overflow-hidden opacity-50 pointer-events-none ${className || ""}`}
-      style={{ zIndex: 0 }}
+      style={{ zIndex: -1 }} // Change from z-index 0 to -1 to ensure it's completely behind content
     ></div>
   );
 };
