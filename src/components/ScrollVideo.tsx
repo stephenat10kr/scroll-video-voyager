@@ -22,6 +22,7 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
   const [textIndex, setTextIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const isMobile = useIsMobile();
@@ -39,6 +40,7 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
+        setVideoVisible(true);
         
         // Always pause the video when it can play
         video.pause();
@@ -52,11 +54,31 @@ const ScrollVideo: React.FC<{
             console.log("Mobile video played then paused");
           }).catch(err => {
             console.error("Mobile video play error:", err);
+            // Even if play fails, ensure video is visible
+            setVideoVisible(true);
           });
         }
       };
+      
+      // Add loadeddata event to ensure video is fully loaded before showing
+      const handleLoadedData = () => {
+        console.log("Video data loaded");
+        setVideoVisible(true);
+      };
+      
       video.addEventListener("canplay", handleCanPlay);
-      return () => video.removeEventListener("canplay", handleCanPlay);
+      video.addEventListener("loadeddata", handleLoadedData);
+      
+      // Set a timeout to ensure video appears even if events don't fire
+      const timeoutId = setTimeout(() => {
+        setVideoVisible(true);
+      }, 300);
+      
+      return () => {
+        video.removeEventListener("canplay", handleCanPlay);
+        video.removeEventListener("loadeddata", handleLoadedData);
+        clearTimeout(timeoutId);
+      };
     }
   }, [secureVideoSrc, isMobile]);
 
@@ -89,7 +111,8 @@ const ScrollVideo: React.FC<{
           className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
           style={{
             minHeight: "100vh",
-            opacity: videoLoaded ? 1 : 0
+            opacity: videoVisible ? 1 : 0,
+            transition: "opacity 0.3s ease-in-out"
           }} 
         />
       </ScrollVideoPlayer>

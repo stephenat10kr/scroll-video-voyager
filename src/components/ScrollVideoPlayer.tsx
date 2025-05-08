@@ -38,6 +38,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Setting the progressThreshold to 0.002 as requested
   const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
+  const setupCompleted = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -61,6 +62,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
+      // Force display for mobile devices
+      video.style.display = "block";
+      video.style.opacity = "1";
     }
 
     // Chrome-specific optimizations still apply
@@ -140,6 +144,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
 
     const setupScrollTrigger = () => {
+      if (setupCompleted.current) return;
       if (!video.duration) return;
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
       
@@ -160,17 +165,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           updateVideoFrame(progress);
         }
       });
+      
       setIsLoaded(true);
+      setupCompleted.current = true;
       
       // For mobile, attempt to trigger video playback after scroll
       if (isMobile) {
         const touchStart = () => {
+          // Make sure video is visible first
+          video.style.opacity = "1";
+          video.style.visibility = "visible";
+          
           video.play().then(() => {
             // Immediately pause after play to ensure it's ready for scrubbing
             video.pause();
             console.log("Mobile video played then paused on touch");
           }).catch(err => console.log("Mobile play attempt:", err));
         };
+        
         document.addEventListener('touchstart', touchStart, { once: true });
         return () => document.removeEventListener('touchstart', touchStart);
       }
@@ -185,27 +197,52 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (video.readyState >= 2) {
       setupScrollTrigger();
     } else {
-      video.addEventListener("loadedmetadata", setupScrollTrigger);
+      // For mobile devices, add more event listeners to ensure video loads properly
+      const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
-      // Safety timeout - if metadata doesn't load in a reasonable time
+      const handleVideoReady = () => {
+        if (!setupCompleted.current) {
+          console.log("Setting up ScrollTrigger after video event");
+          setupScrollTrigger();
+        }
+        
+        // Clean up event listeners after setup
+        if (setupCompleted.current) {
+          setupEvents.forEach(event => {
+            video.removeEventListener(event, handleVideoReady);
+          });
+        }
+      };
+      
+      setupEvents.forEach(event => {
+        video.addEventListener(event, handleVideoReady);
+      });
+      
+      // Safety timeout - if events don't fire in a reasonable time
       const timeoutId = setTimeout(() => {
-        if (!isLoaded && video.readyState >= 1) {
+        if (!setupCompleted.current && video.readyState >= 1) {
           console.log("Setting up ScrollTrigger after timeout");
           setupScrollTrigger();
         }
-      }, 1000);
-      return () => clearTimeout(timeoutId);
+      }, 500);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        setupEvents.forEach(event => {
+          video.removeEventListener(event, handleVideoReady);
+        });
+      };
     }
 
     return () => {
       window.removeEventListener("resize", resizeSection);
-      video.removeEventListener("loadedmetadata", setupScrollTrigger);
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
+      setupCompleted.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
