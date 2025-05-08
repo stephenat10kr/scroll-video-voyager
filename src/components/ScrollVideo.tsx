@@ -34,6 +34,63 @@ const ScrollVideo: React.FC<{
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
+  // Setup tap/touch simulation for mobile
+  useEffect(() => {
+    if (isMobile) {
+      const simulateTouchInteraction = () => {
+        console.log("Simulating touch interaction for mobile video activation");
+        
+        // Create and dispatch touch events to simulate user interaction
+        const touchStartEvent = new TouchEvent('touchstart', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        
+        const touchEndEvent = new TouchEvent('touchend', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        
+        // Also create a click event as fallback
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        
+        // Target both the document and video element
+        document.dispatchEvent(touchStartEvent);
+        document.dispatchEvent(touchEndEvent);
+        document.dispatchEvent(clickEvent);
+        
+        // Also specifically target the video if it exists
+        if (videoRef.current) {
+          videoRef.current.dispatchEvent(touchStartEvent);
+          videoRef.current.dispatchEvent(touchEndEvent);
+          videoRef.current.dispatchEvent(clickEvent);
+          
+          // Force visibility through direct style manipulation
+          videoRef.current.style.opacity = "1";
+          videoRef.current.style.visibility = "visible";
+          videoRef.current.style.display = "block";
+        }
+      };
+      
+      // Run the simulation after a short delay to ensure the page is ready
+      const simulationTimeoutId = setTimeout(simulateTouchInteraction, 500);
+      
+      // Run it again after a slightly longer delay as backup
+      const backupSimulationTimeoutId = setTimeout(simulateTouchInteraction, 1500);
+      
+      return () => {
+        clearTimeout(simulationTimeoutId);
+        clearTimeout(backupSimulationTimeoutId);
+      };
+    }
+  }, [isMobile]);
+  
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
