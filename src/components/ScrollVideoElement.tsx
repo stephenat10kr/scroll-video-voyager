@@ -41,7 +41,6 @@ const ScrollVideoElement: React.FC<ScrollVideoElementProps> = ({
         transition: "opacity 0.3s ease-in-out"
       }}
       // iOS-specific attributes as proper HTML5 attributes
-      // Remove invalid attribute and use proper attribute syntax
       data-wk-playsinline="true"
     />
   );

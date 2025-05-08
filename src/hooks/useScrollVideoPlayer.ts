@@ -66,7 +66,7 @@ export const useScrollVideoPlayer = ({
     video.pause();
 
     // iOS/Mobile-specific optimizations
-    if (isMobile) {
+    if (isMobile || isiOS) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
       video.setAttribute("x-webkit-airplay", "allow");
@@ -163,11 +163,12 @@ export const useScrollVideoPlayer = ({
       
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
       
+      // Use a consistent scrub value for both mobile and desktop
+      // This ensures smoother scrubbing on mobile while maintaining good performance
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        // Use same scrub value for both mobile and desktop for consistent behavior
         scrub: 0.4,
         anticipatePin: 1,
         fastScrollEnd: true,
@@ -189,7 +190,7 @@ export const useScrollVideoPlayer = ({
       video.fetchPriority = 'high';
     }
 
-    // iOS is very finicky with video loading - use multiple strategies
+    // Handle multiple device scenarios for video loading
     const trySetup = () => {
       loadAttempts.current += 1;
       console.log(`Setup attempt ${loadAttempts.current}, readyState: ${video.readyState}`);
@@ -205,7 +206,7 @@ export const useScrollVideoPlayer = ({
       return false;
     };
     
-    // Multiple ways to detect when video is ready on iOS
+    // Multiple ways to detect when video is ready
     const setupVideo = () => {
       if (!isLoaded) {
         const success = trySetup();
