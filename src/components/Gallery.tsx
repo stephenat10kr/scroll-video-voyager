@@ -122,30 +122,28 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
         <h2 className="text-white text-2xl mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-4 md:gap-8 lg:gap-12">
           <div className="col-span-12 overflow-hidden">
-            <div className="px-4">
-              <Carousel
-                setApi={(carouselApi) => {
-                  api.current = carouselApi;
-                  if (carouselApi) {
-                    console.log("Carousel API initialized");
-                    setTimeout(() => {
-                      console.log("Forcing initial selection");
-                      onSelect();
-                    }, 100); 
-                  }
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="ml-0 md:-ml-4">
-                  {mediaItems?.map((item, index) => (
-                    <CarouselItem key={index} className="pl-0 md:pl-4 w-full">
-                      <MediaItem url={item.url} type={item.type} caption={item.caption} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
-            </div>
-            <div className="flex justify-between items-center mt-4 px-4">
+            <Carousel
+              setApi={(carouselApi) => {
+                api.current = carouselApi;
+                if (carouselApi) {
+                  console.log("Carousel API initialized");
+                  setTimeout(() => {
+                    console.log("Forcing initial selection");
+                    onSelect();
+                  }, 100); 
+                }
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="ml-0 md:-ml-4">
+                {mediaItems?.map((item, index) => (
+                  <CarouselItem key={index} className="pl-0 md:pl-4 w-full">
+                    <MediaItem url={item.url} type={item.type} caption={item.caption} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+            <div className="flex justify-between items-center mt-4">
               <div className="text-white font-sans text-sm">
                 {currentCaption}
               </div>
