@@ -25,8 +25,8 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-12 lg:col-span-5 py-[240px]">
-                <h2 className="title-sm text-white mb-4">WHERE</h2>
-                <h1 className="title-lg text-white mb-6">curiosity</h1>
+                <h2 className="title-sm text-white mb-4 text-center">WHERE</h2>
+                <h1 className="title-lg text-white mb-6 text-center">curiosity</h1>
               </div>
               
               <div className="col-span-4 md:col-span-8"></div>
