@@ -13,6 +13,7 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
+  
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -50,17 +51,18 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        
-        <div className="col-span-12 sm:col-span-9">
+    return <div className="grid grid-cols-12 max-w-[90%] mx-auto flex justify-center items-center">
+        <div className="col-span-12 sm:col-span-9 flex flex-col items-center">
           {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
         </div>
       </div>;
   };
+  
   return <ChladniPattern>
       <div className="w-full py-24">
         {content()}
       </div>
     </ChladniPattern>;
 };
+
 export default Values;
