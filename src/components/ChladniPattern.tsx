@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
@@ -8,40 +8,37 @@ interface ChladniPatternProps {
 const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const glRef = useRef<WebGLRenderingContext | null>(null);
+  const frameIdRef = useRef<number | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  useEffect(() => {
+  // Setup WebGL and initialize the pattern
+  const setupWebGL = () => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     
     if (!container || !canvas) {
       console.error('Container or canvas not found');
-      return;
+      return false;
     }
     
     // Initialize WebGL
     const gl = canvas.getContext('webgl');
     if (!gl) {
       console.error('WebGL not supported');
-      return;
+      return false;
     }
     
     console.log('WebGL initialized successfully');
+    glRef.current = gl;
     
     // Enable alpha blending for transparency
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     
-    // Set canvas size to match container
-    const resizeCanvas = () => {
-      const { width, height } = container.getBoundingClientRect();
-      canvas.width = width;
-      canvas.height = height;
-      gl.viewport(0, 0, width, height);
-      console.log(`Canvas resized to ${width} x ${height}`);
-    };
-    
+    // Update canvas size
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
     
     // Create shader program
     const vertexShaderSource = `
@@ -120,12 +117,12 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     if (!vertexShader || !fragmentShader) {
       console.error('Failed to create shaders');
-      return;
+      return false;
     }
     
     // Create program
     const program = gl.createProgram();
-    if (!program) return;
+    if (!program) return false;
     
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -133,7 +130,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error('Program linking error:', gl.getProgramInfoLog(program));
-      return;
+      return false;
     }
     
     // Set up buffers
@@ -149,18 +146,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
     
-    // Get attribute/uniform locations
-    const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-    const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
-    const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
-    const xyUniformLocation = gl.getUniformLocation(program, 'u_xy');
-    
     // Animation
     let startTime = Date.now();
-    let frameId: number;
     
     // Function to update scroll-based XY values with reduced effect
     const updateScrollXY = () => {
+      if (!gl || !program) return;
+      
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       
@@ -176,6 +168,12 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       
       // Use the program
       gl.useProgram(program);
+      
+      // Get attribute/uniform locations
+      const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+      const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
+      const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
+      const xyUniformLocation = gl.getUniformLocation(program, 'u_xy');
       
       // Set uniforms
       gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
@@ -195,22 +193,97 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         console.log(`Scroll updated: ${scrollY}, normalized: ${yNorm}`);
       }
       
-      frameId = requestAnimationFrame(updateScrollXY);
+      frameIdRef.current = requestAnimationFrame(updateScrollXY);
     };
     
     // Start rendering
     console.log('Starting render loop with scroll-based morphing');
     updateScrollXY();
+    return true;
+  };
+  
+  // Resize canvas to match container dimensions
+  const resizeCanvas = () => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    const gl = glRef.current;
     
+    if (!container || !canvas) return;
+    
+    // Get the actual dimensions from the container
+    const { width, height } = container.getBoundingClientRect();
+    
+    // Only update if dimensions actually changed
+    if (canvas.width !== width || canvas.height !== height) {
+      console.log(`Canvas resized to ${width} x ${height}`);
+      
+      // Set canvas dimensions
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Update WebGL viewport if available
+      if (gl) {
+        gl.viewport(0, 0, width, height);
+      }
+    }
+  };
+  
+  useEffect(() => {
+    // Initial setup with a slight delay to ensure DOM is ready
+    const initialSetupTimeout = setTimeout(() => {
+      const success = setupWebGL();
+      if (success) {
+        setIsInitialized(true);
+      }
+    }, 50);
+    
+    // Setup resize observer for responsive canvas
+    const observer = new ResizeObserver((entries) => {
+      if (entries.length > 0) {
+        resizeCanvas();
+      }
+    });
+    
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+      observerRef.current = observer;
+    }
+    
+    // Listen for window resize as well for good measure
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Cleanup function
     return () => {
-      console.log('Cleaning up WebGL resources');
+      clearTimeout(initialSetupTimeout);
+      
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      
       window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(frameId);
-      if (program) gl.deleteProgram(program);
-      if (vertexShader) gl.deleteShader(vertexShader);
-      if (fragmentShader) gl.deleteShader(fragmentShader);
-      if (positionBuffer) gl.deleteBuffer(positionBuffer);
+      
+      if (frameIdRef.current !== null) {
+        cancelAnimationFrame(frameIdRef.current);
+      }
+      
+      // Clean up WebGL resources
+      const gl = glRef.current;
+      if (gl) {
+        const loseContext = gl.getExtension('WEBGL_lose_context');
+        if (loseContext) {
+          loseContext.loseContext();
+        }
+      }
     };
+  }, []);
+  
+  // Force an additional resize after component mounts to catch any layout adjustments
+  useEffect(() => {
+    const forceResizeTimeout = setTimeout(() => {
+      resizeCanvas();
+    }, 300); // slightly longer delay to catch layout settling
+    
+    return () => clearTimeout(forceResizeTimeout);
   }, []);
   
   return (
