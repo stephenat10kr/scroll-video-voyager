@@ -19,6 +19,17 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://raw.githack.com/strangerintheq/rgba/0.0.1/src/rgba.js"></script>
+    <style>
+      canvas.rgba {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+      }
+    </style>
   </head>
 
   <body>
@@ -26,5 +37,22 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Ensure any canvas created is properly styled
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const canvas = document.querySelector('canvas');
+          if (canvas) {
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.zIndex = '-1';
+            canvas.style.pointerEvents = 'none';
+          }
+        }, 100);
+      });
+    </script>
   </body>
 </html>
