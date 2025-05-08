@@ -2,6 +2,7 @@
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
+import ShaderBackground from "./ShaderBackground";
 
 interface ValuesProps {
   title: string;
@@ -61,16 +62,20 @@ const Values: React.FC<ValuesProps> = ({
       </div>;
   }
 
-  return <div className="w-full py-24 bg-[#203435]">
-      <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div className="hidden sm:block col-span-3">
-          <h2 className="title-sm text-white">{title}</h2>
-        </div>
-        <div className="col-span-12 sm:col-span-9">
-          {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+  return (
+    <ShaderBackground>
+      <div className="w-full py-24 bg-transparent">
+        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+          <div className="hidden sm:block col-span-3">
+            <h2 className="title-sm text-white">{title}</h2>
+          </div>
+          <div className="col-span-12 sm:col-span-9">
+            {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+          </div>
         </div>
       </div>
-    </div>;
+    </ShaderBackground>
+  );
 };
 
 export default Values;
