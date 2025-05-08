@@ -68,7 +68,7 @@ const Rituals: React.FC<RitualsProps> = ({
     imageAlt: "Colorful celebration event"
   }];
   return <div className="w-full py-24 bg-[#203435]">
-      <div className="max-w-[90%] mx-auto">
+      <div className="mx-auto">
         <h2 className="text-white title-sm mb-12">{title}</h2>
         <div className="space-y-24">
           {displayRituals.map((ritual, index) => {
