@@ -1,21 +1,16 @@
-
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuestions } from "@/hooks/useQuestions";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 export interface QuestionData {
   title: string;
   content: string;
 }
-
 interface QuestionsProps {
   title: string;
 }
-
 const TABS = ["THE COMMUNITY", "THE SPACE", "THE MEMBERSHIPS"] as const;
-
 const Questions: React.FC<QuestionsProps> = ({
   title
 }) => {
@@ -25,7 +20,6 @@ const Questions: React.FC<QuestionsProps> = ({
     error
   } = useQuestions();
   const isMobile = useIsMobile();
-  
   if (isLoading) {
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
@@ -33,7 +27,6 @@ const Questions: React.FC<QuestionsProps> = ({
       </div>
     </div>;
   }
-  
   if (error) {
     console.error('Error in Questions component:', error);
     return <div className="w-full bg-black py-24">
@@ -43,7 +36,6 @@ const Questions: React.FC<QuestionsProps> = ({
       </div>
     </div>;
   }
-
   if (!questions || Object.keys(questions).length === 0) {
     return <div className="w-full bg-black py-24">
       <div className="max-w-[90%] mx-auto">
@@ -52,15 +44,14 @@ const Questions: React.FC<QuestionsProps> = ({
       </div>
     </div>;
   }
-  
+
   // Use different column classes based on device size
   const tabsClassName = isMobile ? "col-start-1 col-end-13" : "col-start-5 col-end-13";
-  
   return <div className="w-full py-24 bg-[#203435]">
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
         <h2 className="text-white text-2xl mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
-          <TabsList className="mb-12 bg-transparent w-full flex justify-start gap-4">
+          <TabsList className="mb-12 bg-transparent w-full flex flex-wrap: wrap justify-start gap-4">
             {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-[#FFB577] border border-[#FFB577] hover:bg-white/10">
                 {tab}
               </TabsTrigger>)}
@@ -81,5 +72,4 @@ const Questions: React.FC<QuestionsProps> = ({
       </div>
     </div>;
 };
-
 export default Questions;
