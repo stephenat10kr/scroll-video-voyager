@@ -17,6 +17,7 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
+  pauseOnLoad?: boolean;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -31,6 +32,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
+  pauseOnLoad = true,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -52,7 +54,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
-    video.pause();
+    
+    // Always pause the video initially if pauseOnLoad is true
+    if (pauseOnLoad) {
+      console.log("Pausing video from ScrollVideoPlayer");
+      video.pause();
+    }
 
     // Mobile-specific optimizations
     if (isMobile) {
@@ -155,8 +162,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       });
       setIsLoaded(true);
       
-      // For mobile, attempt to trigger video playback after scroll
-      if (isMobile) {
+      // For mobile, if not pausing on load, attempt to trigger video playback after scroll
+      if (isMobile && !pauseOnLoad) {
         const touchStart = () => {
           video.play().catch(err => console.log("Mobile play attempt:", err));
         };
@@ -173,6 +180,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     if (video.readyState >= 2) {
       setupScrollTrigger();
+      // Ensure video is paused if pauseOnLoad is true
+      if (pauseOnLoad) {
+        video.pause();
+      }
     } else {
       video.addEventListener("loadedmetadata", setupScrollTrigger);
       
@@ -181,6 +192,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         if (!isLoaded && video.readyState >= 1) {
           console.log("Setting up ScrollTrigger after timeout");
           setupScrollTrigger();
+          // Ensure video is paused if pauseOnLoad is true
+          if (pauseOnLoad) {
+            video.pause();
+          }
         }
       }, 1000);
       return () => clearTimeout(timeoutId);
@@ -196,7 +211,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, pauseOnLoad]);
 
   return <>{children}</>;
 };
