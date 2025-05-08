@@ -117,7 +117,7 @@ const RevealText = () => {
 
   return <div className="w-full py-24 bg-darkGreen">
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-        <div ref={textRef} className="title-lg text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
+        <div ref={textRef} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
         background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
