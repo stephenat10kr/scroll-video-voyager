@@ -60,7 +60,7 @@ export const useScrollVideoPlayer = ({
     video.preload = "auto";
     video.pause();
 
-    // Mobile-specific optimizations
+    // Mobile-specific optimizations - but don't autoplay
     if (isMobile) {
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
@@ -150,7 +150,8 @@ export const useScrollVideoPlayer = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.4,
+        // Use same scrub value for both mobile and desktop for consistent behavior
+        scrub: 0.4,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -163,14 +164,8 @@ export const useScrollVideoPlayer = ({
       
       setIsLoaded(true);
       
-      // For mobile, attempt to trigger video playback after scroll
-      if (isMobile) {
-        const touchStart = () => {
-          video.play().catch(err => console.log("Mobile play attempt:", err));
-        };
-        document.addEventListener('touchstart', touchStart, { once: true });
-        return () => document.removeEventListener('touchstart', touchStart);
-      }
+      // Removed mobile-specific autoplay behavior to ensure consistent experience
+      console.log("Video can play now");
     };
 
     // Request high priority loading for the video
