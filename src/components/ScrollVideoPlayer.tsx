@@ -60,17 +60,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     // Mobile-specific optimizations
     if (isMobile) {
+      // Make video immediately visible on mobile
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
-      // Force display for mobile devices
       video.style.display = "block";
       video.style.opacity = "1";
-    }
-
-    // Chrome-specific optimizations still apply
-    video.style.willChange = "contents";
-    if (navigator.userAgent.indexOf("Chrome") > -1) {
+      video.style.visibility = "visible";
+      
+      // Force hardware acceleration
       video.style.transform = "translate3d(0,0,0)";
+      video.style.willChange = "contents";
+      
+      // Ensure muted state for autoplay capability
+      video.muted = true;
+    } else {
+      // Chrome-specific optimizations still apply
+      video.style.willChange = "contents";
+      if (navigator.userAgent.indexOf("Chrome") > -1) {
+        video.style.transform = "translate3d(0,0,0)";
+      }
     }
 
     // --- Begin: Video source selection and logging ---
@@ -151,6 +159,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
+      // For mobile, try to render a frame immediately to make video visible
+      if (isMobile && video.duration > 0) {
+        video.currentTime = 0;
+      }
+      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
@@ -206,6 +219,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           setupScrollTrigger();
         }
         
+        // For mobile, ensure video is visible
+        if (isMobile) {
+          video.style.opacity = "1";
+          video.style.visibility = "visible";
+        }
+        
         // Clean up event listeners after setup
         if (setupCompleted.current) {
           setupEvents.forEach(event => {
@@ -218,13 +237,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         video.addEventListener(event, handleVideoReady);
       });
       
-      // Safety timeout - if events don't fire in a reasonable time
+      // Safety timeout - quicker for mobile
       const timeoutId = setTimeout(() => {
         if (!setupCompleted.current && video.readyState >= 1) {
           console.log("Setting up ScrollTrigger after timeout");
           setupScrollTrigger();
         }
-      }, 500);
+        
+        // For mobile, make sure video is visible regardless
+        if (isMobile) {
+          video.style.opacity = "1";
+          video.style.visibility = "visible";
+        }
+      }, isMobile ? 200 : 500);
       
       return () => {
         clearTimeout(timeoutId);

@@ -37,6 +37,14 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
+      // Immediately make video visible for mobile
+      if (isMobile) {
+        setVideoVisible(true);
+        video.style.opacity = "1";
+        video.style.visibility = "visible";
+        video.style.display = "block";
+      }
+      
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
@@ -56,6 +64,7 @@ const ScrollVideo: React.FC<{
             console.error("Mobile video play error:", err);
             // Even if play fails, ensure video is visible
             setVideoVisible(true);
+            video.style.opacity = "1";
           });
         }
       };
@@ -64,15 +73,24 @@ const ScrollVideo: React.FC<{
       const handleLoadedData = () => {
         console.log("Video data loaded");
         setVideoVisible(true);
+        // Ensure visibility on mobile
+        if (isMobile) {
+          video.style.opacity = "1";
+          video.style.visibility = "visible";
+        }
       };
       
       video.addEventListener("canplay", handleCanPlay);
       video.addEventListener("loadeddata", handleLoadedData);
       
-      // Set a timeout to ensure video appears even if events don't fire
+      // Set a shorter timeout for mobile to ensure video appears quickly
       const timeoutId = setTimeout(() => {
         setVideoVisible(true);
-      }, 300);
+        if (isMobile) {
+          video.style.opacity = "1";
+          video.style.visibility = "visible";
+        }
+      }, isMobile ? 100 : 300);
       
       return () => {
         video.removeEventListener("canplay", handleCanPlay);
@@ -112,7 +130,9 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible ? 1 : 0,
-            transition: "opacity 0.3s ease-in-out"
+            transition: isMobile ? "none" : "opacity 0.3s ease-in-out",
+            display: "block", // Ensure it's always displayed
+            visibility: "visible" // Ensure it's always visible
           }} 
         />
       </ScrollVideoPlayer>
