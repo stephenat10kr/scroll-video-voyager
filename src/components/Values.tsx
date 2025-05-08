@@ -2,6 +2,7 @@
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
+import ChladniPattern from "./ChladniPattern";
 
 interface ValuesProps {
   title: string;
@@ -16,8 +17,9 @@ const Values: React.FC<ValuesProps> = ({
     error
   } = useValues();
 
-  if (isLoading) {
-    return <div className="w-full bg-black py-24">
+  const content = () => {
+    if (isLoading) {
+      return (
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden xs:block sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -31,12 +33,12 @@ const Values: React.FC<ValuesProps> = ({
             </div>
           </div>
         </div>
-      </div>;
-  }
+      );
+    }
 
-  if (error) {
-    console.error("Error loading values:", error);
-    return <div className="w-full bg-black py-24">
+    if (error) {
+      console.error("Error loading values:", error);
+      return (
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -45,11 +47,11 @@ const Values: React.FC<ValuesProps> = ({
             <p className="body-text text-white/70">Failed to load values</p>
           </div>
         </div>
-      </div>;
-  }
+      );
+    }
 
-  if (!values || values.length === 0) {
-    return <div className="w-full bg-black py-24">
+    if (!values || values.length === 0) {
+      return (
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
             <h2 className="title-sm text-white">{title}</h2>
@@ -58,10 +60,10 @@ const Values: React.FC<ValuesProps> = ({
             <p className="body-text text-white/70">No values available</p>
           </div>
         </div>
-      </div>;
-  }
+      );
+    }
 
-  return <div className="w-full py-24 bg-[#203435]">
+    return (
       <div className="grid grid-cols-12 max-w-[90%] mx-auto">
         <div className="hidden sm:block col-span-3">
           <h2 className="title-sm text-white">{title}</h2>
@@ -70,7 +72,16 @@ const Values: React.FC<ValuesProps> = ({
           {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
         </div>
       </div>
-    </div>;
+    );
+  };
+
+  return (
+    <ChladniPattern>
+      <div className="w-full py-24">
+        {content()}
+      </div>
+    </ChladniPattern>
+  );
 };
 
 export default Values;
