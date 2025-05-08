@@ -5,6 +5,14 @@
   margin: 0;
   padding: 0;
   text-align: left;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Disable horizontal scrolling on the HTML/body elements */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 /* Keep other styles */
