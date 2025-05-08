@@ -1,3 +1,4 @@
+
 import React from "react";
 import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
@@ -25,7 +26,7 @@ const Rituals: React.FC<RitualsProps> = ({
       backgroundColor: colors.coral
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
-          <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
             <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} />
           </svg>
         </div>
@@ -53,7 +54,7 @@ const Rituals: React.FC<RitualsProps> = ({
       backgroundColor: colors.coral
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
-          <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
             <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} />
           </svg>
         </div>
@@ -93,7 +94,7 @@ const Rituals: React.FC<RitualsProps> = ({
   }} className="w-full relative py-[192px]">
       {/* Curved top SVG */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-full">
-        <svg width="100%" height="269" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
           <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} />
         </svg>
       </div>
@@ -113,9 +114,9 @@ const Rituals: React.FC<RitualsProps> = ({
         </div>
       </div>
       
-      {/* Curved bottom SVG - Fixed to remove the horizontal line */}
+      {/* Curved bottom SVG - Fixed to maintain aspect ratio */}
       <div className="absolute bottom-0 left-0 right-0 w-full">
-        <svg width="100%" height="210" viewBox="0 0 1440 210" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <svg width="100%" height="0" viewBox="0 0 1440 210" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/210", height: "auto" }}>
           <path d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 0V210H1440V0H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" fill="#203435" />
         </svg>
       </div>
