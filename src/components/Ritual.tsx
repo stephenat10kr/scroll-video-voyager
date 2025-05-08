@@ -1,7 +1,5 @@
-
 import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
-
 interface RitualProps {
   title: string;
   description: string[];
@@ -16,16 +14,11 @@ const Ritual: React.FC<RitualProps> = ({
   imageSrc,
   imageAlt
 }) => {
-  return (
-    <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
+  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-24">
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1">
-        <AspectRatio ratio={1/1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
-          <img 
-            src={imageSrc} 
-            alt={imageAlt} 
-            className="object-cover w-full h-full"
-          />
+        <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
+          <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full" />
         </AspectRatio>
       </div>
       
@@ -37,15 +30,11 @@ const Ritual: React.FC<RitualProps> = ({
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => (
-            <p key={idx} className="text-[#203435] text-sm">
+          {description.map((paragraph, idx) => <p key={idx} className="text-[#203435] text-sm">
               {paragraph}
-            </p>
-          ))}
+            </p>)}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Ritual;
