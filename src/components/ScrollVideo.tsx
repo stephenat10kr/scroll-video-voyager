@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -15,10 +14,8 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
-  pauseOnLoad?: boolean;
 }> = ({
-  src,
-  pauseOnLoad = true
+  src
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,32 +38,16 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
-        
-        // Always pause the video on load if pauseOnLoad is true
-        if (pauseOnLoad) {
-          console.log("Explicitly pausing video on load");
-          video.pause();
-        } else if (isMobile) {
-          // For mobile with pauseOnLoad false, we still try to play
+        if (isMobile) {
           video.play().catch(err => {
             console.error("Mobile video play error:", err);
-            // If play fails, make sure to pause
-            video.pause();
           });
         }
       };
-      
       video.addEventListener("canplay", handleCanPlay);
-      
-      // Also pause immediately after setting the source
-      if (pauseOnLoad && video.readyState >= 2) {
-        console.log("Video already loaded, pausing immediately");
-        video.pause();
-      }
-      
       return () => video.removeEventListener("canplay", handleCanPlay);
     }
-  }, [secureVideoSrc, isMobile, pauseOnLoad]);
+  }, [secureVideoSrc, isMobile]);
 
   return (
     <div 
@@ -85,7 +66,6 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
-        pauseOnLoad={pauseOnLoad}
       >
         <video 
           ref={videoRef} 

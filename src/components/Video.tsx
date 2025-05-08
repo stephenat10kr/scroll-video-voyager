@@ -19,7 +19,7 @@ const Video = () => {
   console.log('Video component - error:', error);
 
   return (
-    <ScrollVideo src={videoSrc} pauseOnLoad={true} />
+    <ScrollVideo src={videoSrc} />
   );
 };
 
