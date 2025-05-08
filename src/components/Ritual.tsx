@@ -33,7 +33,7 @@ const Ritual: React.FC<RitualProps> = ({
       
       {/* Text Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
-        <h2 className="title-md text-white mb-6">
+        <h2 className="title-md text-[#148065] mb-6">
           {title}
         </h2>
         <div className="space-y-4">

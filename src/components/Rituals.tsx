@@ -31,7 +31,7 @@ const Rituals: React.FC<RitualsProps> = ({
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
-          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <h2 className="text-[#148065] text-2xl mb-12">{title}</h2>
           <div className="space-y-24">
             {[1, 2, 3].map(i => <div key={i} className="grid grid-cols-12 gap-8 mb-16">
                 <div className="col-span-12 md:col-span-5 md:col-start-1 h-64 bg-gray-800 animate-pulse" />
@@ -57,7 +57,7 @@ const Rituals: React.FC<RitualsProps> = ({
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
-          <h2 className="text-white text-2xl mb-12">{title}</h2>
+          <h2 className="text-[#148065] text-2xl mb-12">{title}</h2>
           <p className="text-red-500">Unable to load rituals. Please try again later.</p>
         </div>
       </div>
@@ -94,7 +94,7 @@ const Rituals: React.FC<RitualsProps> = ({
         </svg>
       </div>
       <div className="mx-auto max-w-[90%] relative">
-        <h2 className="text-white title-sm mb-12">{title}</h2>
+        <h2 className="text-[#148065] title-sm mb-12">{title}</h2>
         <div className="space-y-24 max-w-[90%] mx-auto">
           {displayRituals.map((ritual, index) => {
             // Use the appropriate component based on the ritual's index
