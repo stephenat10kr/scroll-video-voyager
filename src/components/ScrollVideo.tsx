@@ -38,7 +38,11 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
-        // Removed mobile autoplay code to prevent autoplay on iOS
+        if (isMobile) {
+          video.play().catch(err => {
+            console.error("Mobile video play error:", err);
+          });
+        }
       };
       video.addEventListener("canplay", handleCanPlay);
       return () => video.removeEventListener("canplay", handleCanPlay);

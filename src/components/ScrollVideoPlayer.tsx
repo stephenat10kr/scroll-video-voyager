@@ -52,7 +52,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.playsInline = true;
     video.muted = true;
     video.preload = "auto";
-    video.pause(); // Ensure video is always paused
+    video.pause();
 
     // Mobile-specific optimizations
     if (isMobile) {
@@ -155,7 +155,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       });
       setIsLoaded(true);
       
-      // Removed touchstart event listener that was trying to play video on mobile
+      // For mobile, attempt to trigger video playback after scroll
+      if (isMobile) {
+        const touchStart = () => {
+          video.play().catch(err => console.log("Mobile play attempt:", err));
+        };
+        document.addEventListener('touchstart', touchStart, { once: true });
+        return () => document.removeEventListener('touchstart', touchStart);
+      }
     };
 
     // Request high priority loading for the video
