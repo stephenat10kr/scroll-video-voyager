@@ -35,9 +35,10 @@ export const useScrollVideoPlayer = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.002;
+  const progressThreshold = 0.001; // Reduced threshold for more responsive scrubbing
   const frameRef = useRef<number | null>(null);
   const loadAttempts = useRef(0);
+  const setupCompleted = useRef(false);
 
   // Call onLoadedChange whenever isLoaded changes
   useEffect(() => {
@@ -57,6 +58,12 @@ export const useScrollVideoPlayer = ({
     // Check if running on iOS
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     console.log("iOS device detected:", isiOS);
+
+    // Reset any previous ScrollTrigger before setting up a new one
+    if (scrollTriggerRef.current) {
+      scrollTriggerRef.current.kill();
+      scrollTriggerRef.current = null;
+    }
 
     // Optimize video element for all devices, especially iOS
     video.controls = false;
@@ -86,8 +93,6 @@ export const useScrollVideoPlayer = ({
     }
 
     // --- Begin: Video source selection and logging ---
-    let srcAssigned = false;
-    
     if (!src) {
       console.log("[ScrollVideo] No src provided.");
       return;
@@ -98,13 +103,19 @@ export const useScrollVideoPlayer = ({
       video.src = src;
       const extension = src.split(".").pop() || "unknown";
       console.log(`[ScrollVideo] Assigned ${extension.toUpperCase()} video source: ${src}`);
+      // Reset load attempts when source changes
+      loadAttempts.current = 0;
+      setupCompleted.current = false;
     }
-    srcAssigned = true;
     // --- End: Video source selection and logging ---
 
     const resizeSection = () => {
       if (container) {
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        // Re-trigger ScrollTrigger refresh on resize
+        if (scrollTriggerRef.current) {
+          ScrollTrigger.refresh();
+        }
       }
     };
     resizeSection();
@@ -117,6 +128,8 @@ export const useScrollVideoPlayer = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // Only update if the change is significant enough
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -133,7 +146,11 @@ export const useScrollVideoPlayer = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        video.currentTime = newTime;
+        try {
+          video.currentTime = newTime;
+        } catch (e) {
+          console.error("[ScrollVideo] Error setting currentTime:", e);
+        }
         
         // Calculate which text should be showing based on current progress
         const segLen = calculateSegmentLength(segmentCount);
@@ -157,31 +174,46 @@ export const useScrollVideoPlayer = ({
 
     const setupScrollTrigger = () => {
       if (!video.duration) {
-        console.log("Video duration not available yet, cannot setup ScrollTrigger");
-        return;
+        console.log("[ScrollVideo] Video duration not available yet, cannot setup ScrollTrigger");
+        return false;
       }
       
-      if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+      }
       
-      // Use a consistent scrub value for both mobile and desktop
-      // This ensures smoother scrubbing on mobile while maintaining good performance
-      scrollTriggerRef.current = ScrollTrigger.create({
-        trigger: container,
-        start: "top top",
-        end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: 0.4,
-        anticipatePin: 1,
-        fastScrollEnd: true,
-        preventOverlaps: true,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          if (isNaN(progress)) return;
-          updateVideoFrame(progress);
-        }
-      });
+      console.log("[ScrollVideo] Setting up ScrollTrigger with scroll distance:", SCROLL_EXTRA_PX);
       
-      setIsLoaded(true);
-      console.log("Video can play now");
+      try {
+        // Create a marker to debug the ScrollTrigger (only in development)
+        const markers = process.env.NODE_ENV === 'development';
+        
+        scrollTriggerRef.current = ScrollTrigger.create({
+          trigger: container,
+          start: "top top",
+          end: `+=${SCROLL_EXTRA_PX}`,
+          scrub: true, // Changed to true for more direct scrubbing
+          markers,     // Show markers in development
+          pin: false,  // Don't pin to avoid conflicts
+          invalidateOnRefresh: true, // Re-calculate on window resize
+          onUpdate: (self) => {
+            const progress = self.progress;
+            if (isNaN(progress)) return;
+            updateVideoFrame(progress);
+          },
+          onRefresh: () => {
+            console.log("[ScrollVideo] ScrollTrigger refreshed");
+          }
+        });
+        
+        setIsLoaded(true);
+        console.log("[ScrollVideo] ScrollTrigger setup complete, video ready for scrubbing");
+        setupCompleted.current = true;
+        return true;
+      } catch (error) {
+        console.error("[ScrollVideo] Error setting up ScrollTrigger:", error);
+        return false;
+      }
     };
 
     // Request high priority loading for the video
@@ -193,14 +225,17 @@ export const useScrollVideoPlayer = ({
     // Handle multiple device scenarios for video loading
     const trySetup = () => {
       loadAttempts.current += 1;
-      console.log(`Setup attempt ${loadAttempts.current}, readyState: ${video.readyState}`);
+      console.log(`[ScrollVideo] Setup attempt ${loadAttempts.current}, readyState: ${video.readyState}`);
+      
+      if (setupCompleted.current) {
+        console.log("[ScrollVideo] Setup already completed, skipping");
+        return true;
+      }
       
       if (video.duration) {
-        setupScrollTrigger();
-        return true;
+        return setupScrollTrigger();
       } else if (video.readyState >= 2) {
-        setupScrollTrigger();
-        return true;
+        return setupScrollTrigger();
       }
       
       return false;
@@ -208,11 +243,14 @@ export const useScrollVideoPlayer = ({
     
     // Multiple ways to detect when video is ready
     const setupVideo = () => {
-      if (!isLoaded) {
+      if (!isLoaded && !setupCompleted.current) {
         const success = trySetup();
-        console.log(`Setup attempt result: ${success ? "success" : "failed"}`);
+        console.log(`[ScrollVideo] Setup attempt result: ${success ? "success" : "failed"}`);
       }
     };
+    
+    // Force video to preload
+    video.load();
     
     // Add multiple event listeners to catch when video is ready
     video.addEventListener("loadedmetadata", setupVideo);
@@ -223,23 +261,36 @@ export const useScrollVideoPlayer = ({
     
     // Safety timeout - if metadata doesn't load in a reasonable time
     const timeoutId = setTimeout(() => {
-      if (!isLoaded) {
-        console.log("Setting up ScrollTrigger after timeout");
+      if (!isLoaded && !setupCompleted.current) {
+        console.log("[ScrollVideo] Setting up ScrollTrigger after timeout");
         trySetup();
         
         // Last resort for iOS - force a time update
         if (isiOS && !isLoaded) {
-          console.log("iOS special handling - forcing time update");
+          console.log("[ScrollVideo] iOS special handling - forcing time update");
           // Set current time to 0.01 to force iOS to initialize the video
-          video.currentTime = 0.01;
-          setTimeout(() => trySetup(), 50);
+          try {
+            video.currentTime = 0.01;
+          } catch (e) {
+            console.error("[ScrollVideo] Error setting initial currentTime:", e);
+          }
+          setTimeout(() => trySetup(), 100);
         }
       }
     }, 1000);
     
+    // Additional timeout as a failsafe
+    const finalTimeoutId = setTimeout(() => {
+      if (!isLoaded && !setupCompleted.current) {
+        console.log("[ScrollVideo] Final attempt to setup ScrollTrigger");
+        setupScrollTrigger();
+      }
+    }, 2000);
+    
     return () => {
       window.removeEventListener("resize", resizeSection);
       clearTimeout(timeoutId);
+      clearTimeout(finalTimeoutId);
       video.removeEventListener("loadedmetadata", setupVideo);
       video.removeEventListener("loadeddata", setupVideo);
       video.removeEventListener("canplay", setupVideo);
@@ -253,7 +304,7 @@ export const useScrollVideoPlayer = ({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, onLoadedChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, onLoadedChange, src, isMobile]);
 
   return {
     isLoaded

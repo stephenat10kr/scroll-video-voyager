@@ -22,6 +22,9 @@ const ScrollVideoElement: React.FC<ScrollVideoElementProps> = ({
       videoRef.current.setAttribute('playsinline', '');
       videoRef.current.setAttribute('webkit-playsinline', '');
       videoRef.current.muted = true;
+      
+      // Force browser to recognize the video element is ready for scrubbing
+      videoRef.current.load();
     }
   }, [videoLoaded, videoRef]);
 
@@ -38,7 +41,8 @@ const ScrollVideoElement: React.FC<ScrollVideoElementProps> = ({
       style={{
         minHeight: "100vh",
         opacity: videoLoaded ? 1 : 0,
-        transition: "opacity 0.3s ease-in-out"
+        transition: "opacity 0.3s ease-in-out",
+        willChange: "contents" // Optimize rendering performance
       }}
       // iOS-specific attributes as proper HTML5 attributes
       data-wk-playsinline="true"

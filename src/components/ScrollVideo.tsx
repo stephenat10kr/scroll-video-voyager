@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import ScrollVideoElement from "./ScrollVideoElement";
@@ -6,8 +5,8 @@ import ScrollVideoScrollHint from "./ScrollVideoScrollHint";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
 
-// Increase scroll distance
-const SCROLL_EXTRA_PX = 2000;
+// Increase scroll distance to give more room for scrubbing
+const SCROLL_EXTRA_PX = 3000;  // Increased from 2000
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
@@ -43,6 +42,12 @@ const ScrollVideo: React.FC<{
     setVideoLoaded(loaded);
   };
   
+  // Update progress for debugging
+  const handleProgressChange = (newProgress: number) => {
+    setProgress(newProgress);
+    console.log(`[ScrollVideo] Progress: ${Math.round(newProgress * 100)}%`);
+  };
+  
   // Log to browser console for debugging iOS issues
   useEffect(() => {
     if (isMobile) {
@@ -74,7 +79,7 @@ const ScrollVideo: React.FC<{
         segmentCount={segmentCount} 
         onTextIndexChange={setTextIndex} 
         onAfterVideoChange={setIsAfterVideo}
-        onProgressChange={setProgress}
+        onProgressChange={handleProgressChange}
         onLoadedChange={handleVideoLoadedChange}
         videoRef={videoRef} 
         containerRef={containerRef} 
