@@ -1,3 +1,4 @@
+
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -51,11 +52,11 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    return <div className="grid grid-cols-12 max-w-[90%] mx-auto flex justify-center items-center">
-        <div className="col-span-12 sm:col-span-9 flex flex-col items-center">
-          {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
-        </div>
-      </div>;
+    return (
+      <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
+        {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+      </div>
+    );
   };
   
   return <ChladniPattern>
