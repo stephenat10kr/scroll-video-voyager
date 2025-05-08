@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
@@ -13,6 +14,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const frameIdRef = useRef<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const isMobile = useIsMobile();
   
   // Setup WebGL and initialize the pattern
   const setupWebGL = () => {
@@ -54,10 +56,15 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       uniform vec2 u_resolution;
       uniform float u_time;
       uniform vec2 u_xy;
+      uniform bool u_isMobile;
       
       void main(void) {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
+
+        // Scale factor for mobile
+        float scaleFactor = u_isMobile ? 2.0 : 1.0;
+        p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
 
         // Using the user-specified vector values
         vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
@@ -87,7 +94,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float amp = mix(amp1, amp2, scrollFactor * 0.5);
                 
         // Create defined pattern edges with milder threshold
-        float threshold = 0.05 + 0.03 * sin(scrollFactor * PI);
+        float threshold = u_isMobile ? 0.08 : 0.05; // Higher threshold on mobile for larger gaps between lines
+        threshold += 0.03 * sin(scrollFactor * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
         // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
@@ -174,11 +182,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
       const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
       const xyUniformLocation = gl.getUniformLocation(program, 'u_xy');
+      const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
       
       // Set uniforms
       gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
       gl.uniform1f(timeUniformLocation, elapsedTime);
       gl.uniform2f(xyUniformLocation, 0.5, yNorm);
+      gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
       
       // Set up attributes
       gl.enableVertexAttribArray(positionAttributeLocation);
@@ -187,11 +197,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       
       // Draw
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      
-      // Log scroll position occasionally (not every frame to avoid console spam)
-      if (Math.random() < 0.01) {
-        console.log(`Scroll updated: ${scrollY}, normalized: ${yNorm}`);
-      }
       
       frameIdRef.current = requestAnimationFrame(updateScrollXY);
     };
@@ -275,7 +280,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         }
       }
     };
-  }, []);
+  }, [isMobile]);
   
   // Force an additional resize after component mounts to catch any layout adjustments
   useEffect(() => {
@@ -303,7 +308,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: 0.5 // Updated opacity from 0.3 to 0.5 (50%)
+          opacity: isMobile ? 0.35 : 0.5 // Reduced opacity on mobile
         }}
       />
       <div className="relative z-10">
