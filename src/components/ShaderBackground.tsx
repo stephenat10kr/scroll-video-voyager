@@ -17,6 +17,9 @@ const ShaderBackground: React.FC<ShaderBackgroundProps> = ({ children }) => {
     script.src = 'https://raw.githack.com/strangerintheq/rgba/0.0.1/src/rgba.js';
     script.async = true;
     
+    let rgba: any = null;
+    let cleanup: () => void = () => {};
+    
     script.onload = () => {
       // Type assertion for the RGBA constructor added by the script
       const RGBA = (window as any).RGBA;
@@ -27,14 +30,20 @@ const ShaderBackground: React.FC<ShaderBackgroundProps> = ({ children }) => {
       shaderContainer.id = 'shader-container';
       Object.assign(shaderContainer.style, {
         position: 'absolute',
-        inset: '0',
+        top: '0',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        width: '100%',
+        height: '100%',
         zIndex: '-1',
+        overflow: 'hidden',
       });
       
       containerRef.current.appendChild(shaderContainer);
       
       // Create RGBA instance
-      const rgba = new RGBA(`void main(void) {
+      rgba = new RGBA(`void main(void) {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - resolution.xy) / resolution.y;
 
@@ -55,40 +64,63 @@ const ShaderBackground: React.FC<ShaderBackgroundProps> = ({ children }) => {
         gl_FragColor = vec4(vec3(col), 1.0);
       }`, {uniforms: {xy: '2f'}});
       
-      // Style and move the canvas
+      // Find the canvas that RGBA creates
       const canvas = document.querySelector('canvas');
       if (canvas && shaderContainer) {
-        shaderContainer.appendChild(canvas);
+        // Ensure the canvas is appended to our container
+        if (canvas.parentElement !== shaderContainer) {
+          shaderContainer.appendChild(canvas);
+        }
+        
+        // Style the canvas properly
         Object.assign(canvas.style, {
           position: 'absolute',
           top: '0',
           left: '0',
           width: '100%',
           height: '100%',
-          zIndex: '-1',
-          pointerEvents: 'none',
+          pointerEvents: 'none', // Critical to prevent scroll capture
         });
       }
       
-      // Set up interactivity
+      // Set up interactivity with proper bounds
       const handleMouseMove = (e: MouseEvent) => {
-        rgba.xy([e.clientX / window.innerWidth, e.clientY / window.innerHeight]);
+        if (rgba) {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (rect) {
+            // Only update if mouse is within the component's bounds
+            if (e.clientX >= rect.left && 
+                e.clientX <= rect.right && 
+                e.clientY >= rect.top && 
+                e.clientY <= rect.bottom) {
+              const x = (e.clientX - rect.left) / rect.width;
+              const y = (e.clientY - rect.top) / rect.height;
+              rgba.xy([x, y]);
+            }
+          }
+        }
       };
       
       window.addEventListener('mousemove', handleMouseMove);
       
-      // Cleanup
-      return () => {
+      // Define cleanup function
+      cleanup = () => {
         window.removeEventListener('mousemove', handleMouseMove);
         if (containerRef.current && shaderContainer) {
-          containerRef.current.removeChild(shaderContainer);
+          try {
+            containerRef.current.removeChild(shaderContainer);
+          } catch (e) {
+            console.log("Error removing shader container", e);
+          }
         }
       };
     };
     
     document.body.appendChild(script);
     
+    // Return combined cleanup function
     return () => {
+      cleanup();
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
@@ -98,9 +130,13 @@ const ShaderBackground: React.FC<ShaderBackgroundProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef} 
-      className="relative z-0"
-      style={{ position: 'relative', zIndex: 0 }}
+      className="relative"
+      style={{ 
+        position: 'relative',
+        overflow: 'visible' // Explicitly allow content to overflow
+      }}
     >
+      {/* Children wrapped in a div that preserves normal document flow */}
       <div className="relative z-10">
         {children}
       </div>
