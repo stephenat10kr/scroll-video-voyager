@@ -62,8 +62,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-        // Scale factor for mobile
-        float scaleFactor = u_isMobile ? 2.0 : 1.0;
+        // Scale factor for mobile - increased from 2.0 to 3.5
+        float scaleFactor = u_isMobile ? 3.5 : 1.0;
         p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
 
         // Using the user-specified vector values
@@ -94,7 +94,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float amp = mix(amp1, amp2, scrollFactor * 0.5);
                 
         // Create defined pattern edges with milder threshold
-        float threshold = u_isMobile ? 0.08 : 0.05; // Higher threshold on mobile for larger gaps between lines
+        // Increased from 0.08 to 0.12 for mobile
+        float threshold = u_isMobile ? 0.12 : 0.05; // Higher threshold on mobile for larger gaps between lines
         threshold += 0.03 * sin(scrollFactor * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
@@ -308,7 +309,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: isMobile ? 0.35 : 0.5 // Reduced opacity on mobile
+          opacity: isMobile ? 0.3 : 0.5 // Further reduced opacity on mobile from 0.35 to 0.3
         }}
       />
       <div className="relative z-10">
