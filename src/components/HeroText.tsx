@@ -4,6 +4,8 @@ import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 
 const HeroText: React.FC = () => {
+  const isMobile = useIsMobile();
+  
   return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
         {/* Section 1 */}
@@ -29,7 +31,7 @@ const HeroText: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-12 gap-4">
-              <p className="body-text text-roseWhite col-start-9 col-span-4">
+              <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
                 isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
               </p>
             </div>
@@ -45,7 +47,7 @@ const HeroText: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-12 gap-4">
-              <p className="body-text text-roseWhite col-start-9 col-span-4">
+              <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
                 Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
               </p>
             </div>
