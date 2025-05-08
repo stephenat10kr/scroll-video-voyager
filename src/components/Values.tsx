@@ -21,7 +21,7 @@ const Values: React.FC<ValuesProps> = ({
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden xs:block sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.coral }}>{title}</h2>
+            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
             <div className="mb-24 animate-pulse">
@@ -37,7 +37,7 @@ const Values: React.FC<ValuesProps> = ({
       console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.coral }}>{title}</h2>
+            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
             <p className="body-text" style={{ color: colors.coral }}>Failed to load values</p>
@@ -47,7 +47,7 @@ const Values: React.FC<ValuesProps> = ({
     if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.coral }}>{title}</h2>
+            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
             <p className="body-text" style={{ color: colors.coral }}>No values available</p>
@@ -63,8 +63,8 @@ const Values: React.FC<ValuesProps> = ({
   
   return <ChladniPattern>
       <div className="w-full py-24">
-        <div className="max-w-[90%] mx-auto mb-16">
-          <h2 className="title-md text-center" style={{ color: colors.coral }}>{title}</h2>
+        <div className="max-w-[90%] mx-auto mb-16 text-left">
+          <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
         </div>
         {content()}
       </div>
