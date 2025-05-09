@@ -26,6 +26,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         {/* Image Section - Always on left on mobile (cols 1-12) */}
         <div className="col-span-12 md:col-span-5 md:col-start-1">
           <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
+            <div className="w-full h-full relative">
               {/* SVG Mask definition with gradient */}
               <svg width="0" height="0" className="absolute">
                 <defs>
@@ -59,12 +60,13 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               <img 
                 src={imageSrc} 
                 alt={imageAlt} 
-                className="object-cover w-full h-full relative" 
+                className="object-cover w-full h-full" 
                 style={{
                   clipPath: "url(#starMask)",
                   WebkitClipPath: "url(#starMask)" // Adding browser prefix
                 }} 
               />
+            </div>
           </AspectRatio>
         </div>
         
@@ -115,6 +117,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       {/* Image Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8">
         <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
+          <div className="w-full h-full relative">
             {/* SVG Mask definition with gradient */}
             <svg width="0" height="0" className="absolute">
               <defs>
@@ -148,12 +151,13 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
             <img 
               src={imageSrc} 
               alt={imageAlt} 
-              className="object-cover w-full h-full relative" 
+              className="object-cover w-full h-full" 
               style={{
                 clipPath: "url(#starMaskReversed)",
                 WebkitClipPath: "url(#starMaskReversed)" // Adding browser prefix
               }} 
             />
+          </div>
         </AspectRatio>
       </div>
     </div>
