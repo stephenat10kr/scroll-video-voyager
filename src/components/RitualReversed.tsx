@@ -1,16 +1,13 @@
-
 import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 interface RitualReversedProps {
   title: string;
   description: string[];
   imageSrc: string;
   imageAlt: string;
 }
-
 const RitualReversed: React.FC<RitualReversedProps> = ({
   title,
   description,
@@ -18,20 +15,20 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   imageAlt
 }) => {
   const isMobile = useIsMobile();
-  
-  return (
-    <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
+  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
       {/* Text Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center">
-        <h2 className="title-md mb-6" style={{ color: colors.darkGreen }}>
+        <h2 className="title-md mb-6" style={{
+        color: colors.darkGreen
+      }}>
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => (
-            <p key={idx} className="text-sm" style={{ color: colors.darkGreen }}>
+          {description.map((paragraph, idx) => <p key={idx} className="text-sm" style={{
+          color: colors.darkGreen
+        }}>
               {paragraph}
-            </p>
-          ))}
+            </p>)}
         </div>
       </div>
       
@@ -39,7 +36,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       
       {/* Image Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8">
-        <AspectRatio ratio={1/1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
+        <AspectRatio ratio={1 / 1} className="rounded-lg overflow-hidden w-full">
           {/* SVG Mask definition */}
           <svg width="0" height="0" className="absolute">
             <defs>
@@ -48,21 +45,14 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               </clipPath>
             </defs>
           </svg>
-          <img 
-            src={imageSrc} 
-            alt={imageAlt} 
-            className="object-cover w-full h-full relative"
-            style={{ 
-              clipPath: "url(#starMaskReversed)", 
-              maxWidth: "100%", 
-              width: "100%",
-              objectFit: "contain"
-            }}
-          />
+          <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full relative" style={{
+          clipPath: "url(#starMaskReversed)",
+          maxWidth: "100%",
+          width: "100%",
+          objectFit: "contain"
+        }} />
         </AspectRatio>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default RitualReversed;
