@@ -54,7 +54,12 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                 src={imageSrc} 
                 alt={imageAlt} 
                 className="object-cover w-full h-full"
-                style={{ clipPath: "url(#starMaskReversed)", maxWidth: "100%" }}
+                style={{ 
+                  clipPath: "url(#starMaskReversed)", 
+                  maxWidth: "100%", 
+                  width: "100%",
+                  objectFit: "contain"
+                }}
               />
             </div>
           </AspectRatio>
