@@ -1,12 +1,14 @@
 
 import React from "react";
 import colors from "@/lib/theme";
+import Spinner from "./Spinner";
 
 interface ValueProps {
   valueTitle: string;
   valueText: string[];
   isLast?: boolean;
 }
+
 const Value: React.FC<ValueProps> = ({
   valueTitle,
   valueText,
@@ -16,6 +18,12 @@ const Value: React.FC<ValueProps> = ({
       <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
         {valueTitle}
       </h2>
+      
+      {/* Spinner component placed between title and text */}
+      <div className="flex justify-center">
+        <Spinner />
+      </div>
+      
       <div className="space-y-1">
         {valueText.map((text, index) => <p key={index} className="title-sm text-center" style={{ color: colors.coral }}>
             {text}
@@ -23,4 +31,5 @@ const Value: React.FC<ValueProps> = ({
       </div>
     </div>;
 };
+
 export default Value;
