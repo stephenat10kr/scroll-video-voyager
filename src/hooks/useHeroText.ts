@@ -55,7 +55,7 @@ export const useHeroText = () => {
         // Check if all required fields are present
         if (!item.fields.heroTextEyebrow || 
             !item.fields.heroTextTitle || 
-            !item.fields.heroTextContent ||
+            !item.fields.heroTextText ||
             item.fields.orderNumber === undefined) {
           console.error('Missing required fields in Contentful hero text:', item.fields);
         }

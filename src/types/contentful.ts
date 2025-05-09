@@ -119,7 +119,7 @@ export interface ContentfulHeroText {
   fields: {
     heroTextEyebrow: string;
     heroTextTitle: string;
-    heroTextContent: string;
+    heroTextText: string; // Changed from heroTextContent to heroTextText to match API response
     orderNumber: number;
   };
 }

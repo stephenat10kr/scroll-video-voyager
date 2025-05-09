@@ -1,8 +1,9 @@
+
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
-import Spinner from "./Spinner"; // Fixed import statement
+import Spinner from "./Spinner";
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
@@ -19,7 +20,7 @@ const HeroText: React.FC = () => {
     console.log('First Hero Text Fields:', {
       eyebrow: firstHeroText.fields.heroTextEyebrow,
       title: firstHeroText.fields.heroTextTitle,
-      content: firstHeroText.fields.heroTextContent
+      content: firstHeroText.fields.heroTextText
     });
   }
   
@@ -28,7 +29,7 @@ const HeroText: React.FC = () => {
     console.log('Second Hero Text Fields:', {
       eyebrow: secondHeroText.fields.heroTextEyebrow,
       title: secondHeroText.fields.heroTextTitle,
-      content: secondHeroText.fields.heroTextContent
+      content: secondHeroText.fields.heroTextText
     });
   }
   
@@ -77,7 +78,7 @@ const HeroText: React.FC = () => {
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {firstHeroText.fields.heroTextContent}
+                {firstHeroText.fields.heroTextText}
               </p>
             </div>
           </div>
@@ -93,7 +94,7 @@ const HeroText: React.FC = () => {
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {secondHeroText.fields.heroTextContent}
+                {secondHeroText.fields.heroTextText}
               </p>
             </div>
           </div>
