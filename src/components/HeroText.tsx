@@ -1,4 +1,3 @@
-
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -60,8 +59,8 @@ const HeroText: React.FC = () => {
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12 w-full">
-                {/* This div explicitly controls the size of the logo */}
-                <div className="w-auto h-[216px] md:h-[288px] lg:h-[360px] mx-auto">
+                {/* Reducing size by 50% from previous dimensions */}
+                <div className="w-auto h-[108px] md:h-[144px] lg:h-[180px] mx-auto">
                   <Logo />
                 </div>
               </div>
