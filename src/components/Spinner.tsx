@@ -52,10 +52,17 @@ const Spinner: React.FC = () => {
         />
       </svg>
       
-      {/* 60px vertical dotted line */}
+      {/* 60px vertical dotted line with increased gap between dots */}
       <div 
         className="h-[60px] w-[1px] border-l border-dotted" 
-        style={{ borderColor: colors.coral }}
+        style={{ 
+          borderColor: colors.coral,
+          borderStyle: 'dotted',
+          borderWidth: '0 0 0 1px',
+          borderSpacing: '10px', // This property isn't supported for borders
+          backgroundImage: `linear-gradient(to bottom, ${colors.coral} 1px, transparent 1px)`,
+          backgroundSize: '1px 8px' // Increase this value to increase the gap (was likely 4-5px before)
+        }}
       ></div>
     </div>
   );
