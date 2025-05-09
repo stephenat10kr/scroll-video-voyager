@@ -16,6 +16,20 @@ const fetchHeroText = async () => {
       'sys.id[in]': HERO_TEXT_IDS, // Pass the array directly, not as a comma-separated string
     });
     
+    // Add detailed logging of the entire response structure
+    console.log('Full Contentful API response structure:', JSON.stringify(response, null, 2));
+    
+    // Log each item's fields for easier inspection
+    if (response.items && response.items.length > 0) {
+      console.log('Individual hero text items:');
+      response.items.forEach((item, index) => {
+        console.log(`Item ${index + 1} (ID: ${item.sys.id}):`);
+        console.log('Fields:', item.fields);
+      });
+    } else {
+      console.log('No hero text items found in response');
+    }
+    
     console.log('Contentful hero text response:', response);
     return response as unknown as ContentfulHeroTextResponse;
   } catch (error) {

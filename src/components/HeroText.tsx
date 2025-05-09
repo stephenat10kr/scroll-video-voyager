@@ -1,4 +1,3 @@
-
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -13,10 +12,25 @@ const HeroText: React.FC = () => {
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
   
-  // Log to debug whether we're getting the correct data
-  console.log('Hero Text Items:', heroTextItems);
-  console.log('First Hero Text:', firstHeroText);
-  console.log('Second Hero Text:', secondHeroText);
+  // Enhanced logging for debugging
+  console.log('Hero Text Component - All Items:', heroTextItems);
+  console.log('Hero Text Component - First Item:', firstHeroText);
+  if (firstHeroText) {
+    console.log('First Hero Text Fields:', {
+      eyebrow: firstHeroText.fields.heroTextEyebrow,
+      title: firstHeroText.fields.heroTextTitle,
+      content: firstHeroText.fields.heroTextContent
+    });
+  }
+  
+  console.log('Hero Text Component - Second Item:', secondHeroText);
+  if (secondHeroText) {
+    console.log('Second Hero Text Fields:', {
+      eyebrow: secondHeroText.fields.heroTextEyebrow,
+      title: secondHeroText.fields.heroTextTitle,
+      content: secondHeroText.fields.heroTextContent
+    });
+  }
   
   if (isLoading) {
     return (
