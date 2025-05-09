@@ -102,7 +102,7 @@ const Rituals: React.FC<RitualsProps> = ({
             d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" 
             fill={colors.coral} 
             stroke={colors.coral}
-            strokeWidth="2"
+            strokeWidth="8"
           />
         </svg>
       </div>
@@ -129,7 +129,7 @@ const Rituals: React.FC<RitualsProps> = ({
             d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 0V210H1440V0H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" 
             fill="#203435" 
             stroke={colors.coral}
-            strokeWidth="2"
+            strokeWidth="8"
           />
         </svg>
       </div>
