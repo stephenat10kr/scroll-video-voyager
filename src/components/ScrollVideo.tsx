@@ -21,13 +21,9 @@ const ScrollVideo: React.FC<{
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoVisible, setVideoVisible] = useState(false);
-  const [textIndex, setTextIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
-  
-  // Empty array for text overlay (effectively removing it)
-  const textArray: string[] = [];
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
@@ -165,7 +161,6 @@ const ScrollVideo: React.FC<{
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
         segmentCount={segmentCount} 
-        onTextIndexChange={setTextIndex} 
         onAfterVideoChange={setIsAfterVideo}
         onProgressChange={setProgress}
         videoRef={videoRef} 
@@ -194,9 +189,6 @@ const ScrollVideo: React.FC<{
       </ScrollVideoPlayer>
 
       <ScrollVideoTextOverlay 
-        texts={textArray}
-        currentTextIndex={textIndex}
-        progress={progress}
         containerRef={containerRef}
       />
     </div>

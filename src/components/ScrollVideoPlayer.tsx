@@ -7,7 +7,6 @@ gsap.registerPlugin(ScrollTrigger);
 type ScrollVideoPlayerProps = {
   src?: string;
   segmentCount: number;
-  onTextIndexChange: (idx: number | null) => void;
   onAfterVideoChange: (after: boolean) => void;
   onProgressChange?: (progress: number) => void;
   children?: React.ReactNode;
@@ -21,7 +20,6 @@ type ScrollVideoPlayerProps = {
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   src,
   segmentCount,
-  onTextIndexChange,
   onAfterVideoChange,
   onProgressChange,
   children,
@@ -131,23 +129,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
-        
-        // Calculate which text should be showing based on current progress
-        const segLen = calculateSegmentLength(segmentCount);
-        let textIdx: number | null = null;
-        
-        for (let i = 0; i < segmentCount; ++i) {
-          if (progress >= segLen * i && progress < segLen * (i + 1)) {
-            textIdx = i;
-            break;
-          }
-        }
-        
-        if (progress >= segLen * segmentCount) {
-          textIdx = null;
-        }
-        
-        onTextIndexChange(textIdx);
         onAfterVideoChange(progress >= 1);
       });
     };
@@ -248,7 +229,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       clearTimeout(timeoutId);
       setupCompleted.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onTextIndexChange, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };

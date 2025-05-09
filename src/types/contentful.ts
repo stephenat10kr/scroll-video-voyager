@@ -1,3 +1,4 @@
+
 // Define the structure of a Contentful tag
 interface ContentfulTag {
   sys: {
@@ -100,6 +101,31 @@ export interface ContentfulValue {
 // Define the structure of the values response from Contentful
 export interface ContentfulValuesResponse {
   items: ContentfulValue[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+// Define the structure of a Contentful hero text
+export interface ContentfulHeroText {
+  sys: {
+    id: string;
+    contentType?: {
+      sys: {
+        id: string;
+      };
+    };
+  };
+  fields: {
+    heroTextEyebrow: string;
+    heroTextTitle: string;
+    heroTextContent: string;
+  };
+}
+
+// Define the structure of the hero text response from Contentful
+export interface ContentfulHeroTextResponse {
+  items: ContentfulHeroText[];
   total: number;
   skip: number;
   limit: number;

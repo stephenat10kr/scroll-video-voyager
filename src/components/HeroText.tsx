@@ -2,17 +2,28 @@
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useHeroText } from "../hooks/useHeroText";
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
+  const { data: heroTextData, isLoading, error } = useHeroText();
   
-  return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
+  // Fallback texts in case Contentful data isn't available
+  const eyebrow = heroTextData?.fields.heroTextEyebrow || "WELCOME TO";
+  const title1 = "curiosity";
+  const title2 = "culture";
+  const content1 = heroTextData?.fields.heroTextContent || 
+    "isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.";
+  const content2 = "Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.";
+  
+  return (
+    <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
         {/* Section 1 */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 py-[240px]">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">{eyebrow}</h2>
               <div className="flex justify-center items-center mt-12">
                 <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-center">
                   <Logo />
@@ -27,12 +38,12 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 py-[240px]">
               <h2 className="title-sm text-roseWhite mb-4 text-center">WHERE</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">curiosity</h1>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{title1}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.
+                {content1}
               </p>
             </div>
           </div>
@@ -43,17 +54,19 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="py-[240px]">
               <h2 className="title-sm text-roseWhite mb-4 text-center">MEETS</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">culture</h1>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{title2}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.
+                {content2}
               </p>
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default HeroText;
