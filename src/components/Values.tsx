@@ -1,10 +1,8 @@
-
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
-
 interface ValuesProps {
   title: string;
 }
@@ -16,12 +14,13 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
-  
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden xs:block sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
+            <h2 className="title-sm" style={{
+            color: colors.roseWhite
+          }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
             <div className="mb-24 animate-pulse">
@@ -37,38 +36,44 @@ const Values: React.FC<ValuesProps> = ({
       console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
+            <h2 className="title-sm" style={{
+            color: colors.roseWhite
+          }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
-            <p className="body-text" style={{ color: colors.coral }}>Failed to load values</p>
+            <p className="body-text" style={{
+            color: colors.coral
+          }}>Failed to load values</p>
           </div>
         </div>;
     }
     if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
+            <h2 className="title-sm" style={{
+            color: colors.roseWhite
+          }}>{title}</h2>
           </div>
           <div className="col-span-12 md:col-span-9">
-            <p className="body-text" style={{ color: colors.coral }}>No values available</p>
+            <p className="body-text" style={{
+            color: colors.coral
+          }}>No values available</p>
           </div>
         </div>;
     }
-    return (
-      <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
+    return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
         {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
-      </div>
-    );
+      </div>;
   };
-  
   return <ChladniPattern>
-      <div className="w-full py-24">
+      <div className="w-full py-24 mb-48">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
-          <h2 className="title-sm" style={{ color: colors.roseWhite }}>{title}</h2>
+          <h2 className="title-sm" style={{
+          color: colors.roseWhite
+        }}>{title}</h2>
         </div>
         {content()}
       </div>
     </ChladniPattern>;
 };
-
 export default Values;
