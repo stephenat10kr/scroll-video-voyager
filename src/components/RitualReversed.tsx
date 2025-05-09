@@ -1,13 +1,16 @@
+
 import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 interface RitualReversedProps {
   title: string;
   description: string[];
   imageSrc: string;
   imageAlt: string;
 }
+
 const RitualReversed: React.FC<RitualReversedProps> = ({
   title,
   description,
@@ -15,6 +18,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   imageAlt
 }) => {
   const isMobile = useIsMobile();
+
   return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
       {/* Text Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center">
@@ -45,14 +49,19 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               </clipPath>
             </defs>
           </svg>
-          <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full relative" style={{
-          clipPath: "url(#starMaskReversed)",
-          maxWidth: "100%",
-          width: "100%",
-          objectFit: "contain"
-        }} />
+          <img 
+            src={imageSrc} 
+            alt={imageAlt} 
+            className="object-cover w-full h-full" 
+            style={{
+              clipPath: "url(#starMaskReversed)",
+              width: "100%",
+              height: "100%"
+            }} 
+          />
         </AspectRatio>
       </div>
     </div>;
 };
+
 export default RitualReversed;
