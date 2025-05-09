@@ -47,7 +47,7 @@ const HeroText: React.FC = () => {
   return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
         {/* Section 1 - Logo section with hardcoded "WELCOME TO" */}
-        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 py-[196px]">
+        <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
