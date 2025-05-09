@@ -60,7 +60,7 @@ const HeroText: React.FC = () => {
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12 w-full">
-                <div className="w-auto h-[864px] md:h-[1152px] lg:h-[1440px] mx-auto">
+                <div className="w-auto h-[432px] md:h-[576px] lg:h-[720px] mx-auto">
                   <Logo />
                 </div>
               </div>
