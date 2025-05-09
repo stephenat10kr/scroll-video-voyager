@@ -45,6 +45,7 @@ const Ritual: React.FC<RitualProps> = ({
                   fill="none"
                   strokeWidth="1"
                   stroke="url(#goldGradient)"
+                  style={{ strokeLinecap: "round", strokeLinejoin: "round", paintOrder: "stroke", strokeAlignment: "inner" }}
                 />
               </svg>
             </div>
