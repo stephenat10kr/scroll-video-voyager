@@ -34,7 +34,7 @@ export default function Form({
   };
 
   return <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:w-[540px] bg-darkGreen">
+      <SheetContent className="w-full sm:w-[540px] bg-darkGreen border-none">
         <div className="relative">
           <Button 
             variant="default" 
