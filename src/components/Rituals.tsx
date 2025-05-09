@@ -112,8 +112,9 @@ const Rituals: React.FC<RitualsProps> = ({
       }}>{title}</h2>
         <div className="space-y-24 w-full">
           {displayRituals.map((ritual, index) => {
-          // Use the appropriate component based on the ritual's index
-          if (index % 2 === 1) {
+          // Only use RitualReversed for desktop view and odd indexes
+          // For mobile, always use the standard Ritual component
+          if (!isMobile && index % 2 === 1) {
             return <RitualReversed key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
           } else {
             return <Ritual key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
