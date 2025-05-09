@@ -52,10 +52,14 @@ const Spinner: React.FC = () => {
         />
       </svg>
       
-      {/* 60px vertical dotted line */}
+      {/* 60px vertical dotted line with 1px dash and 4px gap */}
       <div 
-        className="h-[60px] w-[1px] border-l border-dotted" 
-        style={{ borderColor: colors.coral }}
+        className="h-[60px] w-[1px]"
+        style={{ 
+          backgroundImage: `linear-gradient(to bottom, ${colors.coral} 1px, transparent 1px)`,
+          backgroundSize: '1px 5px', // 1px dash + 4px gap = 5px total
+          backgroundRepeat: 'repeat-y'
+        }}
       ></div>
     </div>
   );
