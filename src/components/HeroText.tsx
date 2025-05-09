@@ -1,18 +1,20 @@
-
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import Spinner from "./Spinner";
-
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
-  const { data: heroTextItems, isLoading, error } = useHeroText();
-  
+  const {
+    data: heroTextItems,
+    isLoading,
+    error
+  } = useHeroText();
+
   // Get the first and second hero text items if available
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
-  
+
   // Enhanced logging for debugging
   console.log('Hero Text Component - All Items:', heroTextItems);
   console.log('Hero Text Component - First Item:', firstHeroText);
@@ -23,7 +25,6 @@ const HeroText: React.FC = () => {
       content: firstHeroText.fields.heroTextText
     });
   }
-  
   console.log('Hero Text Component - Second Item:', secondHeroText);
   if (secondHeroText) {
     console.log('Second Hero Text Fields:', {
@@ -32,33 +33,24 @@ const HeroText: React.FC = () => {
       content: secondHeroText.fields.heroTextText
     });
   }
-  
   if (isLoading) {
-    return (
-      <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+    return <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
         <Spinner />
-      </div>
-    );
+      </div>;
   }
-  
   if (error || !heroTextItems || heroTextItems.length < 2) {
     console.error('Error loading hero text data:', error);
-    
-    return (
-      <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+    return <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
         <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
-      </div>
-    );
+      </div>;
   }
-  
-  return (
-    <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
+  return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
         {/* Section 1 - Logo section with hardcoded "WELCOME TO" */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 py-[240px]">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12 w-full">
                 {/* Increasing size by 50% from previous dimensions */}
                 <div className="w-auto h-[162px] md:h-[216px] lg:h-[270px] mx-auto">
@@ -101,8 +93,6 @@ const HeroText: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default HeroText;
