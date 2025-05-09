@@ -3,7 +3,7 @@ import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
-import { Spinner } from "./Spinner";
+import Spinner from "./Spinner"; // Fixed import statement
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();

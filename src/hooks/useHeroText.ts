@@ -10,10 +10,10 @@ const fetchHeroText = async () => {
   try {
     console.log('Fetching hero text entries with specific IDs:', HERO_TEXT_IDS);
     
-    // Query for specific entries by ID
+    // Query for specific entries by ID - Pass IDs as an array since that's what the API expects
     const response = await contentfulClient.getEntries({
       content_type: 'heroText',
-      'sys.id[in]': HERO_TEXT_IDS.join(','),
+      'sys.id[in]': HERO_TEXT_IDS, // Pass the array directly, not as a comma-separated string
     });
     
     console.log('Contentful hero text response:', response);
