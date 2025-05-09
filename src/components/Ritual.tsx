@@ -21,7 +21,6 @@ const Ritual: React.FC<RitualProps> = ({
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1">
         <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
-          <div className="w-full h-full relative">
             {/* SVG Mask definition with gradient */}
             <svg width="0" height="0" className="absolute">
               <defs>
@@ -52,11 +51,10 @@ const Ritual: React.FC<RitualProps> = ({
               </svg>
             </div>
             
-            <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full" style={{
+            <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full relative" style={{
               clipPath: "url(#starMask)",
               WebkitClipPath: "url(#starMask)" // Adding browser prefix
             }} />
-          </div>
         </AspectRatio>
       </div>
       
