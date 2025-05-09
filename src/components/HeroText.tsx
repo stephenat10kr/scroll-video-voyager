@@ -3,6 +3,7 @@ import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
+import { Spinner } from "./Spinner";
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
@@ -11,6 +12,29 @@ const HeroText: React.FC = () => {
   // Get the first and second hero text items if available
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
+  
+  // Log to debug whether we're getting the correct data
+  console.log('Hero Text Items:', heroTextItems);
+  console.log('First Hero Text:', firstHeroText);
+  console.log('Second Hero Text:', secondHeroText);
+  
+  if (isLoading) {
+    return (
+      <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+  
+  if (error || !heroTextItems || heroTextItems.length < 2) {
+    console.error('Error loading hero text data:', error);
+    
+    return (
+      <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+        <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
+      </div>
+    );
+  }
   
   return (
     <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
@@ -33,14 +57,13 @@ const HeroText: React.FC = () => {
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 py-[240px]">
-              <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText?.fields.heroTextEyebrow || "WHERE"}</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{firstHeroText?.fields.heroTextTitle || "curiosity"}</h1>
+              <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText.fields.heroTextEyebrow}</h2>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{firstHeroText.fields.heroTextTitle}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {firstHeroText?.fields.heroTextContent || 
-                  "isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion."}
+                {firstHeroText.fields.heroTextContent}
               </p>
             </div>
           </div>
@@ -50,14 +73,13 @@ const HeroText: React.FC = () => {
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="py-[240px]">
-              <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText?.fields.heroTextEyebrow || "MEETS"}</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{secondHeroText?.fields.heroTextTitle || "culture"}</h1>
+              <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{secondHeroText.fields.heroTextTitle}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {secondHeroText?.fields.heroTextContent || 
-                  "Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience."}
+                {secondHeroText.fields.heroTextContent}
               </p>
             </div>
           </div>

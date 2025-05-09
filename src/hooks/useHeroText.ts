@@ -3,11 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
 import { ContentfulHeroText, ContentfulHeroTextResponse } from "@/types/contentful";
 
+// Specific entry IDs we want to fetch
+const HERO_TEXT_IDS = ['11qWRgTIAQpJgN7M81pskc', '4CMwNg4Bf4LvIq0FOPd6Vd'];
+
 const fetchHeroText = async () => {
   try {
+    console.log('Fetching hero text entries with specific IDs:', HERO_TEXT_IDS);
+    
+    // Query for specific entries by ID
     const response = await contentfulClient.getEntries({
       content_type: 'heroText',
-      // Removed the limit: 1 to fetch all entries
+      'sys.id[in]': HERO_TEXT_IDS.join(','),
     });
     
     console.log('Contentful hero text response:', response);
@@ -20,13 +26,15 @@ const fetchHeroText = async () => {
 
 export const useHeroText = () => {
   return useQuery({
-    queryKey: ['heroText'],
+    queryKey: ['heroText', HERO_TEXT_IDS],
     queryFn: fetchHeroText,
     select: (data) => {
       if (!data || !data.items || data.items.length === 0) {
         console.error('Invalid data structure received from Contentful for hero text:', data);
         return []; // Return empty array as fallback
       }
+      
+      console.log('Processing hero text items:', data.items);
       
       // Map over all items
       const heroTextItems = data.items.map(item => {
