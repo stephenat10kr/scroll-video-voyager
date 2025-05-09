@@ -38,7 +38,7 @@ export default function Form({
         <div className="relative">
           <Button 
             variant="default" 
-            className="absolute left-0 top-0 p-0 w-[48px] h-[48px] bg-coral text-darkGreen rounded-full flex items-center justify-center" 
+            className="absolute left-0 top-0 p-0 w-[48px] h-[48px] bg-coral text-darkGreen rounded-full flex items-center justify-center hover:bg-coral/90" 
             onClick={onClose}
           >
             <X className="h-6 w-6 stroke-darkGreen" />
