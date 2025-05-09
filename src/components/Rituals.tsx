@@ -4,12 +4,15 @@ import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
 import { useRituals } from "@/hooks/useRituals";
 import colors from "@/lib/theme";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 interface RitualsProps {
   title: string;
 }
 const Rituals: React.FC<RitualsProps> = ({
   title
 }) => {
+  const isMobile = useIsMobile();
   // Use our custom hook to fetch rituals from Contentful
   const {
     data: rituals,
@@ -98,11 +101,11 @@ const Rituals: React.FC<RitualsProps> = ({
           <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} />
         </svg>
       </div>
-      <div className="max-w-[90%] mx-auto relative">
+      <div className="max-w-[90%] mx-auto relative overflow-hidden">
         <h2 className="title-sm mb-12" style={{
         color: colors.darkGreen
       }}>{title}</h2>
-        <div className="space-y-24">
+        <div className="space-y-24 w-full">
           {displayRituals.map((ritual, index) => {
           // Use the appropriate component based on the ritual's index
           if (index % 2 === 1) {
