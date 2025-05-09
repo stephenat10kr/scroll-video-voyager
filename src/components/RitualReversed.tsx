@@ -50,7 +50,9 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                     fill="none"
                     strokeWidth="1"
                     stroke="url(#goldGradient)"
-                    style={{ strokeLinecap: "round", strokeLinejoin: "round", paintOrder: "stroke", strokeAlignment: "inner" }}
+                    style={{ strokeLinecap: "round", strokeLinejoin: "round", paintOrder: "stroke" }}
+                    strokeDasharray="0"
+                    paintOrder="stroke"
                   />
                 </svg>
               </div>
@@ -139,7 +141,9 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                   fill="none"
                   strokeWidth="1"
                   stroke="url(#goldGradientReversed)"
-                  style={{ strokeLinecap: "round", strokeLinejoin: "round", paintOrder: "stroke", strokeAlignment: "inner" }}
+                  style={{ strokeLinecap: "round", strokeLinejoin: "round", paintOrder: "stroke" }}
+                  strokeDasharray="0"
+                  paintOrder="stroke"
                 />
               </svg>
             </div>
