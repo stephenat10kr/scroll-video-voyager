@@ -30,7 +30,7 @@ const Rituals: React.FC<RitualsProps> = ({
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
-            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="12" />
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="24" />
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
@@ -58,7 +58,7 @@ const Rituals: React.FC<RitualsProps> = ({
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
-            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="12" />
+            <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="24" />
           </svg>
         </div>
         <div className="max-w-[90%] mx-auto relative">
@@ -98,7 +98,7 @@ const Rituals: React.FC<RitualsProps> = ({
       {/* Curved top SVG */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-full">
         <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }}>
-          <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="12" />
+          <path d="M1440 269V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V269H1440Z" fill={colors.coral} stroke={colors.coral} strokeWidth="24" />
         </svg>
       </div>
       <div className="max-w-[90%] mx-auto relative overflow-hidden">
@@ -131,7 +131,7 @@ const Rituals: React.FC<RitualsProps> = ({
             d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 -1V212H1440V-1H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" 
             fill={colors.darkGreen}
             stroke={colors.coral}
-            strokeWidth="12" 
+            strokeWidth="24" 
           />
         </svg>
       </div>
