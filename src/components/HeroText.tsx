@@ -59,8 +59,8 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12">
-                <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-center">
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-center mx-auto">
                   <Logo />
                 </div>
               </div>
