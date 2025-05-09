@@ -6,24 +6,20 @@ import { useHeroText } from "../hooks/useHeroText";
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
-  const { data: heroTextData, isLoading, error } = useHeroText();
+  const { data: heroTextItems, isLoading, error } = useHeroText();
   
-  // Fallback texts in case Contentful data isn't available
-  const eyebrow = heroTextData?.fields.heroTextEyebrow || "WELCOME TO";
-  const title1 = "curiosity";
-  const title2 = "culture";
-  const content1 = heroTextData?.fields.heroTextContent || 
-    "isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion.";
-  const content2 = "Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience.";
+  // Get the first and second hero text items if available
+  const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
+  const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
   
   return (
     <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
       <div className="w-full max-w-none">
-        {/* Section 1 */}
+        {/* Section 1 - Logo section with hardcoded "WELCOME TO" */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 py-[240px]">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">{eyebrow}</h2>
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-[18px]">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12">
                 <div className="w-[144px] md:w-[192px] lg:w-[240px] transform scale-[3] origin-center">
                   <Logo />
@@ -33,33 +29,35 @@ const HeroText: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 2 */}
+        {/* Section 2 - First hero text (orderNumber: 1) */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 py-[240px]">
-              <h2 className="title-sm text-roseWhite mb-4 text-center">WHERE</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{title1}</h1>
+              <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText?.fields.heroTextEyebrow || "WHERE"}</h2>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{firstHeroText?.fields.heroTextTitle || "curiosity"}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {content1}
+                {firstHeroText?.fields.heroTextContent || 
+                  "isn't just welcomed—it's required. We follow questions more than answers, and see exploration as a form of devotion."}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Section 3 */}
+        {/* Section 3 - Second hero text (orderNumber: 2) */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="py-[240px]">
-              <h2 className="title-sm text-roseWhite mb-4 text-center">MEETS</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{title2}</h1>
+              <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText?.fields.heroTextEyebrow || "MEETS"}</h2>
+              <h1 className="title-lg text-roseWhite mb-6 text-center">{secondHeroText?.fields.heroTextTitle || "culture"}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
               <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-                {content2}
+                {secondHeroText?.fields.heroTextContent || 
+                  "Gatherings become generators. Through shared rituals, art, sound, and space, we create the atmosphere that shapes the experience."}
               </p>
             </div>
           </div>

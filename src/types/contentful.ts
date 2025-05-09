@@ -120,6 +120,7 @@ export interface ContentfulHeroText {
     heroTextEyebrow: string;
     heroTextTitle: string;
     heroTextContent: string;
+    orderNumber: number;
   };
 }
 

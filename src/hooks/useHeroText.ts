@@ -7,7 +7,7 @@ const fetchHeroText = async () => {
   try {
     const response = await contentfulClient.getEntries({
       content_type: 'heroText',
-      limit: 1, // We only need the first entry
+      // Removed the limit: 1 to fetch all entries
     });
     
     console.log('Contentful hero text response:', response);
@@ -23,21 +23,26 @@ export const useHeroText = () => {
     queryKey: ['heroText'],
     queryFn: fetchHeroText,
     select: (data) => {
-      if (!data || !data.items || !data.items[0]) {
+      if (!data || !data.items || data.items.length === 0) {
         console.error('Invalid data structure received from Contentful for hero text:', data);
-        return null; // Return null as fallback
+        return []; // Return empty array as fallback
       }
       
-      const heroTextData = data.items[0];
-      // Check if all required fields are present
-      if (!heroTextData.fields.heroTextEyebrow || 
-          !heroTextData.fields.heroTextTitle || 
-          !heroTextData.fields.heroTextContent) {
-        console.error('Missing required fields in Contentful hero text:', heroTextData.fields);
-      }
+      // Map over all items
+      const heroTextItems = data.items.map(item => {
+        // Check if all required fields are present
+        if (!item.fields.heroTextEyebrow || 
+            !item.fields.heroTextTitle || 
+            !item.fields.heroTextContent ||
+            item.fields.orderNumber === undefined) {
+          console.error('Missing required fields in Contentful hero text:', item.fields);
+        }
+        
+        return item as ContentfulHeroText;
+      });
       
-      // Return the hero text data
-      return heroTextData as ContentfulHeroText;
+      // Sort items by orderNumber
+      return heroTextItems.sort((a, b) => a.fields.orderNumber - b.fields.orderNumber);
     }
   });
 };
