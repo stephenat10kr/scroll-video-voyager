@@ -117,22 +117,25 @@ const Rituals: React.FC<RitualsProps> = ({
         </div>
       </div>
       
-      {/* Curved bottom SVG - Fixed to eliminate thin line */}
-      <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden line-height-0">
+      {/* Curved bottom SVG with stroke to eliminate thin line */}
+      <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden" style={{ lineHeight: 0 }}>
         <svg 
           width="100%" 
-          viewBox="0 0 1440 212" 
+          viewBox="0 0 1440 215" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg" 
           preserveAspectRatio="xMidYMid slice"
           style={{ display: 'block', verticalAlign: 'bottom' }}
         >
           <path 
-            d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 -1V212H1440V-1H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" 
-            fill={colors.darkGreen} 
+            d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 -2V215H1440V-2H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" 
+            fill={colors.darkGreen}
+            stroke={colors.coral}
+            strokeWidth="1.5"
           />
         </svg>
       </div>
     </div>;
 };
 export default Rituals;
+
