@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { Progress } from "./ui/progress";
 
 interface PreloaderProps {
   progress: number;
@@ -55,14 +54,6 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           <span className="font-gt-super text-title-md-mobile md:text-title-md text-coral">
             {Math.round(progress)}%
           </span>
-        </div>
-        
-        <div className="w-full max-w-xs md:max-w-sm">
-          <Progress 
-            value={progress} 
-            className="h-2 bg-coral/20" 
-            indicatorClassName="bg-coral" 
-          />
         </div>
       </div>
     </div>
