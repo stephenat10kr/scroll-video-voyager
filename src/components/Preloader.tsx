@@ -55,9 +55,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         return false;
       }
       
-      // Set canvas size to 300x400 (changed from 200x200)
-      canvas.width = 300;
-      canvas.height = 400;
+      // Set canvas to match window size
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       
       // Initialize WebGL
       const gl = canvas.getContext('webgl');
@@ -236,27 +236,41 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     };
   }, [isMobile]);
 
+  // Update canvas size on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+        
+        if (glRef.current) {
+          glRef.current.viewport(0, 0, window.innerWidth, window.innerHeight);
+        }
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div
-      className={`fixed inset-0 z-50 bg-darkGreen flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-40 bg-darkGreen flex flex-col items-center justify-center transition-opacity duration-500 ${
         visible ? "opacity-100" : "opacity-0"
       }`}
       style={{ backgroundColor: "#203435" }}
     >
-      <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 300x400px rectangle */}
-        <div className="w-[300px] h-[400px] relative mb-4">
-          <canvas 
-            ref={canvasRef}
-            className="absolute inset-0"
-            style={{ 
-              width: '300px', 
-              height: '400px',
-              backgroundColor: '#203435'
-            }}
-          />
-        </div>
-        
+      {/* Fullscreen canvas */}
+      <canvas 
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ 
+          backgroundColor: '#203435'
+        }}
+      />
+      
+      {/* Loading text container positioned at the bottom center */}
+      <div className="absolute bottom-12 px-4 text-center">
         {/* Loading text and percentage side by side */}
         <div className="flex items-center justify-center gap-4 w-full">
           <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
