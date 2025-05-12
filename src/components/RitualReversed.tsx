@@ -37,6 +37,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                 : '2em 4em 6em -2em rgba(0,0,0,.5), 1em 2em 3.5em -2.5em rgba(0,0,0,.5)',
               borderRadius: '0.5em',
               transition: 'transform .4s ease, box-shadow .4s ease',
+              background: 'none'
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -147,6 +148,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               : '2em 4em 6em -2em rgba(0,0,0,.5), 1em 2em 3.5em -2.5em rgba(0,0,0,.5)',
             borderRadius: '0.5em',
             transition: 'transform .4s ease, box-shadow .4s ease',
+            background: 'none'
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
