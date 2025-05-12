@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -257,10 +258,16 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       canvas.addEventListener('touchend', preventContextLossHandler, { passive: false });
     }
     
-    const success = setupWebGL();
+    // Important: Delay WebGL initialization slightly to ensure DOM is fully ready
+    const initTimeout = setTimeout(() => {
+      const success = setupWebGL();
+      console.log('WebGL setup result:', success);
+    }, 100);
     
     // Cleanup function
     return () => {
+      clearTimeout(initTimeout);
+      
       // Set rendering inactive to stop animation loop
       renderingActiveRef.current = false;
       
