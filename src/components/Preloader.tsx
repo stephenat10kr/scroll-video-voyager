@@ -21,6 +21,8 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const frameIdRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
+  // Add state for mouse position
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
 
   // Change text every 3 seconds
   useEffect(() => {
@@ -44,6 +46,23 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       return () => clearTimeout(timeout);
     }
   }, [progress, onComplete]);
+
+  // Add mouse move handler
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      // Normalize mouse coordinates to 0-1 range
+      setMousePosition({
+        x: event.clientX / window.innerWidth,
+        y: event.clientY / window.innerHeight
+      });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   // Setup WebGL for Chladni Pattern
   useEffect(() => {
@@ -85,6 +104,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         precision mediump float;
         uniform vec2 u_resolution;
         uniform float u_time;
+        uniform vec2 u_mouse;
         uniform bool u_isMobile;
         
         void main(void) {
@@ -103,11 +123,15 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           float tx = sin(u_time * 0.2) * 0.1; 
           float ty = cos(u_time * 0.3) * 0.1;
 
-          // Parameters for the pattern
-          float a = mix(s1.x, s2.x, clamp(0.5 + tx, 0.0, 1.0));
-          float b = mix(s1.y, s2.y, clamp(0.5 + tx, 0.0, 1.0));
-          float n = mix(s1.z, s2.z, clamp(0.5 + ty, 0.0, 1.0));
-          float m = mix(s1.w, s2.w, clamp(0.5 + ty, 0.0, 1.0));
+          // Influence parameters based on mouse position
+          float mouseInfluenceX = u_mouse.x * 0.5; // Scale down the influence
+          float mouseInfluenceY = u_mouse.y * 0.5; // Scale down the influence
+
+          // Parameters for the pattern, now influenced by mouse
+          float a = mix(s1.x, s2.x, clamp(0.5 + tx + mouseInfluenceX, 0.0, 1.0));
+          float b = mix(s1.y, s2.y, clamp(0.5 + tx + mouseInfluenceX, 0.0, 1.0));
+          float n = mix(s1.z, s2.z, clamp(0.5 + ty + mouseInfluenceY, 0.0, 1.0));
+          float m = mix(s1.w, s2.w, clamp(0.5 + ty + mouseInfluenceY, 0.0, 1.0));
 
           // Create the pattern
           float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
@@ -193,11 +217,13 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
         const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
         const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
+        const mouseUniformLocation = gl.getUniformLocation(program, 'u_mouse');
         const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
         
         // Set uniforms
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
         gl.uniform1f(timeUniformLocation, elapsedTime);
+        gl.uniform2f(mouseUniformLocation, mousePosition.x, mousePosition.y);
         gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
         
         // Set up attributes
@@ -234,7 +260,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }
       }
     };
-  }, [isMobile]);
+  }, [isMobile, mousePosition]);
 
   // Update canvas size on window resize
   useEffect(() => {
@@ -287,3 +313,4 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 };
 
 export default Preloader;
+
