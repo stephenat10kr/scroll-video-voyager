@@ -53,6 +53,13 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   // Setup WebGL for Chladni Pattern with enhanced mobile support
   useEffect(() => {
+    // Define the preventContextLossHandler function at the top level of the effect
+    // so it's available for both adding and removing event listeners
+    const preventContextLossHandler = (e: Event) => {
+      e.preventDefault();
+      // This empty handler helps keep the WebGL context active
+    };
+    
     const setupWebGL = () => {
       const canvas = canvasRef.current;
       
@@ -245,11 +252,6 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     const canvas = canvasRef.current;
     if (canvas) {
       // Touch events help prevent context loss on some mobile devices
-      const preventContextLossHandler = (e: Event) => {
-        e.preventDefault();
-        // This empty handler helps keep the WebGL context active
-      };
-      
       canvas.addEventListener('touchstart', preventContextLossHandler, { passive: false });
       canvas.addEventListener('touchmove', preventContextLossHandler, { passive: false });
       canvas.addEventListener('touchend', preventContextLossHandler, { passive: false });
@@ -266,12 +268,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         cancelAnimationFrame(frameIdRef.current);
       }
       
-      // Remove event listeners
+      // Remove event listeners - using the same handler reference
       if (canvas) {
-        const preventContextLossHandler = (e: Event) => { e.preventDefault(); };
-        canvas.removeEventListener('touchstart', preventContextLossHandler as EventListener);
-        canvas.removeEventListener('touchmove', preventContextLossHandler as EventListener);
-        canvas.removeEventListener('touchend', preventContextLossHandler as EventListener);
+        canvas.removeEventListener('touchstart', preventContextLossHandler);
+        canvas.removeEventListener('touchmove', preventContextLossHandler);
+        canvas.removeEventListener('touchend', preventContextLossHandler);
       }
       
       // Clean up WebGL resources
