@@ -54,9 +54,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         return false;
       }
       
-      // Set canvas size to 200x200 (changed from 400x400)
-      canvas.width = 200;
-      canvas.height = 200;
+      // Set canvas size to 300x400 (changed from 200x200)
+      canvas.width = 300;
+      canvas.height = 400;
       
       // Initialize WebGL
       const gl = canvas.getContext('webgl');
@@ -243,14 +243,14 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       style={{ backgroundColor: "#203435" }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 200x200px square (changed from 400x400px) */}
-        <div className="w-[200px] h-[200px] relative mb-4">
+        {/* Chladni Pattern in 300x400px rectangle (changed from 200x200px) */}
+        <div className="w-[300px] h-[400px] relative mb-4">
           <canvas 
             ref={canvasRef}
             className="absolute inset-0"
             style={{ 
-              width: '200px', 
-              height: '200px',
+              width: '300px', 
+              height: '400px',
               backgroundColor: '#203435'
             }}
           />
