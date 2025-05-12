@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Form from "./Form";
 
-// Replace these values with your actual HubSpot Portal ID and Form ID
-const HUBSPOT_PORTAL_ID = ""; // e.g. "12345678"
-const HUBSPOT_FORM_ID = ""; // e.g. "abcd1234-5678-efgh-9012-ijklmnopqrst"
+// HubSpot Portal ID and Form ID extracted from the share link
+const HUBSPOT_PORTAL_ID = "242761887";
+const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 
 const Navigation = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
