@@ -257,9 +257,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           />
         </div>
         
-        <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
-        
-        <div className="flex items-baseline gap-2">
+        {/* Loading text and percentage side by side */}
+        <div className="flex items-center justify-center gap-4 w-full">
+          <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
           <span 
             className="font-gt-super text-coral" 
             style={{ fontSize: "32px" }}
