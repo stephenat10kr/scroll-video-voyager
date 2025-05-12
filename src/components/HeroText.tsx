@@ -1,8 +1,11 @@
+
 import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import Spinner from "./Spinner";
+import { AspectRatio } from "./ui/aspect-ratio";
+
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
   const {
@@ -52,9 +55,11 @@ const HeroText: React.FC = () => {
             <div className="col-span-12 lg:col-span-5 flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12 w-full">
-                {/* Increasing size by 50% from previous dimensions */}
-                <div className="w-auto h-[162px] md:h-[216px] lg:h-[270px] mx-auto">
-                  <Logo />
+                {/* Using fixed width with proper aspect ratio to ensure consistent display across browsers */}
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <AspectRatio ratio={444/213} className="w-full">
+                    <Logo />
+                  </AspectRatio>
                 </div>
               </div>
             </div>
