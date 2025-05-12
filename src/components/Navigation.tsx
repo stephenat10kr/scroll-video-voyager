@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Form from "./Form";
 
+// Replace these values with your actual HubSpot Portal ID and Form ID
+const HUBSPOT_PORTAL_ID = ""; // e.g. "12345678"
+const HUBSPOT_FORM_ID = ""; // e.g. "abcd1234-5678-efgh-9012-ijklmnopqrst"
+
 const Navigation = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -23,6 +27,8 @@ const Navigation = () => {
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         title="Curious?<br>Sign up to hear about upcoming events and membership offerings."
+        hubspotPortalId={HUBSPOT_PORTAL_ID}
+        hubspotFormId={HUBSPOT_FORM_ID}
       />
     </>
   );
