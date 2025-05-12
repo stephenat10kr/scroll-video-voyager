@@ -45,8 +45,8 @@ const Ritual: React.FC<RitualProps> = ({
                 }} 
               />
               
-              {/* Inner stroke overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
+              {/* Inner stroke overlay - positioned on top of the image with higher z-index */}
+              <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
                 <svg 
                   viewBox="0 0 100 100" 
                   className="w-[calc(100%-4px)] h-[calc(100%-4px)]" 
@@ -55,15 +55,19 @@ const Ritual: React.FC<RitualProps> = ({
                     top: '2px',
                     left: '2px',
                     right: '2px',
-                    bottom: '2px'
+                    bottom: '2px',
                   }}
                 >
-                  <use 
-                    href="#starInnerStroke" 
+                  <path 
+                    d="M89.7 36.3L78.4 31.8C73.4 30.5 69 27.2 66.7 23.2L62.6 9.4C61.3 4 55.3 0.3 50 0.3C44.6 0.3 38.6 4 37.3 9.4L33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3 39 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29 70.2 31.1 72.6C32.4 74 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96 44.6 99.7 50 99.7C55.3 99.7 61.3 96 62.6 90.6L66 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39 89.7 36.3Z"
                     fill="none" 
                     stroke="white" 
-                    strokeWidth="0.4" // This gives us approximately 2px stroke
-                    vectorEffect="non-scaling-stroke" // Ensures stroke width stays constant
+                    strokeWidth="1" 
+                    vectorEffect="non-scaling-stroke" 
+                    style={{
+                      clipPath: "url(#starMask)",
+                      WebkitClipPath: "url(#starMask)"
+                    }}
                   />
                 </svg>
               </div>
