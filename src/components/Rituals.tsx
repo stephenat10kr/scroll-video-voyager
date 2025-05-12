@@ -1,17 +1,20 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
 import { useRituals } from "@/hooks/useRituals";
 import colors from "@/lib/theme";
 import { useIsMobile } from "@/hooks/use-mobile";
+import RitualWaveEffect from "./RitualWaveEffect";
 
 interface RitualsProps {
   title: string;
 }
+
 const Rituals: React.FC<RitualsProps> = ({
   title
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   // Use our custom hook to fetch rituals from Contentful
   const {
@@ -94,10 +97,19 @@ const Rituals: React.FC<RitualsProps> = ({
     imageSrc: fallbackImage,
     imageAlt: "Colorful celebration event"
   }];
-  return <div style={{
-    backgroundColor: colors.coral,
-    borderTop: `4px solid ${colors.coral}`
-  }} className="w-full relative py-[192px]">
+
+  return (
+    <div 
+      ref={containerRef}
+      style={{
+        backgroundColor: colors.coral,
+        borderTop: `4px solid ${colors.coral}`
+      }} 
+      className="w-full relative py-[192px]"
+    >
+      {/* WebGL Canvas for 3D effect */}
+      <RitualWaveEffect containerRef={containerRef} />
+      
       {/* Curved top SVG - with shape rendering and coral border */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-[calc(100%+1px)]" style={{ 
         borderBottom: `2px solid ${colors.coral}`
@@ -106,20 +118,22 @@ const Rituals: React.FC<RitualsProps> = ({
           <path d="M1440 270V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V270H1440Z" fill={colors.coral} />
         </svg>
       </div>
-      <div className="max-w-[90%] mx-auto relative overflow-hidden">
+      
+      <div className="max-w-[90%] mx-auto relative overflow-hidden z-10">
         <h2 className="title-sm mb-12" style={{
-        color: colors.darkGreen
-      }}>{title}</h2>
+          color: colors.darkGreen
+        }}>{title}</h2>
+        
         <div className="space-y-24 w-full">
           {displayRituals.map((ritual, index) => {
-          // Only use RitualReversed for desktop view and odd indexes
-          // For mobile, always use the standard Ritual component
-          if (!isMobile && index % 2 === 1) {
-            return <RitualReversed key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
-          } else {
-            return <Ritual key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
-          }
-        })}
+            // Only use RitualReversed for desktop view and odd indexes
+            // For mobile, always use the standard Ritual component
+            if (!isMobile && index % 2 === 1) {
+              return <RitualReversed key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
+            } else {
+              return <Ritual key={ritual.id} title={ritual.title} description={ritual.description} imageSrc={ritual.imageSrc} imageAlt={ritual.imageAlt} />;
+            }
+          })}
         </div>
       </div>
       
@@ -129,6 +143,8 @@ const Rituals: React.FC<RitualsProps> = ({
           <path d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 0V211H1440V0H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" fill="#203435" />
         </svg>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Rituals;
