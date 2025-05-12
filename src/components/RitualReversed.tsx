@@ -33,50 +33,18 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                   <clipPath id="starMask" clipPathUnits="objectBoundingBox">
                     <path d="M0.897 0.363L0.784 0.318C0.734 0.305 0.69 0.272 0.667 0.232C0.662 0.223 0.657 0.214 0.654 0.204L0.626 0.094C0.613 0.04 0.553 0.003 0.5 0.003C0.446 0.003 0.386 0.04 0.373 0.094L0.344 0.204C0.341 0.214 0.337 0.223 0.332 0.232C0.309 0.272 0.265 0.305 0.215 0.318L0.102 0.363C0.03 0.39 0.001 0.441 0.001 0.497C0.001 0.563 0.032 0.604 0.101 0.635L0.225 0.677C0.258 0.685 0.29 0.702 0.311 0.726C0.324 0.74 0.334 0.757 0.339 0.776L0.373 0.906C0.386 0.96 0.446 0.997 0.5 0.997C0.553 0.997 0.613 0.96 0.626 0.906L0.66 0.776C0.664 0.763 0.669 0.751 0.676 0.741C0.697 0.709 0.734 0.686 0.774 0.677L0.898 0.635C0.967 0.604 0.998 0.563 0.998 0.497C0.998 0.441 0.969 0.39 0.897 0.363Z" />
                   </clipPath>
-                  {/* Inner stroke path - slightly smaller than the clip path */}
-                  <path id="starInnerStrokeMobile" d="M0.897 0.363L0.784 0.318C0.734 0.305 0.69 0.272 0.667 0.232C0.662 0.223 0.657 0.214 0.654 0.204L0.626 0.094C0.613 0.04 0.553 0.003 0.5 0.003C0.446 0.003 0.386 0.04 0.373 0.094L0.344 0.204C0.341 0.214 0.337 0.223 0.332 0.232C0.309 0.272 0.265 0.305 0.215 0.318L0.102 0.363C0.03 0.39 0.001 0.441 0.001 0.497C0.001 0.563 0.032 0.604 0.101 0.635L0.225 0.677C0.258 0.685 0.29 0.702 0.311 0.726C0.324 0.74 0.334 0.757 0.339 0.776L0.373 0.906C0.386 0.96 0.446 0.997 0.5 0.997C0.553 0.997 0.613 0.96 0.626 0.906L0.66 0.776C0.664 0.763 0.669 0.751 0.676 0.741C0.697 0.709 0.734 0.686 0.774 0.677L0.898 0.635C0.967 0.604 0.998 0.563 0.998 0.497C0.998 0.441 0.969 0.39 0.897 0.363Z" />
                 </defs>
               </svg>
               
-              <div className="w-full h-full relative">
-                {/* Image with clip path */}
-                <img 
-                  src={imageSrc} 
-                  alt={imageAlt} 
-                  className="object-cover w-full h-full" 
-                  style={{
-                    clipPath: "url(#starMask)",
-                    WebkitClipPath: "url(#starMask)"
-                  }} 
-                />
-                
-                {/* Inner stroke overlay - positioned on top with higher z-index */}
-                <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-                  <svg 
-                    viewBox="0 0 100 100" 
-                    className="w-[calc(100%-4px)] h-[calc(100%-4px)]" 
-                    style={{
-                      position: 'absolute',
-                      top: '2px',
-                      left: '2px',
-                      right: '2px',
-                      bottom: '2px'
-                    }}
-                  >
-                    <path 
-                      d="M89.7 36.3L78.4 31.8C73.4 30.5 69 27.2 66.7 23.2L62.6 9.4C61.3 4 55.3 0.3 50 0.3C44.6 0.3 38.6 4 37.3 9.4L33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3 39 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29 70.2 31.1 72.6C32.4 74 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96 44.6 99.7 50 99.7C55.3 99.7 61.3 96 62.6 90.6L66 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39 89.7 36.3Z"
-                      fill="none" 
-                      stroke="white" 
-                      strokeWidth="1" 
-                      vectorEffect="non-scaling-stroke" 
-                      style={{
-                        clipPath: "url(#starMask)",
-                        WebkitClipPath: "url(#starMask)"
-                      }}
-                    />
-                  </svg>
-                </div>
-              </div>
+              <img 
+                src={imageSrc} 
+                alt={imageAlt} 
+                className="object-cover w-full h-full" 
+                style={{
+                  clipPath: "url(#starMask)",
+                  WebkitClipPath: "url(#starMask)"
+                }} 
+              />
             </div>
           </AspectRatio>
         </div>
@@ -135,51 +103,18 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                 <clipPath id="starMaskReversed" clipPathUnits="objectBoundingBox">
                   <path transform="rotate(45, 0.5, 0.5)" d="M0.897 0.363L0.784 0.318C0.734 0.305 0.69 0.272 0.667 0.232C0.662 0.223 0.657 0.214 0.654 0.204L0.626 0.094C0.613 0.04 0.553 0.003 0.5 0.003C0.446 0.003 0.386 0.04 0.373 0.094L0.344 0.204C0.341 0.214 0.337 0.223 0.332 0.232C0.309 0.272 0.265 0.305 0.215 0.318L0.102 0.363C0.03 0.39 0.001 0.441 0.001 0.497C0.001 0.563 0.032 0.604 0.101 0.635L0.225 0.677C0.258 0.685 0.29 0.702 0.311 0.726C0.324 0.74 0.334 0.757 0.339 0.776L0.373 0.906C0.386 0.96 0.446 0.997 0.5 0.997C0.553 0.997 0.613 0.96 0.626 0.906L0.66 0.776C0.664 0.763 0.669 0.751 0.676 0.741C0.697 0.709 0.734 0.686 0.774 0.677L0.898 0.635C0.967 0.604 0.998 0.563 0.998 0.497C0.998 0.441 0.969 0.39 0.897 0.363Z" />
                 </clipPath>
-                {/* Inner stroke path - same path with 45 degree rotation */}
-                <path id="starInnerStrokeReversed" transform="rotate(45, 0.5, 0.5)" d="M0.897 0.363L0.784 0.318C0.734 0.305 0.69 0.272 0.667 0.232C0.662 0.223 0.657 0.214 0.654 0.204L0.626 0.094C0.613 0.04 0.553 0.003 0.5 0.003C0.446 0.003 0.386 0.04 0.373 0.094L0.344 0.204C0.341 0.214 0.337 0.223 0.332 0.232C0.309 0.272 0.265 0.305 0.215 0.318L0.102 0.363C0.03 0.39 0.001 0.441 0.001 0.497C0.001 0.563 0.032 0.604 0.101 0.635L0.225 0.677C0.258 0.685 0.29 0.702 0.311 0.726C0.324 0.74 0.334 0.757 0.339 0.776L0.373 0.906C0.386 0.96 0.446 0.997 0.5 0.997C0.553 0.997 0.613 0.96 0.626 0.906L0.66 0.776C0.664 0.763 0.669 0.751 0.676 0.741C0.697 0.709 0.734 0.686 0.774 0.677L0.898 0.635C0.967 0.604 0.998 0.563 0.998 0.497C0.998 0.441 0.969 0.39 0.897 0.363Z" />
               </defs>
             </svg>
             
-            <div className="w-full h-full relative">
-              {/* Image with clip path */}
-              <img 
-                src={imageSrc} 
-                alt={imageAlt} 
-                className="object-cover w-full h-full" 
-                style={{
-                  clipPath: "url(#starMaskReversed)",
-                  WebkitClipPath: "url(#starMaskReversed)"
-                }} 
-              />
-              
-              {/* Inner stroke overlay - positioned on top with higher z-index */}
-              <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-                <svg 
-                  viewBox="0 0 100 100" 
-                  className="w-[calc(100%-4px)] h-[calc(100%-4px)]" 
-                  style={{
-                    position: 'absolute',
-                    top: '2px',
-                    left: '2px',
-                    right: '2px',
-                    bottom: '2px'
-                  }}
-                >
-                  <path 
-                    transform="rotate(45, 50, 50)"
-                    d="M89.7 36.3L78.4 31.8C73.4 30.5 69 27.2 66.7 23.2L62.6 9.4C61.3 4 55.3 0.3 50 0.3C44.6 0.3 38.6 4 37.3 9.4L33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3 39 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29 70.2 31.1 72.6C32.4 74 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96 44.6 99.7 50 99.7C55.3 99.7 61.3 96 62.6 90.6L66 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39 89.7 36.3Z"
-                    fill="none" 
-                    stroke="white" 
-                    strokeWidth="1" 
-                    vectorEffect="non-scaling-stroke" 
-                    style={{
-                      clipPath: "url(#starMaskReversed)",
-                      WebkitClipPath: "url(#starMaskReversed)"
-                    }}
-                  />
-                </svg>
-              </div>
-            </div>
+            <img 
+              src={imageSrc} 
+              alt={imageAlt} 
+              className="object-cover w-full h-full" 
+              style={{
+                clipPath: "url(#starMaskReversed)",
+                WebkitClipPath: "url(#starMaskReversed)"
+              }} 
+            />
           </div>
         </AspectRatio>
       </div>
