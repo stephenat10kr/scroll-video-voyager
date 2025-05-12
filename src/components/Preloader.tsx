@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -243,7 +244,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       style={{ backgroundColor: "#203435" }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 300x400px rectangle (changed from 200x200px) */}
+        {/* Chladni Pattern in 300x400px rectangle */}
         <div className="w-[300px] h-[400px] relative mb-4">
           <canvas 
             ref={canvasRef}
@@ -259,7 +260,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
         
         <div className="flex items-baseline gap-2">
-          <span className="font-gt-super text-title-md-mobile md:text-title-md text-coral">
+          <span 
+            className="font-gt-super text-coral" 
+            style={{ fontSize: "32px" }}
+          >
             {Math.round(progress)}%
           </span>
         </div>
