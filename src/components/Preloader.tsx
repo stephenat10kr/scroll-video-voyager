@@ -245,14 +245,14 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     const canvas = canvasRef.current;
     if (canvas) {
       // Touch events help prevent context loss on some mobile devices
-      const preventContextLoss = (e: Event) => {
+      const preventContextLossHandler = (e: Event) => {
         e.preventDefault();
         // This empty handler helps keep the WebGL context active
       };
       
-      canvas.addEventListener('touchstart', preventContextLoss, { passive: false });
-      canvas.addEventListener('touchmove', preventContextLoss, { passive: false });
-      canvas.addEventListener('touchend', preventContextLoss, { passive: false });
+      canvas.addEventListener('touchstart', preventContextLossHandler, { passive: false });
+      canvas.addEventListener('touchmove', preventContextLossHandler, { passive: false });
+      canvas.addEventListener('touchend', preventContextLossHandler, { passive: false });
     }
     
     const success = setupWebGL();
@@ -268,9 +268,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       
       // Remove event listeners
       if (canvas) {
-        canvas.removeEventListener('touchstart', preventContextLoss as EventListener);
-        canvas.removeEventListener('touchmove', preventContextLoss as EventListener);
-        canvas.removeEventListener('touchend', preventContextLoss as EventListener);
+        const preventContextLossHandler = (e: Event) => { e.preventDefault(); };
+        canvas.removeEventListener('touchstart', preventContextLossHandler as EventListener);
+        canvas.removeEventListener('touchmove', preventContextLossHandler as EventListener);
+        canvas.removeEventListener('touchend', preventContextLossHandler as EventListener);
       }
       
       // Clean up WebGL resources
@@ -308,7 +309,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
               willChange: 'transform', // Performance optimization for mobile
               transform: 'translateZ(0)', // Force GPU acceleration
               touchAction: 'none', // Prevent browser handling of touch gestures
-              webkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
+              WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
             }}
           />
         </div>
