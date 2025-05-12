@@ -20,24 +20,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const frameIdRef = useRef<number | null>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
   const isMobile = useIsMobile();
-
-  // Track mouse position
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: e.clientX / window.innerWidth,
-        y: e.clientY / window.innerHeight,
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
 
   // Change text every 3 seconds
   useEffect(() => {
@@ -72,16 +55,12 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         return false;
       }
       
-      // Set canvas to match window size
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // Set canvas size to 300x400 (changed from 200x200)
+      canvas.width = 300;
+      canvas.height = 400;
       
       // Initialize WebGL
-      const gl = canvas.getContext('webgl', { 
-        premultipliedAlpha: false, // Try to fix transparency issues
-        preserveDrawingBuffer: true // Prevent clearing the buffer prematurely
-      });
-      
+      const gl = canvas.getContext('webgl');
       if (!gl) {
         console.error('WebGL not supported');
         return false;
@@ -106,7 +85,6 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         precision mediump float;
         uniform vec2 u_resolution;
         uniform float u_time;
-        uniform vec2 u_mouse;
         uniform bool u_isMobile;
         
         void main(void) {
@@ -121,30 +99,26 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
           vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
 
-          // Use mouse position to influence the pattern
-          float mx = u_mouse.x;
-          float my = u_mouse.y; 
-          
           // Create time variation
           float tx = sin(u_time * 0.2) * 0.1; 
           float ty = cos(u_time * 0.3) * 0.1;
 
-          // Parameters for the pattern - influenced by mouse
-          float a = mix(s1.x, s2.x, clamp(mx + tx, 0.0, 1.0));
-          float b = mix(s1.y, s2.y, clamp(mx + tx, 0.0, 1.0));
-          float n = mix(s1.z, s2.z, clamp(my + ty, 0.0, 1.0));
-          float m = mix(s1.w, s2.w, clamp(my + ty, 0.0, 1.0));
+          // Parameters for the pattern
+          float a = mix(s1.x, s2.x, clamp(0.5 + tx, 0.0, 1.0));
+          float b = mix(s1.y, s2.y, clamp(0.5 + tx, 0.0, 1.0));
+          float n = mix(s1.z, s2.z, clamp(0.5 + ty, 0.0, 1.0));
+          float m = mix(s1.w, s2.w, clamp(0.5 + ty, 0.0, 1.0));
 
           // Create the pattern
           float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
                       b * sin(PI * m * p.x) * sin(PI * n * p.y);
           
           // Create defined pattern edges
-          float threshold = u_isMobile ? 0.08 : 0.05;
+          float threshold = u_isMobile ? 0.12 : 0.05;
           float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
           
-          // Set opacity (0.7 for more visibility, especially on mobile)
-          gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.7);
+          // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
+          gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
         }
       `;
       
@@ -208,7 +182,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         const currentTime = Date.now();
         const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
         
-        // Clear and set viewport with a specific background color
+        // Clear and set viewport
         gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
         gl.clear(gl.COLOR_BUFFER_BIT);
         
@@ -219,13 +193,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
         const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
         const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
-        const mouseUniformLocation = gl.getUniformLocation(program, 'u_mouse');
         const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
         
         // Set uniforms
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
         gl.uniform1f(timeUniformLocation, elapsedTime);
-        gl.uniform2f(mouseUniformLocation, mousePosition.x, mousePosition.y);
         gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
         
         // Set up attributes
@@ -236,7 +208,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         // Draw
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         
-        // Request next frame - continue animation even on mobile
+        // Request next frame
         frameIdRef.current = requestAnimationFrame(render);
       };
       
@@ -245,9 +217,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       return true;
     };
 
-    // Initialize WebGL immediately
     const success = setupWebGL();
-    console.log("WebGL setup success:", success);
     
     // Cleanup function
     return () => {
@@ -264,67 +234,29 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }
       }
     };
-  }, [isMobile, mousePosition]); // Added mousePosition and isMobile as dependencies
-
-  // Update canvas size on window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (canvasRef.current && glRef.current) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
-        glRef.current.viewport(0, 0, window.innerWidth, window.innerHeight);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // For touch devices, set a default mouse position or track touch position
-  useEffect(() => {
-    if (isMobile) {
-      const handleTouchMove = (e: TouchEvent) => {
-        if (e.touches && e.touches[0]) {
-          setMousePosition({
-            x: e.touches[0].clientX / window.innerWidth,
-            y: e.touches[0].clientY / window.innerHeight
-          });
-        }
-      };
-      
-      // Set initial touch position to center
-      setMousePosition({ x: 0.5, y: 0.5 });
-      
-      window.addEventListener('touchmove', handleTouchMove);
-      return () => window.removeEventListener('touchmove', handleTouchMove);
-    }
   }, [isMobile]);
 
   return (
     <div
-      className={`fixed inset-0 z-40 flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 bg-darkGreen flex flex-col items-center justify-center transition-opacity duration-500 ${
         visible ? "opacity-100" : "opacity-0"
       }`}
       style={{ backgroundColor: "#203435" }}
     >
-      {/* Fullscreen canvas with important styling to ensure it stays visible */}
-      <canvas 
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ 
-          backgroundColor: '#203435',
-          position: 'fixed', // Ensure it stays fixed
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          display: 'block', // Prevent layout issues
-          zIndex: 0
-        }}
-      />
-      
-      {/* Loading text container positioned at the bottom center */}
-      <div className="absolute bottom-12 px-4 text-center w-full z-10">
+      <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
+        {/* Chladni Pattern in 300x400px rectangle */}
+        <div className="w-[300px] h-[400px] relative mb-4">
+          <canvas 
+            ref={canvasRef}
+            className="absolute inset-0"
+            style={{ 
+              width: '300px', 
+              height: '400px',
+              backgroundColor: '#203435'
+            }}
+          />
+        </div>
+        
         {/* Loading text and percentage side by side */}
         <div className="flex items-center justify-center gap-4 w-full">
           <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
