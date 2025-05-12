@@ -19,14 +19,14 @@ export const CustomPrevButton = ({ onClick, className }: CustomButtonProps) => (
         cy="28" 
         r="27.5" 
         transform="rotate(-180 28 28)" 
-        stroke="#FFB577" 
+        stroke={colors.coral} 
         className="group-hover:fill-[#FFB577]"
       />
       <path 
         d="M26 34.75L19.5 28.25L26 21.75M20 28.25L36.5 28.25" 
-        stroke="#FFB577" 
+        stroke={colors.coral} 
         strokeLinecap="square"
-        className="group-hover:stroke-[#448386]"
+        className="group-hover:stroke-[#203435]"
       />
     </svg>
   </button>
@@ -43,14 +43,14 @@ export const CustomNextButton = ({ onClick, className }: CustomButtonProps) => (
         cx="28" 
         cy="28" 
         r="27.5" 
-        stroke="#FFB577"
+        stroke={colors.coral}
         className="group-hover:fill-[#FFB577]"
       />
       <path 
         d="M30 21.25L36.5 27.75L30 34.25M36 27.75H19.5" 
-        stroke="#FFB577" 
+        stroke={colors.coral} 
         strokeLinecap="square"
-        className="group-hover:stroke-[#448386]"
+        className="group-hover:stroke-[#203435]"
       />
     </svg>
   </button>
