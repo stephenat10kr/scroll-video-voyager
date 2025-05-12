@@ -13,34 +13,21 @@ export const CustomPrevButton = ({ onClick, className }: CustomButtonProps) => (
     className={`relative group transition-all duration-300 ${className || ''}`}
     aria-label="Previous slide"
   >
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clipPath="url(#clip0_6492_11821)">
-        <g clipPath="url(#clip1_6492_11821)">
-          <rect width="16" height="16" transform="translate(16 16)" fill="transparent" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
-          <path 
-            d="M26 20L22 24L26 28" 
-            stroke={colors.coral} 
-            className="group-hover:stroke-[#203435] transition-all duration-300"
-          />
-        </g>
-      </g>
-      <rect 
-        x="0.5" 
-        y="0.5" 
-        width="47" 
-        height="47" 
-        rx="23.5" 
-        stroke={colors.coral}
-        className="group-hover:fill-[#FFB577] group-hover:stroke-[#FFB577] transition-all duration-300"
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle 
+        cx="28" 
+        cy="28" 
+        r="27.5" 
+        transform="rotate(-180 28 28)" 
+        stroke="#FFB577" 
+        className="group-hover:fill-[#FFB577]"
       />
-      <defs>
-        <clipPath id="clip0_6492_11821">
-          <rect width="48" height="48" rx="24" fill="white"/>
-        </clipPath>
-        <clipPath id="clip1_6492_11821">
-          <rect width="16" height="16" fill="white" transform="translate(16 16)"/>
-        </clipPath>
-      </defs>
+      <path 
+        d="M26 34.75L19.5 28.25L26 21.75M20 28.25L36.5 28.25" 
+        stroke="#FFB577" 
+        strokeLinecap="square"
+        className="group-hover:stroke-[#448386]"
+      />
     </svg>
   </button>
 );
@@ -51,34 +38,20 @@ export const CustomNextButton = ({ onClick, className }: CustomButtonProps) => (
     className={`relative group transition-all duration-300 ${className || ''}`}
     aria-label="Next slide"
   >
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clipPath="url(#clip0_6492_11822)">
-        <g clipPath="url(#clip1_6492_11822)">
-          <rect width="16" height="16" transform="translate(16 16)" fill="transparent" fillOpacity="0.01" style={{mixBlendMode:"multiply"}}/>
-          <path 
-            d="M22 28L26 24L22 20" 
-            stroke={colors.coral} 
-            className="group-hover:stroke-[#203435] transition-all duration-300"
-          />
-        </g>
-      </g>
-      <rect 
-        x="0.5" 
-        y="0.5" 
-        width="47" 
-        height="47" 
-        rx="23.5" 
-        stroke={colors.coral}
-        className="group-hover:fill-[#FFB577] group-hover:stroke-[#FFB577] transition-all duration-300"
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle 
+        cx="28" 
+        cy="28" 
+        r="27.5" 
+        stroke="#FFB577"
+        className="group-hover:fill-[#FFB577]"
       />
-      <defs>
-        <clipPath id="clip0_6492_11822">
-          <rect width="48" height="48" rx="24" fill="white"/>
-        </clipPath>
-        <clipPath id="clip1_6492_11822">
-          <rect width="16" height="16" fill="white" transform="translate(16 16)"/>
-        </clipPath>
-      </defs>
+      <path 
+        d="M30 21.25L36.5 27.75L30 34.25M36 27.75H19.5" 
+        stroke="#FFB577" 
+        strokeLinecap="square"
+        className="group-hover:stroke-[#448386]"
+      />
     </svg>
   </button>
 );

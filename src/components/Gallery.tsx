@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
@@ -144,17 +143,17 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
                 ))}
               </CarouselContent>
             </Carousel>
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center mt-6">
               <div className="text-body-sm md:text-body-sm text-[#FFF4F1]">
                 {currentCaption}
               </div>
               <div className="flex gap-4">
-                <CustomPrevButton onClick={scrollPrev} className="bg-transparent hover:bg-transparent" />
-                <CustomNextButton onClick={scrollNext} className="bg-transparent hover:bg-transparent" />
+                <CustomPrevButton onClick={scrollPrev} />
+                <CustomNextButton onClick={scrollNext} />
               </div>
             </div>
           </div>
-          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-[#FFF4F1]">
+          <div className="col-span-12 md:col-start-5 md:col-end-13 space-y-6 text-[#FFF4F1] mt-8 md:mt-12">
             <p className="body-text">{description}</p>
             <a 
               href={mapUrl}
