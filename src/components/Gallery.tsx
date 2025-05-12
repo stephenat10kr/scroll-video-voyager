@@ -145,7 +145,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
               </CarouselContent>
             </Carousel>
             <div className="flex justify-between items-center mt-4">
-              <div className="body-text text-[#FFF4F1]">
+              <div className="text-body-sm md:text-body-sm text-[#FFF4F1]">
                 {currentCaption}
               </div>
               <div className="flex gap-4">

@@ -22,7 +22,7 @@ const Footer = () => {
             <Linkedin className="w-6 h-6 text-[#FFF4F1] hover:text-[#FFF4F1]/80 transition-colors" />
           </Link>
         </div>
-        <span className="text-[#FFF4F1] text-sm font-sans">
+        <span className="text-body-sm-mobile md:text-body-sm text-[#FFF4F1]">
           © Lightning Society 2025
         </span>
       </div>

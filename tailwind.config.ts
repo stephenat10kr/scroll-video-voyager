@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,6 +65,16 @@ export default {
 				}],
 				'body-mobile': ['18px', {
 					lineHeight: '1.6',
+					fontWeight: '400',
+				}],
+				
+				// Body-Sm
+				'body-sm': ['16px', {
+					lineHeight: '1.4',
+					fontWeight: '400',
+				}],
+				'body-sm-mobile': ['14px', {
+					lineHeight: '1.4',
 					fontWeight: '400',
 				}],
 			},
