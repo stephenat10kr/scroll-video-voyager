@@ -55,12 +55,12 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         return false;
       }
       
-      // Set canvas size to 300x400 (changed from 200x200)
+      // Set canvas size to 300x400
       canvas.width = 300;
       canvas.height = 400;
       
-      // Initialize WebGL
-      const gl = canvas.getContext('webgl');
+      // Initialize WebGL with preserveDrawingBuffer to prevent disappearing on mobile
+      const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: true });
       if (!gl) {
         console.error('WebGL not supported');
         return false;
@@ -93,7 +93,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
           // Scale factor for mobile - increased from 2.0 to 3.5
           float scaleFactor = u_isMobile ? 3.5 : 1.0;
-          p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
+          p = p * scaleFactor; // Scale the coordinates
 
           // Using fixed vector values for the preloader
           vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
@@ -113,12 +113,14 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
                       b * sin(PI * m * p.x) * sin(PI * n * p.y);
           
-          // Create defined pattern edges
-          float threshold = u_isMobile ? 0.12 : 0.05;
+          // Create defined pattern edges - using the same threshold for mobile and desktop
+          // to make the pattern more visible on mobile
+          float threshold = 0.08;
           float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
           
-          // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
-          gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
+          // Set opacity to make the pattern more visible on mobile
+          float opacity = u_isMobile ? 0.7 : 0.5;
+          gl_FragColor = vec4(1.0, 1.0, 1.0, col * opacity);
         }
       `;
       
@@ -184,7 +186,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         
         // Clear and set viewport
         gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear both color and depth buffers
         
         // Use the program
         gl.useProgram(program);
@@ -244,7 +246,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       style={{ backgroundColor: "#203435" }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 300x400px rectangle */}
+        {/* Chladni Pattern in 300x400px rectangle with enhanced mobile visibility */}
         <div className="w-[300px] h-[400px] relative mb-4">
           <canvas 
             ref={canvasRef}
@@ -252,7 +254,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
             style={{ 
               width: '300px', 
               height: '400px',
-              backgroundColor: '#203435'
+              backgroundColor: '#203435',
+              willChange: 'transform', // Performance optimization for mobile
+              transform: 'translateZ(0)' // Force GPU acceleration
             }}
           />
         </div>
