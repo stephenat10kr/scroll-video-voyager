@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -20,7 +19,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const frameIdRef = useRef<number | null>(null);
+  const programRef = useRef<WebGLProgram | null>(null);
   const isMobile = useIsMobile();
+  const renderingActiveRef = useRef(true);
 
   // Change text every 3 seconds
   useEffect(() => {
@@ -35,17 +36,22 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   useEffect(() => {
     if (progress >= 100) {
       const timeout = setTimeout(() => {
-        setVisible(false);
+        // Keep rendering active until fully faded out
         const fadeOutTimeout = setTimeout(() => {
-          onComplete();
-        }, 500); // Allow time for fade out animation
+          renderingActiveRef.current = false;
+          setVisible(false);
+          const completeTimeout = setTimeout(() => {
+            onComplete();
+          }, 500); // Allow time for fade out animation
+          return () => clearTimeout(completeTimeout);
+        }, 500); 
         return () => clearTimeout(fadeOutTimeout);
       }, 1000); // Wait a moment at 100% before fading
       return () => clearTimeout(timeout);
     }
   }, [progress, onComplete]);
 
-  // Setup WebGL for Chladni Pattern
+  // Setup WebGL for Chladni Pattern with enhanced mobile support
   useEffect(() => {
     const setupWebGL = () => {
       const canvas = canvasRef.current;
@@ -59,8 +65,16 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       canvas.width = 300;
       canvas.height = 400;
       
-      // Initialize WebGL with preserveDrawingBuffer to prevent disappearing on mobile
-      const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: true });
+      // Initialize WebGL with optimizations for mobile
+      const gl = canvas.getContext('webgl', { 
+        preserveDrawingBuffer: true, 
+        antialias: true,
+        alpha: false, // Disable alpha channel for better performance
+        depth: true,  // Enable depth buffer
+        stencil: false, // Disable stencil buffer for better performance
+        failIfMajorPerformanceCaveat: false, // Try to render even on low-end devices
+      });
+      
       if (!gl) {
         console.error('WebGL not supported');
         return false;
@@ -72,6 +86,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       // Enable alpha blending for transparency
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      
+      // Enable depth test to help with rendering
+      gl.enable(gl.DEPTH_TEST);
       
       // Create shader program
       const vertexShaderSource = `
@@ -91,17 +108,17 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           const float PI = 3.14159265;
           vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-          // Scale factor for mobile - increased from 2.0 to 3.5
-          float scaleFactor = u_isMobile ? 3.5 : 1.0;
-          p = p * scaleFactor; // Scale the coordinates
+          // Scale factor for mobile - increased for better visibility
+          float scaleFactor = u_isMobile ? 3.0 : 1.0;
+          p = p * scaleFactor; 
 
           // Using fixed vector values for the preloader
           vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
           vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
 
           // Create time variation
-          float tx = sin(u_time * 0.2) * 0.1; 
-          float ty = cos(u_time * 0.3) * 0.1;
+          float tx = sin(u_time * 0.15) * 0.1; 
+          float ty = cos(u_time * 0.25) * 0.1;
 
           // Parameters for the pattern
           float a = mix(s1.x, s2.x, clamp(0.5 + tx, 0.0, 1.0));
@@ -109,17 +126,16 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           float n = mix(s1.z, s2.z, clamp(0.5 + ty, 0.0, 1.0));
           float m = mix(s1.w, s2.w, clamp(0.5 + ty, 0.0, 1.0));
 
-          // Create the pattern
+          // Create the pattern - simplified for performance on mobile
           float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
                       b * sin(PI * m * p.x) * sin(PI * n * p.y);
           
-          // Create defined pattern edges - using the same threshold for mobile and desktop
-          // to make the pattern more visible on mobile
-          float threshold = 0.08;
+          // Create more visible pattern edges
+          float threshold = u_isMobile ? 0.1 : 0.08;
           float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
           
-          // Set opacity to make the pattern more visible on mobile
-          float opacity = u_isMobile ? 0.7 : 0.5;
+          // Higher opacity for mobile
+          float opacity = u_isMobile ? 0.9 : 0.6;
           gl_FragColor = vec4(1.0, 1.0, 1.0, col * opacity);
         }
       `;
@@ -161,6 +177,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         console.error('Program linking error:', gl.getProgramInfoLog(program));
         return false;
       }
+
+      // Store program reference
+      programRef.current = program;
       
       // Set up buffers
       const positionBuffer = gl.createBuffer();
@@ -179,14 +198,14 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       let startTime = Date.now();
       
       const render = () => {
-        if (!gl || !program) return;
+        if (!gl || !program || !renderingActiveRef.current) return;
         
         const currentTime = Date.now();
         const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
         
         // Clear and set viewport
         gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear both color and depth buffers
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         
         // Use the program
         gl.useProgram(program);
@@ -210,26 +229,57 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         // Draw
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         
-        // Request next frame
-        frameIdRef.current = requestAnimationFrame(render);
+        // Request next frame - only if we're still active
+        if (renderingActiveRef.current) {
+          frameIdRef.current = requestAnimationFrame(render);
+        }
       };
       
       // Start rendering
+      renderingActiveRef.current = true;
       render();
       return true;
     };
 
+    // Add event listeners to keep the WebGL context alive on mobile
+    const canvas = canvasRef.current;
+    if (canvas) {
+      // Touch events help prevent context loss on some mobile devices
+      const preventContextLoss = (e: Event) => {
+        e.preventDefault();
+        // This empty handler helps keep the WebGL context active
+      };
+      
+      canvas.addEventListener('touchstart', preventContextLoss, { passive: false });
+      canvas.addEventListener('touchmove', preventContextLoss, { passive: false });
+      canvas.addEventListener('touchend', preventContextLoss, { passive: false });
+    }
+    
     const success = setupWebGL();
     
     // Cleanup function
     return () => {
+      // Set rendering inactive to stop animation loop
+      renderingActiveRef.current = false;
+      
       if (frameIdRef.current !== null) {
         cancelAnimationFrame(frameIdRef.current);
+      }
+      
+      // Remove event listeners
+      if (canvas) {
+        canvas.removeEventListener('touchstart', preventContextLoss as EventListener);
+        canvas.removeEventListener('touchmove', preventContextLoss as EventListener);
+        canvas.removeEventListener('touchend', preventContextLoss as EventListener);
       }
       
       // Clean up WebGL resources
       const gl = glRef.current;
       if (gl) {
+        if (programRef.current) {
+          gl.deleteProgram(programRef.current);
+        }
+        
         const loseContext = gl.getExtension('WEBGL_lose_context');
         if (loseContext) {
           loseContext.loseContext();
@@ -256,7 +306,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
               height: '400px',
               backgroundColor: '#203435',
               willChange: 'transform', // Performance optimization for mobile
-              transform: 'translateZ(0)' // Force GPU acceleration
+              transform: 'translateZ(0)', // Force GPU acceleration
+              touchAction: 'none', // Prevent browser handling of touch gestures
+              webkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
             }}
           />
         </div>
