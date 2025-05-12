@@ -44,6 +44,10 @@ export default function Form({
     }
     
     try {
+      // Get the current domain
+      const domain = window.location.hostname;
+      console.log("Submitting to HubSpot with domain:", domain);
+      
       const response = await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${hubspotPortalId}/${hubspotFormId}`, {
         method: 'POST',
         headers: {
@@ -66,12 +70,21 @@ export default function Form({
           ],
           context: {
             pageUri: window.location.href,
-            pageName: document.title
+            pageName: document.title,
+            hutk: document.cookie.replace(/(?:(?:^|.*;\s*)hubspotutk\s*\=\s*([^;]*).*$)|^.*$/, "$1") || undefined
+          },
+          // Add this to prevent the submissions from being marked as spam
+          legalConsentOptions: {
+            consent: {
+              consentToProcess: true,
+              text: "I agree to allow the site to store and process my personal data."
+            }
           }
         })
       });
       
       const result = await response.json();
+      console.log("HubSpot response:", result);
       return response.ok;
     } catch (error) {
       console.error("Error submitting to HubSpot:", error);
