@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -117,7 +116,8 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
           // Scale factor for mobile - increased for better visibility
-          float scaleFactor = u_isMobile ? 3.0 : 1.0;
+          // Apply 2x scaling (0.5) to make the pattern appear larger
+          float scaleFactor = u_isMobile ? 1.5 : 0.5;
           p = p * scaleFactor; 
 
           // Using fixed vector values for the preloader
