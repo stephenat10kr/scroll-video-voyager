@@ -37,16 +37,18 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
       const rect = containerRef.current.getBoundingClientRect();
       const isFullyVisible = 
         rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= window.innerHeight &&
-        rect.right <= window.innerWidth;
+        rect.bottom <= window.innerHeight;
         
       const isPartiallyVisible =
         rect.top < window.innerHeight &&
         rect.bottom > 0;
       
-      // If component is visible and we're not at the last section, prevent default scrolling
-      if (isPartiallyVisible && activeSection < sections.length - 1) {
+      // If component is fully visible and we're not at the last section, prevent default scrolling
+      if (isFullyVisible && activeSection < sections.length - 1) {
+        e.preventDefault();
+      }
+      // If component is partially visible but we haven't reached the end, prevent scroll
+      else if (isPartiallyVisible && activeSection === sections.length - 1 && !hasReachedEnd) {
         e.preventDefault();
       }
     };
@@ -55,7 +57,7 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
     return () => {
       window.removeEventListener('wheel', handleGlobalWheel);
     };
-  }, [activeSection, sections.length]);
+  }, [activeSection, sections.length, hasReachedEnd]);
 
   return (
     <div 

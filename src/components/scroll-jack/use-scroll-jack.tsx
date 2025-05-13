@@ -26,24 +26,36 @@ export function useScrollJack({
   const [hasReachedEnd, setHasReachedEnd] = useState<boolean>(false);
   const [hasViewedAllSections, setHasViewedAllSections] = useState<boolean>(false);
   const [isComponentVisible, setIsComponentVisible] = useState<boolean>(false);
+  const [isFullyVisible, setIsFullyVisible] = useState<boolean>(false);
   const [hasPassedAllSections, setHasPassedAllSections] = useState<boolean>(false);
 
   // Setup Intersection Observer to detect when component enters/exits viewport
   useEffect(() => {
     if (!containerRef.current) return;
     
-    const observer = new IntersectionObserver(
+    // Observer for detecting any visibility
+    const partialObserver = new IntersectionObserver(
       ([entry]) => {
         setIsComponentVisible(entry.isIntersecting);
       },
       { threshold: 0.1 }
     );
     
-    observer.observe(containerRef.current);
+    // Observer for detecting full visibility
+    const fullObserver = new IntersectionObserver(
+      ([entry]) => {
+        setIsFullyVisible(entry.isIntersecting);
+      },
+      { threshold: 0.95 } // High threshold to ensure component is almost fully visible
+    );
+    
+    partialObserver.observe(containerRef.current);
+    fullObserver.observe(containerRef.current);
     
     return () => {
       if (containerRef.current) {
-        observer.unobserve(containerRef.current);
+        partialObserver.unobserve(containerRef.current);
+        fullObserver.unobserve(containerRef.current);
       }
     };
   }, [containerRef]);
@@ -88,14 +100,15 @@ export function useScrollJack({
       return;
     }
     
-    // If component is not in view, let normal scrolling happen
-    if (!isComponentVisible) {
+    // Only take over scrolling when the component is fully visible
+    if (!isFullyVisible) {
       return;
     }
     
     // Allow normal scrolling to resume only when:
-    // 1. We've viewed the last section
-    // 2. User is scrolling down (to continue past the component)
+    // 1. We've viewed all sections
+    // 2. We're at the last section
+    // 3. User is scrolling down (to continue past the component)
     if (hasPassedAllSections && activeSection === sectionCount - 1 && event.deltaY > 0) {
       return; // Don't prevent default - let normal scrolling take over
     }
@@ -110,7 +123,7 @@ export function useScrollJack({
       // Scrolling up
       goToSection(activeSection - 1, 'up');
     }
-  }, [activeSection, isAnimating, sectionCount, isComponentVisible, goToSection, hasPassedAllSections]);
+  }, [activeSection, isAnimating, sectionCount, isFullyVisible, goToSection, hasPassedAllSections]);
 
   const handleSectionChange = useCallback((sectionIndex: number) => {
     const direction = sectionIndex > activeSection ? 'down' : 'up';
