@@ -12,7 +12,7 @@ export const useScrollJack = ({
   containerRef, 
   sectionRefs, 
   onComplete,
-  threshold = 0.1 // Lower threshold to trigger earlier
+  threshold = 0.1
 }: UseScrollJackProps) => {
   // Core state
   const [isActive, setIsActive] = useState(false);
@@ -26,15 +26,13 @@ export const useScrollJack = ({
   const isActivatedRef = useRef(false);
   
   // Constants
-  const SCROLL_THROTTLE = 700; // Increased for smoother transitions
+  const SCROLL_THROTTLE = 700; // Time between scroll events
   
   // Reset everything when component unmounts or changes
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
-      if (window.scrollLockEvent) {
-        window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-      }
+      window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
       hasStartedRef.current = false;
       isActivatedRef.current = false;
       setCompleted(false);
@@ -43,7 +41,7 @@ export const useScrollJack = ({
     };
   }, [containerRef, sectionRefs]);
   
-  // Create intersection observer to detect when container is visible
+  // Create intersection observer to detect when container is at the top of viewport
   useEffect(() => {
     if (!containerRef.current || sectionRefs.length === 0) return;
     
@@ -51,8 +49,8 @@ export const useScrollJack = ({
       (entries) => {
         const [entry] = entries;
         
-        // Activate when container comes into view at the top of the viewport
-        if (entry.isIntersecting && entry.boundingClientRect.top <= 0) {
+        // Only activate when container reaches top of viewport
+        if (entry.isIntersecting && entry.boundingClientRect.top <= 10) {
           if (!isActivatedRef.current) {
             console.log("Values at top of viewport, activating scroll jack");
             setIsActive(true);
@@ -63,19 +61,21 @@ export const useScrollJack = ({
             window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: true } }));
           }
         }
-        // If we've scrolled past and completed, deactivate
-        else if (!entry.isIntersecting && entry.boundingClientRect.top < 0 && hasStartedRef.current) {
-          console.log("Scroll section passed, releasing scroll lock");
-          setIsActive(false);
-          setCompleted(true);
-          
-          document.body.style.overflow = '';
-          window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-          
-          if (onComplete) onComplete();
+        // Deactivate when scrolled past and we've viewed all sections
+        else if ((!entry.isIntersecting && entry.boundingClientRect.top < 0) || completed) {
+          if (hasStartedRef.current && currentSectionIndex >= sectionRefs.length - 1) {
+            console.log("Scroll section passed or completed, releasing scroll lock");
+            setIsActive(false);
+            setCompleted(true);
+            
+            document.body.style.overflow = '';
+            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
+            
+            if (onComplete) onComplete();
+          }
         }
       },
-      { threshold: [0, threshold], rootMargin: "-1px 0px 0px 0px" }
+      { threshold: [0, threshold], rootMargin: "0px 0px 0px 0px" }
     );
     
     observer.observe(containerRef.current);
@@ -85,7 +85,7 @@ export const useScrollJack = ({
         observer.unobserve(containerRef.current);
       }
     };
-  }, [containerRef, sectionRefs, threshold, onComplete]);
+  }, [containerRef, sectionRefs, threshold, onComplete, currentSectionIndex, completed]);
 
   // Handle wheel, touch, and keyboard events
   useEffect(() => {
@@ -111,6 +111,7 @@ export const useScrollJack = ({
       
       // Update section index
       const newIndex = Math.max(0, Math.min(sectionRefs.length - 1, currentSectionIndex + direction));
+      
       if (newIndex !== currentSectionIndex) {
         console.log(`Moving to section ${newIndex}`);
         setCurrentSectionIndex(newIndex);
@@ -124,7 +125,7 @@ export const useScrollJack = ({
             
             document.body.style.overflow = '';
             window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-          }, 800);
+          }, 1000);
         }
       }
       
@@ -171,7 +172,7 @@ export const useScrollJack = ({
             
             document.body.style.overflow = '';
             window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-          }, 800);
+          }, 1000);
         }
       }
       
@@ -216,7 +217,7 @@ export const useScrollJack = ({
             
             document.body.style.overflow = '';
             window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-          }, 800);
+          }, 1000);
         }
       }
       

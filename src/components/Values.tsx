@@ -141,6 +141,7 @@ const Values: React.FC<ValuesProps> = ({
       }}
       data-scrolljack-active={isScrollJackActive}
       data-current-section={currentSectionIndex}
+      data-scrolljack-complete={isScrollJackComplete}
     >
       <div className="max-w-[90%] mx-auto mb-16 text-left">
         <h2 className="title-sm" style={{
