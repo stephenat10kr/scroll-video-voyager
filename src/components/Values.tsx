@@ -21,20 +21,24 @@ const Values: React.FC<ValuesProps> = ({
   
   // Create refs for the scroll-jacking functionality
   const containerRef = useRef<HTMLDivElement>(null);
-  const valueRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Create an array of refs instead of an array of elements
+  const valueRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   const [isScrollJackComplete, setIsScrollJackComplete] = useState(false);
 
   // Reset refs when values data changes
   useEffect(() => {
     if (values && values.length > 0) {
-      valueRefs.current = Array(values.length).fill(null);
+      // Initialize array with proper React refs
+      valueRefs.current = Array(values.length)
+        .fill(null)
+        .map(() => React.createRef<HTMLDivElement>());
     }
   }, [values]);
 
   // Use our scroll jack hook
   const { isActive, currentSectionIndex, completed } = useScrollJack({
     containerRef,
-    sectionRefs: valueRefs.current.filter(Boolean) as React.RefObject<HTMLElement>[],
+    sectionRefs: valueRefs.current, // This is now correctly typed
     onComplete: () => setIsScrollJackComplete(true)
   });
 
@@ -110,7 +114,7 @@ const Values: React.FC<ValuesProps> = ({
         {values.map((value, index) => (
           <Value
             key={value.id}
-            ref={el => valueRefs.current[index] = el}
+            ref={valueRefs.current[index]} // Pass the ref from our refs array
             valueTitle={value.valueTitle}
             valueText={value.valueText}
             isActive={currentSectionIndex === index}

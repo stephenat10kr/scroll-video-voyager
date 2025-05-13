@@ -11,6 +11,7 @@ interface ValueProps {
   isLast?: boolean;
 }
 
+// Update the forwardRef to correctly handle the ref type
 const Value = forwardRef<HTMLDivElement, ValueProps>(({
   valueTitle,
   valueText,
