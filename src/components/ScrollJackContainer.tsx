@@ -4,6 +4,7 @@ import { useScrollJack } from './scroll-jack/use-scroll-jack';
 import NavigationDots from './scroll-jack/NavigationDots';
 import ScrollJackTitle from './scroll-jack/ScrollJackTitle';
 import { ScrollJackContainerProps } from './scroll-jack/types';
+import { createModifiedSection } from './scroll-jack/utils';
 
 const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({ children, titles }) => {
   const {
@@ -13,6 +14,8 @@ const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({ children, tit
     animationDirection,
     sectionCount,
     sectionTitles,
+    hasReachedEnd,
+    isScrollJackActive,
     setActiveSection,
     setIsScrollJackActive,
     setAnimationDirection,
@@ -66,30 +69,17 @@ const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({ children, tit
         onSectionChange={handleSectionChange}
       />
       
-      {/* Render sections with appropriate visibility */}
+      {/* Render sections using the new createModifiedSection utility */}
       <div className="h-screen overflow-hidden relative">
         {childrenArray.map((child, index) => {
           if (!React.isValidElement(child)) return null;
           
-          const isActive = index === activeSection;
-          const isPrevious = index === previousSection;
-          
-          // Apply different classes based on section state
-          let sectionClasses = 
-            'absolute top-0 left-0 w-full h-screen transition-opacity duration-700 ease-in-out';
-          
-          if (isActive) {
-            sectionClasses += ' opacity-100 z-20';
-          } else if (isPrevious) {
-            sectionClasses += ' opacity-0 z-10';
-          } else {
-            sectionClasses += ' opacity-0 z-0';
-          }
-          
-          return (
-            <div key={`section-${index}`} className={sectionClasses}>
-              {child}
-            </div>
+          return createModifiedSection(
+            child,
+            index,
+            activeSection,
+            hasReachedEnd,
+            sectionCount
           );
         })}
       </div>

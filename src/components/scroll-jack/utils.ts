@@ -1,37 +1,58 @@
-
 import React from 'react';
 
 /**
- * Extract titles from the children components for display in the fixed title element
+ * Extract titles from sections
  */
-export const extractSectionTitles = (children: React.ReactNode): React.ReactNode[] => {
-  const titles: React.ReactNode[] = [];
-  
-  React.Children.forEach(children, child => {
-    if (React.isValidElement(child) && child.props.title) {
-      titles.push(child.props.title);
-    } else {
-      // Use a default empty title as placeholder if no title prop is found
-      titles.push('');
+export const extractSectionTitles = (children: React.ReactNode) => {
+  return React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      // Find the h1 element within each section's first div
+      const childrenElements = React.Children.toArray(child.props.children);
+      
+      for (const element of childrenElements) {
+        if (React.isValidElement(element) && element.props && element.props.children) {
+          // Look for the heading inside the div
+          const headingElements = React.Children.toArray(element.props.children);
+          for (const headingElement of headingElements) {
+            if (React.isValidElement(headingElement) && 
+                headingElement.type === 'h1') {
+              return headingElement.props.children;
+            }
+          }
+        }
+      }
     }
+    return "Section";
   });
-  
-  return titles;
 };
 
 /**
- * Create a modified section with additional props for scroll-jack behavior
+ * Create modified section component with proper vertical centering
  */
 export const createModifiedSection = (
   child: React.ReactElement, 
-  isActive: boolean,
-  isPrevious: boolean,
-  animationDirection: 'up' | 'down'
+  index: number, 
+  activeSection: number, 
+  hasReachedEnd: boolean, 
+  sectionCount: number
 ) => {
-  return React.cloneElement(child, {
-    isActive,
-    isPrevious,
-    animationDirection,
-    key: child.key || `section-${Math.random()}`
-  });
+  const isLastSection = index === sectionCount - 1;
+  
+  return (
+    <div
+      className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out flex items-center justify-center"
+      style={{
+        transform: `translateY(${(index - activeSection) * 100}%)`,
+        zIndex: index === activeSection ? 10 : 0,
+        // Keep the last section visible when reaching end
+        opacity: 1,
+        pointerEvents: hasReachedEnd && !isLastSection ? 'none' : 'auto'
+      }}
+    >
+      {React.cloneElement(child, {
+        ...child.props,
+        className: `${child.props.className || ''} flex items-center justify-center h-full w-full`,
+      })}
+    </div>
+  );
 };
