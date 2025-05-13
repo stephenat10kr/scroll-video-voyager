@@ -12,43 +12,69 @@ export const useScrollJack = ({
   sectionRefs, 
   onComplete 
 }: UseScrollJackProps) => {
+  // Core state
   const [isActive, setIsActive] = useState(false);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
+  
+  // Refs for internal state tracking
   const isScrollingRef = useRef(false);
-  const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastScrollTimeRef = useRef<number>(0);
+  const lastScrollTimeRef = useRef(Date.now());
   const hasStartedRef = useRef(false);
-
-  // Set up intersection observer to detect when the container is visible
+  const isActivatedRef = useRef(false);
+  
+  // Constants
+  const SCROLL_THROTTLE = 600; // ms between scroll events
+  const INTERSECTION_THRESHOLD = 0.3; // When to activate scrolljack
+  
+  // Reset everything when component unmounts or changes
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+      if (window.scrollLockEvent) {
+        window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
+        window.dispatchEvent(window.scrollLockEvent);
+      }
+      hasStartedRef.current = false;
+      isActivatedRef.current = false;
+      setCompleted(false);
+      setIsActive(false);
+      setCurrentSectionIndex(0);
+    };
+  }, [containerRef, sectionRefs]);
+  
+  // Create intersection observer to detect when container is visible
   useEffect(() => {
     if (!containerRef.current || sectionRefs.length === 0) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-          if (!hasStartedRef.current) {
+        
+        // Activate when container comes into view
+        if (entry.isIntersecting && entry.intersectionRatio > INTERSECTION_THRESHOLD) {
+          if (!isActivatedRef.current) {
             console.log("Container is visible, activating scroll jack");
             setIsActive(true);
-            hasStartedRef.current = true;
+            isActivatedRef.current = true;
             
-            // Lock scrolling
+            // Lock body scrolling
             document.body.style.overflow = 'hidden';
             window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: true } });
             window.dispatchEvent(window.scrollLockEvent);
           }
-        } else if (!entry.isIntersecting && hasStartedRef.current && completed) {
-          console.log("Container is no longer visible and completed, deactivating");
+        }
+        // If we've scrolled past and completed, deactivate
+        else if (!entry.isIntersecting && completed) {
+          console.log("Scroll section passed, releasing scroll lock");
           setIsActive(false);
           
-          // Release scroll lock
           document.body.style.overflow = '';
           window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
           window.dispatchEvent(window.scrollLockEvent);
         }
       },
-      { threshold: [0.2, 0.5, 0.8] }
+      { threshold: [INTERSECTION_THRESHOLD, 0.5] }
     );
     
     observer.observe(containerRef.current);
@@ -57,127 +83,59 @@ export const useScrollJack = ({
       if (containerRef.current) {
         observer.unobserve(containerRef.current);
       }
-      // Always release scroll lock when unmounting
-      document.body.style.overflow = '';
-      window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-      window.dispatchEvent(window.scrollLockEvent);
     };
   }, [containerRef, sectionRefs, completed]);
 
-  // Handle wheel events when active
+  // Handle wheel, touch, and keyboard events
   useEffect(() => {
     if (!isActive || sectionRefs.length === 0) return;
     
+    // Wheel event handler
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
       if (completed) return;
       
-      // Implement throttling for smoother transitions
+      // Throttle scrolling
       const now = Date.now();
-      if (now - lastScrollTimeRef.current < 700) return; // 700ms throttle
+      if (now - lastScrollTimeRef.current < SCROLL_THROTTLE) return;
       lastScrollTimeRef.current = now;
       
       if (isScrollingRef.current) return;
       isScrollingRef.current = true;
       
-      // Determine scroll direction
+      // Get scroll direction
       const direction = e.deltaY > 0 ? 1 : -1;
       
-      // Calculate new section index
+      // Update section index
       const newIndex = Math.max(0, Math.min(sectionRefs.length - 1, currentSectionIndex + direction));
-      
-      console.log(`Scroll event: direction=${direction > 0 ? 'down' : 'up'}, Current=${currentSectionIndex}, New=${newIndex}`);
-      
-      // Only proceed if we're actually moving to a new section
       if (newIndex !== currentSectionIndex) {
+        console.log(`Moving to section ${newIndex}`);
         setCurrentSectionIndex(newIndex);
         
-        // Check if we've reached the end
-        if (newIndex === sectionRefs.length - 1) {
+        // Check if we've reached the last section
+        if (newIndex === sectionRefs.length - 1 && direction > 0) {
           setTimeout(() => {
             console.log("Reached last section, completing scroll jack");
             setCompleted(true);
             if (onComplete) onComplete();
             
-            // Release scroll lock
             document.body.style.overflow = '';
             window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
             window.dispatchEvent(window.scrollLockEvent);
-          }, 1500); // Wait for animation to complete
+          }, 800);
         }
       }
       
-      // Reset scrolling state after animation completes
-      if (wheelTimeoutRef.current) {
-        clearTimeout(wheelTimeoutRef.current);
-      }
-      
-      wheelTimeoutRef.current = setTimeout(() => {
+      // Reset scrolling state after animation
+      setTimeout(() => {
         isScrollingRef.current = false;
-      }, 800);
+      }, SCROLL_THROTTLE);
     };
     
-    // Add event listener with capture to handle wheel events
-    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
-    
-    // Handle keyboard navigation
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isActive || completed) return;
-      
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'Space') {
-        e.preventDefault();
-        
-        const now = Date.now();
-        if (now - lastScrollTimeRef.current < 700) return;
-        lastScrollTimeRef.current = now;
-        
-        if (currentSectionIndex < sectionRefs.length - 1) {
-          setCurrentSectionIndex(currentSectionIndex + 1);
-        } else if (currentSectionIndex === sectionRefs.length - 1) {
-          setCompleted(true);
-          if (onComplete) onComplete();
-          
-          // Release scroll lock
-          document.body.style.overflow = '';
-          window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-          window.dispatchEvent(window.scrollLockEvent);
-        }
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        
-        const now = Date.now();
-        if (now - lastScrollTimeRef.current < 700) return;
-        lastScrollTimeRef.current = now;
-        
-        if (currentSectionIndex > 0) {
-          setCurrentSectionIndex(currentSectionIndex - 1);
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      window.removeEventListener('wheel', handleWheel, { capture: true });
-      window.removeEventListener('keydown', handleKeyDown);
-      if (wheelTimeoutRef.current) {
-        clearTimeout(wheelTimeoutRef.current);
-      }
-      
-      // Release scroll lock
-      document.body.style.overflow = '';
-      window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-      window.dispatchEvent(window.scrollLockEvent);
-    };
-  }, [isActive, currentSectionIndex, sectionRefs, completed, onComplete]);
-
-  // Handle touch events for mobile
-  useEffect(() => {
-    if (!isActive || sectionRefs.length === 0) return;
-    
+    // Touch event handlers
     let touchStartY = 0;
-    const touchThreshold = 50; // Minimum swipe distance
+    const touchThreshold = 50;
     
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
@@ -193,41 +151,98 @@ export const useScrollJack = ({
       if (Math.abs(touchDiff) < touchThreshold) return;
       
       const now = Date.now();
-      if (now - lastScrollTimeRef.current < 700) return;
+      if (now - lastScrollTimeRef.current < SCROLL_THROTTLE) return;
       lastScrollTimeRef.current = now;
       
-      const direction = touchDiff < 0 ? 1 : -1; // Negative diff means swiping up (next section)
+      if (isScrollingRef.current) return;
+      isScrollingRef.current = true;
+      
+      const direction = touchDiff < 0 ? 1 : -1;
       const newIndex = Math.max(0, Math.min(sectionRefs.length - 1, currentSectionIndex + direction));
       
       if (newIndex !== currentSectionIndex) {
         setCurrentSectionIndex(newIndex);
         
-        if (newIndex === sectionRefs.length - 1) {
+        if (newIndex === sectionRefs.length - 1 && direction > 0) {
           setTimeout(() => {
             setCompleted(true);
             if (onComplete) onComplete();
             
-            // Release scroll lock
             document.body.style.overflow = '';
             window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
             window.dispatchEvent(window.scrollLockEvent);
-          }, 1000);
+          }, 800);
         }
       }
+      
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, SCROLL_THROTTLE);
     };
     
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchend', handleTouchEnd);
+    // Keyboard event handler
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (completed) return;
+      
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current < SCROLL_THROTTLE) return;
+      
+      let direction = 0;
+      
+      if (e.key === 'ArrowDown' || e.key === 'Space') {
+        e.preventDefault();
+        direction = 1;
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        direction = -1;
+      } else {
+        return;
+      }
+      
+      if (direction === 0 || isScrollingRef.current) return;
+      
+      lastScrollTimeRef.current = now;
+      isScrollingRef.current = true;
+      
+      const newIndex = Math.max(0, Math.min(sectionRefs.length - 1, currentSectionIndex + direction));
+      
+      if (newIndex !== currentSectionIndex) {
+        setCurrentSectionIndex(newIndex);
+        
+        if (newIndex === sectionRefs.length - 1 && direction > 0) {
+          setTimeout(() => {
+            setCompleted(true);
+            if (onComplete) onComplete();
+            
+            document.body.style.overflow = '';
+            window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
+            window.dispatchEvent(window.scrollLockEvent);
+          }, 800);
+        }
+      }
+      
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, SCROLL_THROTTLE);
+    };
+    
+    // Set up event listeners
+    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
     
     return () => {
+      window.removeEventListener('wheel', handleWheel, { capture: true });
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isActive, currentSectionIndex, sectionRefs, completed, onComplete]);
 
   return {
     isActive,
-    currentSectionIndex,
+    currentSection: currentSectionIndex,
     completed
   };
 };

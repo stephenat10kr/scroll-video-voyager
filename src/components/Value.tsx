@@ -11,7 +11,6 @@ interface ValueProps {
   isLast?: boolean;
 }
 
-// Update the forwardRef to correctly handle the ref type
 const Value = forwardRef<HTMLDivElement, ValueProps>(({
   valueTitle,
   valueText,
@@ -25,55 +24,50 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
 
   // Animation effect when the value becomes active
   useEffect(() => {
-    if (!isActive || !titleRef.current || !textContainerRef.current || !spinnerRef.current) {
-      // If section is not active, reset or hide elements
-      if (prevActiveRef.current && !isActive) {
-        gsap.to([titleRef.current, spinnerRef.current, textContainerRef.current?.children || []], {
-          opacity: 0,
-          y: 50,
-          duration: 0.3,
-          stagger: 0.05,
-          ease: "power2.in"
-        });
-      }
-      prevActiveRef.current = isActive;
-      return;
-    }
+    if (!titleRef.current || !textContainerRef.current || !spinnerRef.current) return;
     
+    // Store previous state
+    const wasActive = prevActiveRef.current;
     prevActiveRef.current = isActive;
     
-    // Create animation timeline
-    const tl = gsap.timeline({ 
-      defaults: { duration: 0.7, ease: "power3.out" }
-    });
+    // Kill any existing animations to prevent conflicts
+    gsap.killTweensOf([titleRef.current, spinnerRef.current, textContainerRef.current.children]);
     
-    // Reset positions
-    gsap.set(titleRef.current, { opacity: 0, y: 50 });
-    gsap.set(spinnerRef.current, { opacity: 0, scale: 0.8 });
-    gsap.set(textContainerRef.current.children, { opacity: 0, y: 30 });
-    
-    // Animate elements in sequence with more dramatic effects
-    tl.to(titleRef.current, { 
-      opacity: 1, 
-      y: 0,
-      duration: 0.8
-    })
-    .to(spinnerRef.current, { 
-      opacity: 1, 
-      scale: 1, 
-      duration: 0.6, 
-      ease: "back.out(1.7)" 
-    }, "-=0.4")
-    .to(textContainerRef.current.children, { 
-      opacity: 1, 
-      y: 0, 
-      stagger: 0.12,
-      duration: 0.7
-    }, "-=0.3");
+    if (isActive) {
+      // If becoming active, animate in
+      gsap.set(titleRef.current, { opacity: 0, y: 50 });
+      gsap.set(spinnerRef.current, { opacity: 0, scale: 0.8 });
+      gsap.set(textContainerRef.current.children, { opacity: 0, y: 30 });
       
-    return () => {
-      tl.kill();
-    };
+      const tl = gsap.timeline({ 
+        defaults: { duration: 0.5, ease: "power2.out" }
+      });
+      
+      tl.to(titleRef.current, { 
+        opacity: 1, 
+        y: 0,
+        duration: 0.6
+      })
+      .to(spinnerRef.current, { 
+        opacity: 1, 
+        scale: 1, 
+        duration: 0.4
+      }, "-=0.3")
+      .to(textContainerRef.current.children, { 
+        opacity: 1, 
+        y: 0, 
+        stagger: 0.1,
+        duration: 0.5
+      }, "-=0.2");
+    } else if (wasActive) {
+      // If was active but now inactive, animate out quickly
+      gsap.to([titleRef.current, spinnerRef.current, textContainerRef.current.children], {
+        opacity: 0,
+        y: 20,
+        duration: 0.2,
+        stagger: 0.02
+      });
+    }
   }, [isActive]);
 
   return (
@@ -81,8 +75,7 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
       ref={ref}
       className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}
       style={{
-        opacity: isActive ? 1 : 0,
-        transition: "opacity 0.5s ease",
+        opacity: 1, // Always render but control visibility with CSS
         position: "absolute",
         top: 0,
         left: 0,
@@ -91,7 +84,7 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
         pointerEvents: isActive ? "all" : "none"
       }}
     >
-      <div className="transform transition-all duration-500">
+      <div className="transform transition-all duration-300">
         <h2 
           ref={titleRef}
           className="title-md mb-6 text-center py-[56px]" 

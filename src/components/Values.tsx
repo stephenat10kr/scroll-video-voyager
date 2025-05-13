@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -23,6 +22,8 @@ const Values: React.FC<ValuesProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   // Create an array of refs for the value sections
   const valueRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [isScrollJackActive, setIsScrollJackActive] = useState(false);
   const [isScrollJackComplete, setIsScrollJackComplete] = useState(false);
 
   // Reset refs when values data changes
@@ -36,7 +37,7 @@ const Values: React.FC<ValuesProps> = ({
   }, [values]);
 
   // Use our scroll jack hook
-  const { isActive, currentSectionIndex, completed } = useScrollJack({
+  const { isActive, currentSection, completed } = useScrollJack({
     containerRef,
     sectionRefs: valueRefs.current,
     onComplete: () => {
@@ -44,11 +45,13 @@ const Values: React.FC<ValuesProps> = ({
       setIsScrollJackComplete(true);
     }
   });
-
-  // Debug effect to log when scroll jacking becomes active
+  
+  // Sync state from hook
   useEffect(() => {
-    console.log(`Scrolljack active: ${isActive}, Current section: ${currentSectionIndex}, Completed: ${completed}`);
-  }, [isActive, currentSectionIndex, completed]);
+    setCurrentSectionIndex(currentSection);
+    setIsScrollJackActive(isActive);
+    setIsScrollJackComplete(completed);
+  }, [currentSection, isActive, completed]);
 
   const content = () => {
     if (isLoading) {
@@ -120,7 +123,7 @@ const Values: React.FC<ValuesProps> = ({
         <ScrollIndicator 
           currentSection={currentSectionIndex}
           totalSections={values.length}
-          isActive={isActive && !completed}
+          isActive={isScrollJackActive && !isScrollJackComplete}
         />
       </div>
     );
@@ -132,10 +135,10 @@ const Values: React.FC<ValuesProps> = ({
       id="values-container"
       className="w-full py-24 mb-48 relative z-10"
       style={{ 
-        overflow: isActive && !isScrollJackComplete ? 'hidden' : 'visible',
+        overflow: 'visible',
         minHeight: "100vh"
       }}
-      data-scrolljack-active={isActive}
+      data-scrolljack-active={isScrollJackActive}
       data-current-section={currentSectionIndex}
     >
       <div className="max-w-[90%] mx-auto mb-16 text-left">
@@ -146,7 +149,7 @@ const Values: React.FC<ValuesProps> = ({
       {content()}
       
       {/* Scroll indicator for mobile */}
-      {isActive && !completed && (
+      {isScrollJackActive && !isScrollJackComplete && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center">
           <div className="animate-bounce mb-2">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
