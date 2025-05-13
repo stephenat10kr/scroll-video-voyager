@@ -7,6 +7,7 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
+import { ScrollJackContainer } from "../components/scroll-jack";
 
 const Index = () => {
   return (
@@ -14,6 +15,38 @@ const Index = () => {
       <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
+        
+        {/* ScrollJack Component */}
+        <ScrollJackContainer titles={["OUR ETHOS", "OUR COMMUNITY", "OUR MISSION"]}>
+          <section className="min-h-screen bg-[#203435]">
+            <div className="container mx-auto px-4 py-16">
+              <h1 className="text-4xl font-bold text-white mb-6">OUR ETHOS</h1>
+              <p className="text-xl text-white max-w-2xl">
+                Lightning Society is more than a place—it's a philosophy. We believe in creating spaces where 
+                creativity, connection, and conversation can thrive without boundaries or limitations.
+              </p>
+            </div>
+          </section>
+          <section className="min-h-screen bg-[#203435]">
+            <div className="container mx-auto px-4 py-16">
+              <h1 className="text-4xl font-bold text-white mb-6">OUR COMMUNITY</h1>
+              <p className="text-xl text-white max-w-2xl">
+                Our members are pioneers, creators, and innovators across industries. Together, we form a 
+                collective of individuals who are passionate about making meaningful connections and driving change.
+              </p>
+            </div>
+          </section>
+          <section className="min-h-screen bg-[#203435]">
+            <div className="container mx-auto px-4 py-16">
+              <h1 className="text-4xl font-bold text-white mb-6">OUR MISSION</h1>
+              <p className="text-xl text-white max-w-2xl">
+                We're dedicated to fostering transformative experiences through thoughtful design, curated 
+                programming, and a commitment to building a diverse and inclusive community.
+              </p>
+            </div>
+          </section>
+        </ScrollJackContainer>
+        
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
         <Gallery 
