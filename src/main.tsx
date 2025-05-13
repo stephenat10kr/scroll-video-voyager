@@ -6,6 +6,18 @@ import './index.css'
 // Create a custom event bus for scroll locking
 window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
 
+// Set up event listener for the scroll lock event
+window.addEventListener('scrollLock', (e: Event) => {
+  const customEvent = e as CustomEvent<{ locked: boolean }>;
+  if (customEvent.detail.locked) {
+    document.body.style.overflow = 'hidden';
+    console.log('Scroll locked');
+  } else {
+    document.body.style.overflow = '';
+    console.log('Scroll unlocked');
+  }
+});
+
 // Prevent overscroll/bounce effect on touch devices
 document.body.addEventListener('touchmove', (e) => {
   if (window.scrollLockEvent.detail.locked) {
