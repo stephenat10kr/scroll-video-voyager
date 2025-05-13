@@ -1,11 +1,19 @@
-import React from "react";
+
+import React, { useRef, useEffect, useState } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
+import { ScrollArea } from "./ui/scroll-area";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
 interface ValuesProps {
   title: string;
 }
+
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
@@ -14,6 +22,94 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
+  
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [activeValueIndex, setActiveValueIndex] = useState<number | null>(null);
+  const [isScrollSnapping, setIsScrollSnapping] = useState(false);
+  const [hasCompletedAllValues, setHasCompletedAllValues] = useState(false);
+  const observersRef = useRef<IntersectionObserver[]>([]);
+  const valueRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Set up scroll snapping and intersection observers
+  useEffect(() => {
+    if (!values || values.length === 0 || isLoading) return;
+    
+    // Create refs array with the correct length
+    valueRefs.current = Array(values.length).fill(null);
+    
+    // Clean up function to disconnect observers
+    const cleanup = () => {
+      observersRef.current.forEach(observer => observer.disconnect());
+      observersRef.current = [];
+    };
+
+    // Set up intersection observers after a short delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      cleanup();
+      
+      // Create observers for each value
+      values.forEach((_, index) => {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !hasCompletedAllValues) {
+              setActiveValueIndex(index);
+              setIsScrollSnapping(true);
+              
+              // If it's the last value, mark as completed after viewing it for some time
+              if (index === values.length - 1) {
+                const timer = setTimeout(() => {
+                  setHasCompletedAllValues(true);
+                  setIsScrollSnapping(false);
+                }, 2000); // Time to view the last value before releasing the snap
+                return () => clearTimeout(timer);
+              }
+            }
+          });
+        }, { 
+          threshold: 0.5, // When at least 50% of the element is visible
+          rootMargin: "-10% 0px" // Adds margin to trigger slightly before center
+        });
+        
+        if (valueRefs.current[index]) {
+          observer.observe(valueRefs.current[index]!);
+          observersRef.current.push(observer);
+        }
+      });
+    }, 500);
+    
+    return () => {
+      clearTimeout(timer);
+      cleanup();
+    };
+  }, [values, isLoading, hasCompletedAllValues]);
+
+  // Apply scroll snapping CSS when needed
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    
+    if (isScrollSnapping && !hasCompletedAllValues) {
+      document.body.style.overflow = 'hidden';
+      sectionRef.current.style.scrollSnapType = 'y mandatory';
+      
+      // If we have an active value, scroll to it
+      if (activeValueIndex !== null && valueRefs.current[activeValueIndex]) {
+        valueRefs.current[activeValueIndex]?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center'
+        });
+      }
+    } else {
+      document.body.style.overflow = '';
+      if (sectionRef.current) {
+        sectionRef.current.style.scrollSnapType = '';
+      }
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isScrollSnapping, activeValueIndex, hasCompletedAllValues]);
+
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -61,12 +157,29 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
+    
     return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
-        {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+        {values.map((value, index) => (
+          <div 
+            key={value.id} 
+            ref={el => valueRefs.current[index] = el} 
+            className="w-full h-screen flex items-center scroll-snap-align-center"
+            style={{ scrollSnapAlign: 'center' }}
+          >
+            <Value 
+              valueTitle={value.valueTitle} 
+              valueText={value.valueText} 
+              isActive={activeValueIndex === index}
+              previousValue={index > 0 ? values[index - 1] : null}
+              isLast={index === values.length - 1} 
+            />
+          </div>
+        ))}
       </div>;
   };
+
   return <ChladniPattern>
-      <div className="w-full py-24 mb-48">
+      <div ref={sectionRef} className="w-full py-24 mb-48 relative">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
           <h2 className="title-sm" style={{
           color: colors.roseWhite
