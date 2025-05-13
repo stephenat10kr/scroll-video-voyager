@@ -31,13 +31,19 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
     prevActiveRef.current = isActive;
     
     // Kill any existing animations to prevent conflicts
-    gsap.killTweensOf([titleRef.current, spinnerRef.current, textContainerRef.current.children]);
+    gsap.killTweensOf([titleRef.current, spinnerRef.current]);
+    if (textContainerRef.current.children) {
+      gsap.killTweensOf([...Array.from(textContainerRef.current.children)]);
+    }
     
     if (isActive) {
       // If becoming active, animate in
       gsap.set(titleRef.current, { opacity: 0, y: 50 });
       gsap.set(spinnerRef.current, { opacity: 0, scale: 0.8 });
-      gsap.set(textContainerRef.current.children, { opacity: 0, y: 30 });
+      
+      if (textContainerRef.current.children.length > 0) {
+        gsap.set([...Array.from(textContainerRef.current.children)], { opacity: 0, y: 30 });
+      }
       
       const tl = gsap.timeline({ 
         defaults: { duration: 0.5, ease: "power2.out" }
@@ -52,39 +58,56 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
         opacity: 1, 
         scale: 1, 
         duration: 0.4
-      }, "-=0.3")
-      .to(textContainerRef.current.children, { 
-        opacity: 1, 
-        y: 0, 
-        stagger: 0.1,
-        duration: 0.5
-      }, "-=0.2");
+      }, "-=0.3");
+      
+      if (textContainerRef.current.children.length > 0) {
+        tl.to([...Array.from(textContainerRef.current.children)], { 
+          opacity: 1, 
+          y: 0, 
+          stagger: 0.1,
+          duration: 0.5
+        }, "-=0.2");
+      }
     } else if (wasActive) {
-      // If was active but now inactive, animate out quickly
-      gsap.to([titleRef.current, spinnerRef.current, textContainerRef.current.children], {
+      // If was active but now inactive, fade out
+      gsap.to(titleRef.current, {
         opacity: 0,
-        y: 20,
-        duration: 0.2,
-        stagger: 0.02
+        y: -20,
+        duration: 0.3
       });
+      
+      gsap.to(spinnerRef.current, {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.3
+      });
+      
+      if (textContainerRef.current.children.length > 0) {
+        gsap.to([...Array.from(textContainerRef.current.children)], {
+          opacity: 0,
+          y: -20,
+          stagger: 0.05,
+          duration: 0.3
+        });
+      }
     }
   }, [isActive]);
 
   return (
     <div 
       ref={ref}
-      className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}
+      className={`w-full min-h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}
       style={{
-        opacity: 1, // Always render but control visibility with CSS
+        opacity: isActive ? 1 : 0,
         position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
-        visibility: isActive ? "visible" : "hidden",
-        pointerEvents: isActive ? "all" : "none"
+        pointerEvents: isActive ? "all" : "none",
+        zIndex: isActive ? 2 : 1
       }}
     >
-      <div className="transform transition-all duration-300">
+      <div className="transform transition-all duration-300 max-w-4xl mx-auto px-4">
         <h2 
           ref={titleRef}
           className="title-md mb-6 text-center py-[56px]" 

@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -40,6 +41,7 @@ const Values: React.FC<ValuesProps> = ({
   const { isActive, currentSection, completed } = useScrollJack({
     containerRef,
     sectionRefs: valueRefs.current,
+    threshold: 0.1,
     onComplete: () => {
       console.log("Scroll jack completed");
       setIsScrollJackComplete(true);
@@ -104,7 +106,7 @@ const Values: React.FC<ValuesProps> = ({
     }
     
     return (
-      <div className="w-full relative" style={{ height: "100vh", overflow: "hidden" }}>
+      <div className="w-full relative" style={{ minHeight: "100vh" }}>
         {/* Values content */}
         <div className="absolute inset-0 flex flex-col justify-center">
           {values.map((value, index) => (
@@ -135,7 +137,6 @@ const Values: React.FC<ValuesProps> = ({
       id="values-container"
       className="w-full py-24 mb-48 relative z-10"
       style={{ 
-        overflow: 'visible',
         minHeight: "100vh"
       }}
       data-scrolljack-active={isScrollJackActive}

@@ -5,12 +5,14 @@ interface UseScrollJackProps {
   containerRef: RefObject<HTMLElement>;
   sectionRefs: RefObject<HTMLElement>[];
   onComplete?: () => void;
+  threshold?: number;
 }
 
 export const useScrollJack = ({ 
   containerRef, 
   sectionRefs, 
-  onComplete 
+  onComplete,
+  threshold = 0.1 // Lower threshold to trigger earlier
 }: UseScrollJackProps) => {
   // Core state
   const [isActive, setIsActive] = useState(false);
@@ -24,16 +26,14 @@ export const useScrollJack = ({
   const isActivatedRef = useRef(false);
   
   // Constants
-  const SCROLL_THROTTLE = 600; // ms between scroll events
-  const INTERSECTION_THRESHOLD = 0.3; // When to activate scrolljack
+  const SCROLL_THROTTLE = 700; // Increased for smoother transitions
   
   // Reset everything when component unmounts or changes
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
       if (window.scrollLockEvent) {
-        window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-        window.dispatchEvent(window.scrollLockEvent);
+        window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
       }
       hasStartedRef.current = false;
       isActivatedRef.current = false;
@@ -51,30 +51,31 @@ export const useScrollJack = ({
       (entries) => {
         const [entry] = entries;
         
-        // Activate when container comes into view
-        if (entry.isIntersecting && entry.intersectionRatio > INTERSECTION_THRESHOLD) {
+        // Activate when container comes into view at the top of the viewport
+        if (entry.isIntersecting && entry.boundingClientRect.top <= 0) {
           if (!isActivatedRef.current) {
-            console.log("Container is visible, activating scroll jack");
+            console.log("Values at top of viewport, activating scroll jack");
             setIsActive(true);
             isActivatedRef.current = true;
             
             // Lock body scrolling
             document.body.style.overflow = 'hidden';
-            window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: true } });
-            window.dispatchEvent(window.scrollLockEvent);
+            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: true } }));
           }
         }
         // If we've scrolled past and completed, deactivate
-        else if (!entry.isIntersecting && completed) {
+        else if (!entry.isIntersecting && entry.boundingClientRect.top < 0 && hasStartedRef.current) {
           console.log("Scroll section passed, releasing scroll lock");
           setIsActive(false);
+          setCompleted(true);
           
           document.body.style.overflow = '';
-          window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-          window.dispatchEvent(window.scrollLockEvent);
+          window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
+          
+          if (onComplete) onComplete();
         }
       },
-      { threshold: [INTERSECTION_THRESHOLD, 0.5] }
+      { threshold: [0, threshold], rootMargin: "-1px 0px 0px 0px" }
     );
     
     observer.observe(containerRef.current);
@@ -84,11 +85,12 @@ export const useScrollJack = ({
         observer.unobserve(containerRef.current);
       }
     };
-  }, [containerRef, sectionRefs, completed]);
+  }, [containerRef, sectionRefs, threshold, onComplete]);
 
   // Handle wheel, touch, and keyboard events
   useEffect(() => {
     if (!isActive || sectionRefs.length === 0) return;
+    hasStartedRef.current = true;
     
     // Wheel event handler
     const handleWheel = (e: WheelEvent) => {
@@ -121,8 +123,7 @@ export const useScrollJack = ({
             if (onComplete) onComplete();
             
             document.body.style.overflow = '';
-            window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-            window.dispatchEvent(window.scrollLockEvent);
+            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
           }, 800);
         }
       }
@@ -169,8 +170,7 @@ export const useScrollJack = ({
             if (onComplete) onComplete();
             
             document.body.style.overflow = '';
-            window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-            window.dispatchEvent(window.scrollLockEvent);
+            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
           }, 800);
         }
       }
@@ -215,8 +215,7 @@ export const useScrollJack = ({
             if (onComplete) onComplete();
             
             document.body.style.overflow = '';
-            window.scrollLockEvent = new CustomEvent('scrollLock', { detail: { locked: false } });
-            window.dispatchEvent(window.scrollLockEvent);
+            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
           }, 800);
         }
       }
