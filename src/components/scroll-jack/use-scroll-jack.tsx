@@ -24,6 +24,7 @@ export function useScrollJack({
   const [animationDirection, setAnimationDirection] = useState<'up' | 'down' | null>(null);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [hasReachedEnd, setHasReachedEnd] = useState<boolean>(false);
+  const [hasViewedAllSections, setHasViewedAllSections] = useState<boolean>(false);
   const [isComponentVisible, setIsComponentVisible] = useState<boolean>(false);
 
   // Setup Intersection Observer to detect when component enters/exits viewport
@@ -45,6 +46,13 @@ export function useScrollJack({
       }
     };
   }, [containerRef]);
+
+  // Track if user has viewed all sections
+  useEffect(() => {
+    if (activeSection === sectionCount - 1) {
+      setHasViewedAllSections(true);
+    }
+  }, [activeSection, sectionCount]);
 
   const goToSection = useCallback((nextSection: number, direction: 'up' | 'down') => {
     if (isAnimating) return;
@@ -71,12 +79,13 @@ export function useScrollJack({
     // Only handle wheel events when component is visible and not currently animating
     if (!isComponentVisible || isAnimating) return;
     
-    if (hasReachedEnd && event.deltaY > 0) {
-      // If we've reached the end and scrolling down, don't prevent default
-      // This allows normal scrolling to continue after the component
+    // Only allow normal scrolling if we've viewed all sections AND we're at the last section AND scrolling down
+    if (hasViewedAllSections && activeSection === sectionCount - 1 && event.deltaY > 0) {
+      // Allow normal scrolling to continue
       return;
     }
     
+    // In all other cases, prevent default scrolling and handle our own navigation
     event.preventDefault();
     
     if (event.deltaY > 0 && activeSection < sectionCount - 1) {
@@ -86,7 +95,7 @@ export function useScrollJack({
       // Scrolling up
       goToSection(activeSection - 1, 'up');
     }
-  }, [activeSection, isAnimating, sectionCount, hasReachedEnd, isComponentVisible, goToSection]);
+  }, [activeSection, isAnimating, sectionCount, hasViewedAllSections, isComponentVisible, goToSection]);
 
   const handleSectionChange = useCallback((sectionIndex: number) => {
     const direction = sectionIndex > activeSection ? 'down' : 'up';
@@ -100,6 +109,7 @@ export function useScrollJack({
       setPreviousSection(null);
       setAnimationDirection(null);
       setHasReachedEnd(false);
+      setHasViewedAllSections(false);
     }
   }, [isComponentVisible]);
 
