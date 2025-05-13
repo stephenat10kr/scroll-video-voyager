@@ -24,17 +24,7 @@ const Value: React.FC<ValueProps> = ({
 }) => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
-  const prevTitleRef = useRef<string | null>(null);
-  const prevTextRef = useRef<string[] | null>(null);
   
-  // Store the previous values when they change
-  useEffect(() => {
-    if (isActive && previousValue) {
-      prevTitleRef.current = previousValue.valueTitle;
-      prevTextRef.current = previousValue.valueText;
-    }
-  }, [isActive, previousValue]);
-
   // Animation effect when value becomes active
   useEffect(() => {
     if (isActive && titleRef.current && textContainerRef.current) {
@@ -42,56 +32,53 @@ const Value: React.FC<ValueProps> = ({
       gsap.killTweensOf(titleRef.current);
       gsap.killTweensOf(textContainerRef.current.children);
       
-      // If we have a previous value, animate from it to the current value
-      if (prevTitleRef.current) {
-        // Create a temporary hidden element for the previous title
-        const tempTitle = document.createElement('h2');
-        tempTitle.className = titleRef.current.className;
-        tempTitle.textContent = prevTitleRef.current;
-        tempTitle.style.position = 'absolute';
-        tempTitle.style.top = '0';
-        tempTitle.style.color = colors.coral;
-        titleRef.current.parentNode?.appendChild(tempTitle);
-        
-        // Animate the previous title out and the new one in
-        gsap.fromTo(
-          tempTitle, 
-          { y: 0, opacity: 1 },
-          { y: -50, opacity: 0, duration: 0.6, ease: "power2.inOut" }
-        );
-        
-        gsap.fromTo(
-          titleRef.current, 
-          { y: 50, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, ease: "power2.inOut" }
-        );
-        
-        // Remove temporary element after animation
-        setTimeout(() => {
-          tempTitle.remove();
-        }, 700);
-      } else {
-        // Just fade in if no previous value
-        gsap.fromTo(
-          titleRef.current, 
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
-        );
-      }
+      // Animate title from bottom to current position
+      gsap.fromTo(
+        titleRef.current, 
+        { 
+          y: 80, 
+          opacity: 0 
+        },
+        { 
+          y: 0, 
+          opacity: 1, 
+          duration: 0.8, 
+          ease: "power3.out" 
+        }
+      );
       
-      // Animate text paragraphs with fade-in effect
+      // Animate text paragraphs with staggered fade-in effect
       gsap.fromTo(
         textContainerRef.current.children,
-        { opacity: 0, y: 20 },
+        { 
+          opacity: 0, 
+          y: 30 
+        },
         { 
           opacity: 1, 
           y: 0, 
           duration: 0.6, 
-          stagger: 0.1,
-          delay: 0.4,
+          stagger: 0.15,
+          delay: 0.3,
           ease: "power2.out"
         }
       );
+    } else if (!isActive && titleRef.current && textContainerRef.current) {
+      // Animate out when not active
+      gsap.to(titleRef.current, { 
+        opacity: 0, 
+        y: -80, 
+        duration: 0.5, 
+        ease: "power2.in" 
+      });
+      
+      gsap.to(textContainerRef.current.children, { 
+        opacity: 0, 
+        y: -30, 
+        duration: 0.4, 
+        stagger: 0.05,
+        ease: "power2.in" 
+      });
     }
   }, [isActive]);
 
@@ -101,7 +88,10 @@ const Value: React.FC<ValueProps> = ({
         <h2 
           ref={titleRef} 
           className="title-md mb-6 text-center py-[56px]" 
-          style={{ color: colors.coral }}
+          style={{ 
+            color: colors.coral,
+            opacity: 0 // Start invisible for animation
+          }}
         >
           {valueTitle}
         </h2>
@@ -117,7 +107,10 @@ const Value: React.FC<ValueProps> = ({
           <p 
             key={index} 
             className="title-sm text-center" 
-            style={{ color: colors.coral }}
+            style={{ 
+              color: colors.coral,
+              opacity: 0 // Start invisible for animation
+            }}
           >
             {text}
           </p>

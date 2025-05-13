@@ -25,14 +25,15 @@ const Values: React.FC<ValuesProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const valuesContainerRef = useRef<HTMLDivElement>(null);
   const [activeValueIndex, setActiveValueIndex] = useState<number | null>(null);
-  const [isScrollSnapping, setIsScrollSnapping] = useState(false);
+  const [isScrollJackingActive, setIsScrollJackingActive] = useState(false);
   const [hasCompletedAllValues, setHasCompletedAllValues] = useState(false);
   const observersRef = useRef<IntersectionObserver[]>([]);
   const valueRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // Set up scroll snapping and intersection observers
+  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  
+  // Set up scroll jacking and intersection observers
   useEffect(() => {
-    if (!values || values.length === 0 || isLoading) return;
+    if (!values || values.length === 0 || isLoading || !sectionRef.current) return;
     
     // Create refs array with the correct length
     valueRefs.current = Array(values.length).fill(null);
@@ -41,110 +42,91 @@ const Values: React.FC<ValuesProps> = ({
     const cleanup = () => {
       observersRef.current.forEach(observer => observer.disconnect());
       observersRef.current = [];
+      
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+        scrollTriggerRef.current = null;
+      }
     };
 
-    // Flag to track if the values section has been viewed
-    let hasEnteredValuesSection = false;
-    let isLeavingSection = false;
-
-    // Observer for the main values section to detect entry and exit
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasEnteredValuesSection) {
-          hasEnteredValuesSection = true;
-          setIsScrollSnapping(true);
-          isLeavingSection = false;
-          
-          // Activate the first value
-          setActiveValueIndex(0);
-          
-          // Scroll to the first value
-          if (valueRefs.current[0]) {
-            valueRefs.current[0].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
-            });
-          }
-        } else if (!entry.isIntersecting && hasEnteredValuesSection) {
-          // When leaving the section entirely, disable snapping to allow normal scrolling
-          isLeavingSection = true;
-          
-          // Short delay to ensure we're truly exiting the section
-          setTimeout(() => {
-            if (isLeavingSection) {
-              setIsScrollSnapping(false);
-            }
-          }, 100);
+    // Set up the scroll trigger for the values section
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: "top 20%",
+      end: "bottom 80%",
+      onEnter: () => {
+        setIsScrollJackingActive(true);
+        setActiveValueIndex(0);
+        document.body.style.overflow = "hidden";
+      },
+      onLeaveBack: () => {
+        setIsScrollJackingActive(false);
+        document.body.style.overflow = "";
+      },
+      onLeave: () => {
+        if (hasCompletedAllValues) {
+          setIsScrollJackingActive(false);
+          document.body.style.overflow = "";
         }
-      });
-    }, { threshold: 0.1 }); // Lower threshold to detect entering/leaving earlier
-
-    if (sectionRef.current) {
-      sectionObserver.observe(sectionRef.current);
-    }
+      }
+    });
     
-    // Set up intersection observers after a short delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      cleanup();
+    scrollTriggerRef.current = scrollTrigger;
+    
+    // Handle wheel events for custom scrolling
+    const handleWheel = (e: WheelEvent) => {
+      if (!isScrollJackingActive || hasCompletedAllValues) return;
       
-      // Create observers for each value
-      values.forEach((_, index) => {
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              setActiveValueIndex(index);
-              
-              // If it's the last value, mark as completed after viewing it
-              if (index === values.length - 1) {
-                const timer = setTimeout(() => {
-                  setHasCompletedAllValues(true);
-                  setIsScrollSnapping(false);
-                }, 1500); // Time to view the last value before releasing the snap
-                return () => clearTimeout(timer);
-              }
-            }
-          });
-        }, { 
-          threshold: 0.7, // When at least 70% of the element is visible
-          rootMargin: "-10% 0px" // Adds margin to trigger slightly before center
-        });
+      e.preventDefault();
+      
+      const delta = e.deltaY;
+      
+      if (delta > 0 && activeValueIndex !== null && activeValueIndex < values.length - 1) {
+        // Scroll down - next value
+        setActiveValueIndex(activeValueIndex + 1);
+      } else if (delta < 0 && activeValueIndex !== null && activeValueIndex > 0) {
+        // Scroll up - previous value
+        setActiveValueIndex(activeValueIndex - 1);
+      } else if (delta > 0 && activeValueIndex === values.length - 1) {
+        // Reached the last value - release scroll jacking
+        setHasCompletedAllValues(true);
+        document.body.style.overflow = "";
+        setIsScrollJackingActive(false);
         
-        if (valueRefs.current[index]) {
-          observer.observe(valueRefs.current[index]!);
-          observersRef.current.push(observer);
-        }
-      });
-    }, 500);
+        // Allow the next wheel event to work normally
+        setTimeout(() => {
+          window.scrollBy(0, 100); // Small scroll to indicate to the user that normal scrolling has resumed
+        }, 10);
+      }
+    };
+    
+    // Add wheel event listener when scroll jacking is active
+    if (isScrollJackingActive && !hasCompletedAllValues) {
+      window.addEventListener('wheel', handleWheel, { passive: false });
+    }
     
     return () => {
-      clearTimeout(timer);
       cleanup();
-      sectionObserver.disconnect();
+      window.removeEventListener('wheel', handleWheel);
+      document.body.style.overflow = "";
     };
-  }, [values, isLoading]);
+  }, [values, isLoading, isScrollJackingActive, activeValueIndex, hasCompletedAllValues]);
 
-  // Apply scroll snapping CSS when needed
+  // Effect for transitions between values
   useEffect(() => {
-    if (!sectionRef.current || !valuesContainerRef.current) return;
+    if (activeValueIndex === null || !values || !valueRefs.current[activeValueIndex]) return;
     
-    if (isScrollSnapping && !hasCompletedAllValues) {
-      // Apply scroll-snapping styles to the VALUES CONTAINER only, not the whole document
-      valuesContainerRef.current.style.scrollSnapType = 'y mandatory';
+    // If we've reached the last value, mark as completed after a delay
+    if (activeValueIndex === values.length - 1) {
+      const timer = setTimeout(() => {
+        setHasCompletedAllValues(true);
+        setIsScrollJackingActive(false);
+        document.body.style.overflow = "";
+      }, 2000); // Time to view the last value before releasing the scroll jacking
       
-      // If we have an active value, scroll to it
-      if (activeValueIndex !== null && valueRefs.current[activeValueIndex]) {
-        valueRefs.current[activeValueIndex]?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center'
-        });
-      }
-    } else {
-      // Remove scroll-snapping styles
-      if (valuesContainerRef.current) {
-        valuesContainerRef.current.style.scrollSnapType = '';
-      }
+      return () => clearTimeout(timer);
     }
-  }, [isScrollSnapping, activeValueIndex, hasCompletedAllValues]);
+  }, [activeValueIndex, values]);
 
   const content = () => {
     if (isLoading) {
@@ -199,35 +181,50 @@ const Values: React.FC<ValuesProps> = ({
         ref={valuesContainerRef} 
         className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto"
       >
-        {values.map((value, index) => (
-          <div 
-            key={value.id} 
-            ref={el => valueRefs.current[index] = el} 
-            className="w-full h-[80vh] flex items-center"
-            style={{ scrollSnapAlign: 'center' }}
-          >
-            <Value 
-              valueTitle={value.valueTitle} 
-              valueText={value.valueText} 
-              isActive={activeValueIndex === index}
-              previousValue={index > 0 ? values[index - 1] : null}
-              isLast={index === values.length - 1} 
-            />
-          </div>
-        ))}
+        <div className="relative w-full h-screen flex items-center justify-center">
+          {values.map((value, index) => (
+            <div 
+              key={value.id} 
+              ref={el => valueRefs.current[index] = el} 
+              className="absolute w-full"
+              style={{ 
+                opacity: activeValueIndex === index ? 1 : 0,
+                pointerEvents: activeValueIndex === index ? 'auto' : 'none',
+                transition: 'opacity 0.4s ease-in-out'
+              }}
+            >
+              <Value 
+                valueTitle={value.valueTitle} 
+                valueText={value.valueText} 
+                isActive={activeValueIndex === index}
+                previousValue={index > 0 ? values[index - 1] : null}
+                isLast={index === values.length - 1} 
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
 
   return (
-    <ChladniPattern>
-      <div ref={sectionRef} className="w-full py-24 mb-48 relative">
-        <div className="max-w-[90%] mx-auto mb-16 text-left">
-          <h2 className="title-sm" style={{color: colors.roseWhite}}>{title}</h2>
+    <div 
+      ref={sectionRef} 
+      className="w-full relative"
+      style={{ 
+        height: isScrollJackingActive && !hasCompletedAllValues ? "100vh" : "auto",
+        minHeight: "100vh"
+      }}
+    >
+      <ChladniPattern>
+        <div className="py-24 mb-48">
+          <div className="max-w-[90%] mx-auto mb-16 text-left">
+            <h2 className="title-sm" style={{color: colors.roseWhite}}>{title}</h2>
+          </div>
+          {content()}
         </div>
-        {content()}
-      </div>
-    </ChladniPattern>
+      </ChladniPattern>
+    </div>
   );
 };
 
