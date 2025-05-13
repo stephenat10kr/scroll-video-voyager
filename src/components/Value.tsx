@@ -14,7 +14,8 @@ const Value: React.FC<ValueProps> = ({
   valueText,
   isLast = false
 }) => {
-  return <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
+  return (
+    <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
       <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
         {valueTitle}
       </h2>
@@ -25,11 +26,18 @@ const Value: React.FC<ValueProps> = ({
       </div>
       
       <div className="space-y-1">
-        {valueText.map((text, index) => <p key={index} className="title-sm text-center" style={{ color: colors.coral }}>
+        {valueText.map((text, index) => (
+          <p 
+            key={index} 
+            className="title-sm text-center" 
+            style={{ color: colors.coral }}
+          >
             {text}
-          </p>)}
+          </p>
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Value;
