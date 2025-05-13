@@ -27,6 +27,35 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
     sectionCount: sections.length,
     containerRef
   });
+  
+  // Add a global wheel event listener to ensure we catch all wheel events
+  useEffect(() => {
+    const handleGlobalWheel = (e: WheelEvent) => {
+      if (!containerRef.current) return;
+      
+      // Check if the component is in viewport
+      const rect = containerRef.current.getBoundingClientRect();
+      const isFullyVisible = 
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        rect.right <= window.innerWidth;
+        
+      const isPartiallyVisible =
+        rect.top < window.innerHeight &&
+        rect.bottom > 0;
+      
+      // If component is visible and we're not at the last section, prevent default scrolling
+      if (isPartiallyVisible && activeSection < sections.length - 1) {
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('wheel', handleGlobalWheel, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', handleGlobalWheel);
+    };
+  }, [activeSection, sections.length]);
 
   return (
     <div 
@@ -63,10 +92,10 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
             }}
           >
             {React.isValidElement(section) ? 
-              React.cloneElement(section, {
+              React.cloneElement(section as React.ReactElement<React.HTMLAttributes<HTMLElement>>, {
                 ...section.props,
                 className: `${section.props.className || ''} flex items-center justify-center h-full w-full`,
-              } as React.HTMLAttributes<HTMLElement>) : section}
+              }) : section}
           </div>
         ))}
       </div>
