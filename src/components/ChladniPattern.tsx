@@ -5,13 +5,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
-  scale?: number; // Added scale prop
 }
 
-const ChladniPattern: React.FC<ChladniPatternProps> = ({ 
-  children, 
-  scale = 1.0 // Default to 1.0 (100% scale)
-}) => {
+const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
@@ -313,8 +309,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: isMobile ? 0.3 : 0.5, // Further reduced opacity on mobile from 0.35 to 0.3
-          transform: `scale(${scale})` // Apply the scale transform
+          opacity: isMobile ? 0.3 : 0.5 // Further reduced opacity on mobile from 0.35 to 0.3
         }}
       />
       <div className="relative z-10">
