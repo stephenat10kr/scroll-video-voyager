@@ -35,21 +35,37 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
       
       // Check if the component is in viewport
       const rect = containerRef.current.getBoundingClientRect();
+      
+      // Check if fully in viewport (completely visible)
       const isFullyVisible = 
         rect.top >= 0 &&
         rect.bottom <= window.innerHeight;
-        
+      
+      // Check if partially in viewport
       const isPartiallyVisible =
         rect.top < window.innerHeight &&
         rect.bottom > 0;
       
-      // If component is fully visible and we're not at the last section, prevent default scrolling
-      if (isFullyVisible && activeSection < sections.length - 1) {
-        e.preventDefault();
+      // If component is fully visible, take control of scrolling
+      if (isFullyVisible) {
+        // If we're not at the last section or we are but haven't reached the end
+        // prevent default scrolling
+        if (activeSection < sections.length - 1 || 
+           (activeSection === sections.length - 1 && !hasReachedEnd)) {
+          e.preventDefault();
+        }
       }
-      // If component is partially visible but we haven't reached the end, prevent scroll
-      else if (isPartiallyVisible && activeSection === sections.length - 1 && !hasReachedEnd) {
-        e.preventDefault();
+      // If component is partially visible (entering or exiting viewport)
+      // but we haven't reached the end, prevent scroll to ensure smooth transitions
+      else if (isPartiallyVisible && !hasReachedEnd) {
+        // Only prevent when scrolling would affect our component
+        const isScrollingDown = e.deltaY > 0;
+        const isScrollingUp = e.deltaY < 0;
+        
+        if ((isScrollingDown && rect.top > 0) || 
+            (isScrollingUp && rect.bottom < window.innerHeight)) {
+          e.preventDefault();
+        }
       }
     };
     

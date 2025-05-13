@@ -28,6 +28,7 @@ export function useScrollJack({
   const [isComponentVisible, setIsComponentVisible] = useState<boolean>(false);
   const [isFullyVisible, setIsFullyVisible] = useState<boolean>(false);
   const [hasPassedAllSections, setHasPassedAllSections] = useState<boolean>(false);
+  const [hasCompletedAllTransitions, setHasCompletedAllTransitions] = useState<boolean>(false);
 
   // Setup Intersection Observer to detect when component enters/exits viewport
   useEffect(() => {
@@ -41,12 +42,19 @@ export function useScrollJack({
       { threshold: 0.1 }
     );
     
-    // Observer for detecting full visibility
+    // Observer for detecting full visibility (100% in viewport)
     const fullObserver = new IntersectionObserver(
       ([entry]) => {
         setIsFullyVisible(entry.isIntersecting);
+        // Reset if component becomes fully visible again after navigating away
+        if (entry.isIntersecting && !hasCompletedAllTransitions) {
+          setActiveSection(0);
+          setPreviousSection(null);
+          setAnimationDirection(null);
+          setHasReachedEnd(false);
+        }
       },
-      { threshold: 0.95 } // High threshold to ensure component is almost fully visible
+      { threshold: 1.0 } // Ensure component is 100% visible
     );
     
     partialObserver.observe(containerRef.current);
@@ -58,14 +66,20 @@ export function useScrollJack({
         fullObserver.unobserve(containerRef.current);
       }
     };
-  }, [containerRef]);
+  }, [containerRef, hasCompletedAllTransitions]);
 
   // Track if user has viewed all sections
   useEffect(() => {
     if (activeSection === sectionCount - 1) {
       setHasViewedAllSections(true);
+      
+      // Mark as completed transitions only when we've reached the last section
+      // and animation has finished
+      if (!isAnimating) {
+        setHasCompletedAllTransitions(true);
+      }
     }
-  }, [activeSection, sectionCount]);
+  }, [activeSection, sectionCount, isAnimating]);
 
   const goToSection = useCallback((nextSection: number, direction: 'up' | 'down') => {
     if (isAnimating) return;
@@ -80,6 +94,8 @@ export function useScrollJack({
       setHasReachedEnd(true);
     } else {
       setHasReachedEnd(false);
+      // Reset completion state if going back from the end
+      setHasCompletedAllTransitions(false);
     }
     
     // Reset animation state after transition completes
@@ -107,13 +123,17 @@ export function useScrollJack({
     
     // Allow normal scrolling to resume only when:
     // 1. We've viewed all sections
-    // 2. We're at the last section
-    // 3. User is scrolling down (to continue past the component)
-    if (hasPassedAllSections && activeSection === sectionCount - 1 && event.deltaY > 0) {
+    // 2. We've completed all transitions
+    // 3. We're at the last section
+    // 4. User is scrolling down (to continue past the component)
+    if (hasCompletedAllTransitions && 
+        hasPassedAllSections && 
+        activeSection === sectionCount - 1 && 
+        event.deltaY > 0) {
       return; // Don't prevent default - let normal scrolling take over
     }
     
-    // In all other cases when component is visible, take over scrolling
+    // In all other cases when component is fully visible, take over scrolling
     event.preventDefault();
     
     if (event.deltaY > 0 && activeSection < sectionCount - 1) {
@@ -123,7 +143,15 @@ export function useScrollJack({
       // Scrolling up
       goToSection(activeSection - 1, 'up');
     }
-  }, [activeSection, isAnimating, sectionCount, isFullyVisible, goToSection, hasPassedAllSections]);
+  }, [
+    activeSection,
+    isAnimating, 
+    sectionCount, 
+    isFullyVisible, 
+    goToSection, 
+    hasPassedAllSections,
+    hasCompletedAllTransitions
+  ]);
 
   const handleSectionChange = useCallback((sectionIndex: number) => {
     const direction = sectionIndex > activeSection ? 'down' : 'up';
@@ -132,15 +160,17 @@ export function useScrollJack({
 
   // Reset state when component is not visible
   useEffect(() => {
-    if (!isComponentVisible) {
-      setActiveSection(0);
-      setPreviousSection(null);
-      setAnimationDirection(null);
+    if (!isComponentVisible && !isFullyVisible) {
+      // Only reset if we're not in the middle of viewing
+      if (!hasCompletedAllTransitions) {
+        setActiveSection(0);
+        setPreviousSection(null);
+        setAnimationDirection(null);
+      }
       setHasReachedEnd(false);
       setHasViewedAllSections(false);
-      setHasPassedAllSections(false);
     }
-  }, [isComponentVisible]);
+  }, [isComponentVisible, isFullyVisible, hasCompletedAllTransitions]);
 
   return {
     activeSection,
