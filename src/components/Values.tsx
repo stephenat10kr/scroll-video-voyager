@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -44,13 +45,15 @@ const Values: React.FC<ValuesProps> = ({
 
     // Flag to track if the values section has been viewed
     let hasEnteredValuesSection = false;
+    let isLeavingSection = false;
 
-    // Observer for the main values section
+    // Observer for the main values section to detect entry and exit
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && !hasEnteredValuesSection && !hasCompletedAllValues) {
+        if (entry.isIntersecting && !hasEnteredValuesSection) {
           hasEnteredValuesSection = true;
           setIsScrollSnapping(true);
+          isLeavingSection = false;
           
           // Activate the first value
           setActiveValueIndex(0);
@@ -62,12 +65,19 @@ const Values: React.FC<ValuesProps> = ({
               block: 'center' 
             });
           }
-        } else if (!entry.isIntersecting && hasEnteredValuesSection && !hasCompletedAllValues) {
-          // If we're leaving the values section and haven't viewed all values
-          // Keep track but don't change the snap behavior yet
+        } else if (!entry.isIntersecting && hasEnteredValuesSection) {
+          // When leaving the section entirely, disable snapping to allow normal scrolling
+          isLeavingSection = true;
+          
+          // Short delay to ensure we're truly exiting the section
+          setTimeout(() => {
+            if (isLeavingSection) {
+              setIsScrollSnapping(false);
+            }
+          }, 100);
         }
       });
-    }, { threshold: 0.2 });
+    }, { threshold: 0.1 }); // Lower threshold to detect entering/leaving earlier
 
     if (sectionRef.current) {
       sectionObserver.observe(sectionRef.current);
@@ -81,15 +91,15 @@ const Values: React.FC<ValuesProps> = ({
       values.forEach((_, index) => {
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
-            if (entry.isIntersecting && !hasCompletedAllValues) {
+            if (entry.isIntersecting) {
               setActiveValueIndex(index);
               
-              // If it's the last value, mark as completed after viewing it for some time
+              // If it's the last value, mark as completed after viewing it
               if (index === values.length - 1) {
                 const timer = setTimeout(() => {
                   setHasCompletedAllValues(true);
                   setIsScrollSnapping(false);
-                }, 2000); // Time to view the last value before releasing the snap
+                }, 1500); // Time to view the last value before releasing the snap
                 return () => clearTimeout(timer);
               }
             }
@@ -111,15 +121,14 @@ const Values: React.FC<ValuesProps> = ({
       cleanup();
       sectionObserver.disconnect();
     };
-  }, [values, isLoading, hasCompletedAllValues]);
+  }, [values, isLoading]);
 
   // Apply scroll snapping CSS when needed
   useEffect(() => {
     if (!sectionRef.current || !valuesContainerRef.current) return;
     
     if (isScrollSnapping && !hasCompletedAllValues) {
-      // Apply scroll-snapping styles
-      document.body.style.overflow = 'hidden';
+      // Apply scroll-snapping styles to the VALUES CONTAINER only, not the whole document
       valuesContainerRef.current.style.scrollSnapType = 'y mandatory';
       
       // If we have an active value, scroll to it
@@ -131,15 +140,10 @@ const Values: React.FC<ValuesProps> = ({
       }
     } else {
       // Remove scroll-snapping styles
-      document.body.style.overflow = '';
       if (valuesContainerRef.current) {
         valuesContainerRef.current.style.scrollSnapType = '';
       }
     }
-    
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isScrollSnapping, activeValueIndex, hasCompletedAllValues]);
 
   const content = () => {
@@ -193,13 +197,13 @@ const Values: React.FC<ValuesProps> = ({
     return (
       <div 
         ref={valuesContainerRef} 
-        className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto overflow-y-auto h-[80vh]"
+        className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto"
       >
         {values.map((value, index) => (
           <div 
             key={value.id} 
             ref={el => valueRefs.current[index] = el} 
-            className="w-full h-[80vh] flex items-center scroll-snap-align-center"
+            className="w-full h-[80vh] flex items-center"
             style={{ scrollSnapAlign: 'center' }}
           >
             <Value 
@@ -219,9 +223,7 @@ const Values: React.FC<ValuesProps> = ({
     <ChladniPattern>
       <div ref={sectionRef} className="w-full py-24 mb-48 relative">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
-          <h2 className="title-sm" style={{
-          color: colors.roseWhite
-        }}>{title}</h2>
+          <h2 className="title-sm" style={{color: colors.roseWhite}}>{title}</h2>
         </div>
         {content()}
       </div>
