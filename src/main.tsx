@@ -18,6 +18,13 @@ window.addEventListener('scrollLock', (e: Event) => {
   }
 });
 
+// Prevent default scrolling on wheel events when locked
+document.addEventListener('wheel', (e) => {
+  if (window.scrollLockEvent.detail.locked) {
+    e.preventDefault();
+  }
+}, { passive: false, capture: true });
+
 // Prevent overscroll/bounce effect on touch devices
 document.body.addEventListener('touchmove', (e) => {
   if (window.scrollLockEvent.detail.locked) {

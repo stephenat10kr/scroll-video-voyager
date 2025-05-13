@@ -35,18 +35,18 @@ const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
     <div 
       ref={indicatorRef}
       className="fixed right-6 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center space-y-3 z-50"
-      style={{ pointerEvents: 'none' }}
     >
       {Array.from({ length: totalSections }).map((_, index) => (
         <div 
           key={index}
           className="transition-all duration-300 ease-in-out"
           style={{
-            width: currentSection === index ? '10px' : '6px',
-            height: currentSection === index ? '10px' : '6px',
+            width: currentSection === index ? '12px' : '8px',
+            height: currentSection === index ? '12px' : '8px',
             borderRadius: '50%',
             backgroundColor: currentSection === index ? colors.coral : `${colors.roseWhite}80`,
-            transform: currentSection === index ? 'scale(1.2)' : 'scale(1)'
+            transform: currentSection === index ? 'scale(1.2)' : 'scale(1)',
+            cursor: 'pointer'
           }}
         />
       ))}

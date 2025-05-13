@@ -2,7 +2,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
-import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
 import { useScrollJack } from "@/hooks/useScrollJack";
 import ScrollIndicator from "./ScrollIndicator";
@@ -22,7 +21,7 @@ const Values: React.FC<ValuesProps> = ({
   
   // Create refs for the scroll-jacking functionality
   const containerRef = useRef<HTMLDivElement>(null);
-  // Create an array of refs instead of an array of elements
+  // Create an array of refs for the value sections
   const valueRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   const [isScrollJackComplete, setIsScrollJackComplete] = useState(false);
 
@@ -39,7 +38,7 @@ const Values: React.FC<ValuesProps> = ({
   // Use our scroll jack hook
   const { isActive, currentSectionIndex, completed } = useScrollJack({
     containerRef,
-    sectionRefs: valueRefs.current, // This is now correctly typed
+    sectionRefs: valueRefs.current,
     onComplete: () => {
       console.log("Scroll jack completed");
       setIsScrollJackComplete(true);
@@ -102,18 +101,20 @@ const Values: React.FC<ValuesProps> = ({
     }
     
     return (
-      <div className="col-span-12 sm:col-span-9 max-w-[90%] mx-auto relative" style={{ height: "100vh" }}>
+      <div className="w-full relative" style={{ height: "100vh", overflow: "hidden" }}>
         {/* Values content */}
-        {values.map((value, index) => (
-          <Value
-            key={value.id}
-            ref={valueRefs.current[index]} // Pass the ref from our refs array
-            valueTitle={value.valueTitle}
-            valueText={value.valueText}
-            isActive={currentSectionIndex === index}
-            isLast={index === values.length - 1}
-          />
-        ))}
+        <div className="absolute inset-0 flex flex-col justify-center">
+          {values.map((value, index) => (
+            <Value
+              key={value.id}
+              ref={valueRefs.current[index]} 
+              valueTitle={value.valueTitle}
+              valueText={value.valueText}
+              isActive={currentSectionIndex === index}
+              isLast={index === values.length - 1}
+            />
+          ))}
+        </div>
 
         {/* Scroll indicator */}
         <ScrollIndicator 
@@ -131,7 +132,8 @@ const Values: React.FC<ValuesProps> = ({
       id="values-container"
       className="w-full py-24 mb-48 relative z-10"
       style={{ 
-        overflow: isActive && !isScrollJackComplete ? 'hidden' : 'visible' 
+        overflow: isActive && !isScrollJackComplete ? 'hidden' : 'visible',
+        minHeight: "100vh"
       }}
       data-scrolljack-active={isActive}
       data-current-section={currentSectionIndex}
@@ -143,7 +145,7 @@ const Values: React.FC<ValuesProps> = ({
       </div>
       {content()}
       
-      {/* Scroll indicator */}
+      {/* Scroll indicator for mobile */}
       {isActive && !completed && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center">
           <div className="animate-bounce mb-2">

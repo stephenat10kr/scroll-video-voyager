@@ -28,7 +28,7 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
     if (!isActive || !titleRef.current || !textContainerRef.current || !spinnerRef.current) {
       // If section is not active, reset or hide elements
       if (prevActiveRef.current && !isActive) {
-        gsap.to([titleRef.current, spinnerRef.current, textContainerRef.current.children], {
+        gsap.to([titleRef.current, spinnerRef.current, textContainerRef.current?.children || []], {
           opacity: 0,
           y: 50,
           duration: 0.3,
@@ -105,7 +105,7 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
           <Spinner />
         </div>
         
-        <div ref={textContainerRef} className="space-y-1">
+        <div ref={textContainerRef} className="space-y-1 mt-6">
           {valueText.map((text, index) => (
             <p 
               key={index} 
