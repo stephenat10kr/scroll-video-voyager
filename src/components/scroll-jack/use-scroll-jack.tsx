@@ -76,16 +76,25 @@ export function useScrollJack({
   }, [activeSection, isAnimating, sectionCount]);
 
   const handleWheelEvent = useCallback((event: React.WheelEvent) => {
-    // Only handle wheel events when component is visible and not currently animating
-    if (!isComponentVisible || isAnimating) return;
+    // Only take over scrolling when the component is visible
+    if (!isComponentVisible) {
+      return; // Let normal scrolling happen when not in view
+    }
     
-    // Only allow normal scrolling if we've viewed all sections AND we're at the last section AND scrolling down
-    if (hasViewedAllSections && activeSection === sectionCount - 1 && event.deltaY > 0) {
-      // Allow normal scrolling to continue
+    // Don't handle wheel events during animation
+    if (isAnimating) {
+      event.preventDefault();
       return;
     }
     
-    // In all other cases, prevent default scrolling and handle our own navigation
+    // Allow normal scrolling to resume when:
+    // 1. We've reached the last section
+    // 2. User is scrolling down (to continue past the component)
+    if (activeSection === sectionCount - 1 && event.deltaY > 0) {
+      return; // Don't prevent default - let normal scrolling take over
+    }
+    
+    // In all other cases when component is visible, take over scrolling
     event.preventDefault();
     
     if (event.deltaY > 0 && activeSection < sectionCount - 1) {
@@ -95,7 +104,7 @@ export function useScrollJack({
       // Scrolling up
       goToSection(activeSection - 1, 'up');
     }
-  }, [activeSection, isAnimating, sectionCount, hasViewedAllSections, isComponentVisible, goToSection]);
+  }, [activeSection, isAnimating, sectionCount, isComponentVisible, goToSection]);
 
   const handleSectionChange = useCallback((sectionIndex: number) => {
     const direction = sectionIndex > activeSection ? 'down' : 'up';
