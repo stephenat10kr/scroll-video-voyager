@@ -7,7 +7,6 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import { ScrollJackContainer } from "../components/scroll-jack";
 
 const Index = () => {
   return (
@@ -15,45 +14,6 @@ const Index = () => {
       <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        
-        <ScrollJackContainer 
-          titles={[
-            "Our Ethos", 
-            "Our Community", 
-            "Our Mission"
-          ]}
-        >
-          <section className="bg-darkGreen w-full px-4 md:px-10">
-            <div className="max-w-5xl mx-auto text-roseWhite">
-              <div className="md:w-3/4 mx-auto text-center">
-                <p className="title-sm mb-6">
-                  Lightning Society is a gathering of creative minds, entrepreneurs, artists, and visionaries committed to exploring the boundaries of human potential.
-                </p>
-              </div>
-            </div>
-          </section>
-          
-          <section className="bg-darkGreen w-full px-4 md:px-10">
-            <div className="max-w-5xl mx-auto text-roseWhite">
-              <div className="md:w-3/4 mx-auto text-center">
-                <p className="title-sm mb-6">
-                  Our community fosters deep connections through shared experiences, collaborative projects, and transformative events that inspire growth.
-                </p>
-              </div>
-            </div>
-          </section>
-          
-          <section className="bg-darkGreen w-full px-4 md:px-10">
-            <div className="max-w-5xl mx-auto text-roseWhite">
-              <div className="md:w-3/4 mx-auto text-center">
-                <p className="title-sm mb-6">
-                  We believe in the power of human connection to catalyze innovation and meaningful change in ourselves and the world around us.
-                </p>
-              </div>
-            </div>
-          </section>
-        </ScrollJackContainer>
-        
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
         <Gallery 
