@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -63,7 +62,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
         // Scale factor for mobile - increased from 2.0 to 3.5
-        float scaleFactor = u_isMobile ? 3.5 : 1.0;
+        float scaleFactor = u_isMobile ? 3.5 : 2.0; // Changed from 1.0 to 2.0 for desktop
         p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
 
         // Using the user-specified vector values
