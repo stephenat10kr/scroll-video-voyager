@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 /**
@@ -40,11 +41,11 @@ export const createModifiedSection = (
   
   return (
     <div
+      key={`section-${index}`}
       className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out flex items-center justify-center"
       style={{
         transform: `translateY(${(index - activeSection) * 100}%)`,
         zIndex: index === activeSection ? 10 : 0,
-        // Keep the last section visible when reaching end
         opacity: 1,
         pointerEvents: hasReachedEnd && !isLastSection ? 'none' : 'auto'
       }}
