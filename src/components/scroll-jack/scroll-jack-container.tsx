@@ -62,10 +62,11 @@ export const ScrollJackContainer: React.FC<ScrollJackContainerProps> = ({
               pointerEvents: hasReachedEnd && index < activeSection ? 'none' : 'auto'
             }}
           >
-            {React.isValidElement(section) && 
+            {React.isValidElement(section) ? 
               React.cloneElement(section, {
+                ...section.props,
                 className: `${section.props.className || ''} flex items-center justify-center h-full w-full`,
-              })}
+              } as React.HTMLAttributes<HTMLElement>) : section}
           </div>
         ))}
       </div>
