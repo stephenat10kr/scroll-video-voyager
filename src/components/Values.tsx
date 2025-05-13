@@ -1,19 +1,47 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
+
 interface ValuesProps {
   title: string;
 }
+
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
+  const valuesContainerRef = useRef<HTMLDivElement>(null);
+  
   const {
     data: values,
     isLoading,
     error
   } = useValues();
+
+  // Setup scroll snapping
+  useEffect(() => {
+    const container = valuesContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Don't interfere with normal scrolling if we're not in the values container
+      const rect = container.getBoundingClientRect();
+      const isInViewport = (
+        rect.top <= 0 &&
+        rect.bottom >= 0
+      );
+      
+      if (!isInViewport) return;
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -61,19 +89,36 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
-        {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
-      </div>;
+    return (
+      <div 
+        ref={valuesContainerRef} 
+        className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto snap-y snap-mandatory overflow-y-scroll h-screen"
+      >
+        {values.map((value, index) => (
+          <div key={value.id} className="snap-start snap-always w-full h-screen">
+            <Value 
+              valueTitle={value.valueTitle} 
+              valueText={value.valueText} 
+              isLast={index === values.length - 1} 
+            />
+          </div>
+        ))}
+      </div>
+    );
   };
-  return <ChladniPattern>
+
+  return (
+    <ChladniPattern>
       <div className="w-full py-24 mb-48">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
           <h2 className="title-sm" style={{
-          color: colors.roseWhite
-        }}>{title}</h2>
+            color: colors.roseWhite
+          }}>{title}</h2>
         </div>
         {content()}
       </div>
-    </ChladniPattern>;
+    </ChladniPattern>
+  );
 };
+
 export default Values;
