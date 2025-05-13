@@ -79,7 +79,7 @@ const Value: React.FC<ValueProps> = ({
         );
       }
       
-      // Animate text paragraphs
+      // Animate text paragraphs with fade-in effect
       gsap.fromTo(
         textContainerRef.current.children,
         { opacity: 0, y: 20 },
@@ -97,20 +97,22 @@ const Value: React.FC<ValueProps> = ({
 
   return (
     <div className="w-full flex flex-col justify-center">
-      <h2 
-        ref={titleRef} 
-        className="title-md mb-6 text-center py-[56px]" 
-        style={{ color: colors.coral }}
-      >
-        {valueTitle}
-      </h2>
+      <div className="relative">
+        <h2 
+          ref={titleRef} 
+          className="title-md mb-6 text-center py-[56px]" 
+          style={{ color: colors.coral }}
+        >
+          {valueTitle}
+        </h2>
+      </div>
       
       {/* Spinner component placed between title and text */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-8">
         <Spinner />
       </div>
       
-      <div ref={textContainerRef} className="space-y-1">
+      <div ref={textContainerRef} className="space-y-4">
         {valueText.map((text, index) => (
           <p 
             key={index} 

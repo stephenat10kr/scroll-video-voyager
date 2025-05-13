@@ -1,10 +1,8 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
-import { ScrollArea } from "./ui/scroll-area";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -24,6 +22,7 @@ const Values: React.FC<ValuesProps> = ({
   } = useValues();
   
   const sectionRef = useRef<HTMLDivElement>(null);
+  const valuesContainerRef = useRef<HTMLDivElement>(null);
   const [activeValueIndex, setActiveValueIndex] = useState<number | null>(null);
   const [isScrollSnapping, setIsScrollSnapping] = useState(false);
   const [hasCompletedAllValues, setHasCompletedAllValues] = useState(false);
@@ -43,6 +42,37 @@ const Values: React.FC<ValuesProps> = ({
       observersRef.current = [];
     };
 
+    // Flag to track if the values section has been viewed
+    let hasEnteredValuesSection = false;
+
+    // Observer for the main values section
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasEnteredValuesSection && !hasCompletedAllValues) {
+          hasEnteredValuesSection = true;
+          setIsScrollSnapping(true);
+          
+          // Activate the first value
+          setActiveValueIndex(0);
+          
+          // Scroll to the first value
+          if (valueRefs.current[0]) {
+            valueRefs.current[0].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        } else if (!entry.isIntersecting && hasEnteredValuesSection && !hasCompletedAllValues) {
+          // If we're leaving the values section and haven't viewed all values
+          // Keep track but don't change the snap behavior yet
+        }
+      });
+    }, { threshold: 0.2 });
+
+    if (sectionRef.current) {
+      sectionObserver.observe(sectionRef.current);
+    }
+    
     // Set up intersection observers after a short delay to ensure DOM is ready
     const timer = setTimeout(() => {
       cleanup();
@@ -53,7 +83,6 @@ const Values: React.FC<ValuesProps> = ({
           entries.forEach(entry => {
             if (entry.isIntersecting && !hasCompletedAllValues) {
               setActiveValueIndex(index);
-              setIsScrollSnapping(true);
               
               // If it's the last value, mark as completed after viewing it for some time
               if (index === values.length - 1) {
@@ -66,7 +95,7 @@ const Values: React.FC<ValuesProps> = ({
             }
           });
         }, { 
-          threshold: 0.5, // When at least 50% of the element is visible
+          threshold: 0.7, // When at least 70% of the element is visible
           rootMargin: "-10% 0px" // Adds margin to trigger slightly before center
         });
         
@@ -80,16 +109,18 @@ const Values: React.FC<ValuesProps> = ({
     return () => {
       clearTimeout(timer);
       cleanup();
+      sectionObserver.disconnect();
     };
   }, [values, isLoading, hasCompletedAllValues]);
 
   // Apply scroll snapping CSS when needed
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !valuesContainerRef.current) return;
     
     if (isScrollSnapping && !hasCompletedAllValues) {
+      // Apply scroll-snapping styles
       document.body.style.overflow = 'hidden';
-      sectionRef.current.style.scrollSnapType = 'y mandatory';
+      valuesContainerRef.current.style.scrollSnapType = 'y mandatory';
       
       // If we have an active value, scroll to it
       if (activeValueIndex !== null && valueRefs.current[activeValueIndex]) {
@@ -99,9 +130,10 @@ const Values: React.FC<ValuesProps> = ({
         });
       }
     } else {
+      // Remove scroll-snapping styles
       document.body.style.overflow = '';
-      if (sectionRef.current) {
-        sectionRef.current.style.scrollSnapType = '';
+      if (valuesContainerRef.current) {
+        valuesContainerRef.current.style.scrollSnapType = '';
       }
     }
     
@@ -158,12 +190,16 @@ const Values: React.FC<ValuesProps> = ({
         </div>;
     }
     
-    return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
+    return (
+      <div 
+        ref={valuesContainerRef} 
+        className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto overflow-y-auto h-[80vh]"
+      >
         {values.map((value, index) => (
           <div 
             key={value.id} 
             ref={el => valueRefs.current[index] = el} 
-            className="w-full h-screen flex items-center scroll-snap-align-center"
+            className="w-full h-[80vh] flex items-center scroll-snap-align-center"
             style={{ scrollSnapAlign: 'center' }}
           >
             <Value 
@@ -175,10 +211,12 @@ const Values: React.FC<ValuesProps> = ({
             />
           </div>
         ))}
-      </div>;
+      </div>
+    );
   };
 
-  return <ChladniPattern>
+  return (
+    <ChladniPattern>
       <div ref={sectionRef} className="w-full py-24 mb-48 relative">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
           <h2 className="title-sm" style={{
@@ -187,6 +225,8 @@ const Values: React.FC<ValuesProps> = ({
         </div>
         {content()}
       </div>
-    </ChladniPattern>;
+    </ChladniPattern>
+  );
 };
+
 export default Values;
