@@ -22,24 +22,39 @@ export const useIntersectionObserver = (
     onComplete?: () => void;
   }
 ) => {
-  const { containerRef, sectionRefs, threshold = 0.1, firstSectionRef } = props;
+  const { containerRef, sectionRefs, threshold = 0.1 } = props;
   
   useEffect(() => {
     if (!containerRef.current || sectionRefs.length === 0) return;
     
-    // Create an observer for the container to detect when it's in view
+    // Simple and direct approach: observe when the container hits the viewport top
     const containerObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
         
-        // Only check if container is in the viewport
+        // Check if container is intersecting and near top of viewport
         if (entry.isIntersecting) {
-          // Container is in view, now we'll rely on the first section observer
-          // for precise activation
-          console.log("Container in viewport, ready for scroll jack activation");
-        } 
-        // Deactivate when scrolled past and we've viewed all sections
-        else if ((!entry.isIntersecting && entry.boundingClientRect.top < 0) || completed) {
+          // Get the bounding rect of the container to check position
+          const rect = containerRef.current?.getBoundingClientRect();
+          
+          // Activate when top of container is near top of viewport (within 50px)
+          if (rect && rect.top <= 50 && rect.top >= -50) {
+            if (!isActivatedRef.current) {
+              console.log("Values container at top of viewport, activating scroll jack");
+              setIsActive(true);
+              isActivatedRef.current = true;
+              hasStartedRef.current = true;
+              
+              // Lock body scrolling
+              document.body.style.overflow = 'hidden';
+              window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: true } }));
+            }
+          }
+        }
+        
+        // Deactivate when scrolled past bottom of viewport or completed
+        if ((!entry.isIntersecting && entry.boundingClientRect.top < 0) || completed) {
+          // Only complete if we've reached the last section
           if (hasStartedRef.current && currentSectionIndex >= sectionRefs.length - 1) {
             console.log("Scroll section passed or completed, releasing scroll lock");
             setIsActive(false);
@@ -52,52 +67,16 @@ export const useIntersectionObserver = (
           }
         }
       },
-      { threshold: [0], rootMargin: "0px 0px 0px 0px" }
+      // Use a smaller threshold and negative rootMargin to detect earlier
+      { threshold: [0, 0.1, 0.2], rootMargin: "-20px 0px 0px 0px" }
     );
     
     containerObserver.observe(containerRef.current);
-
-    // Create observer for the first section to precisely determine when to activate
-    // Use firstSectionRef if provided, otherwise use the first section ref
-    const targetRef = firstSectionRef?.current || sectionRefs[0]?.current;
-    
-    if (targetRef) {
-      const firstSectionObserver = new IntersectionObserver(
-        (entries) => {
-          const [entry] = entries;
-          
-          // Activate when first section reaches top of viewport
-          if (entry.isIntersecting && entry.boundingClientRect.top <= 10) {
-            if (!isActivatedRef.current) {
-              console.log("First value at top of viewport, activating scroll jack");
-              setIsActive(true);
-              isActivatedRef.current = true;
-              
-              // Lock body scrolling
-              document.body.style.overflow = 'hidden';
-              window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: true } }));
-            }
-          }
-        },
-        { threshold: [0, threshold], rootMargin: "0px 0px 0px 0px" }
-      );
-      
-      firstSectionObserver.observe(targetRef);
-      
-      return () => {
-        if (containerRef.current) {
-          containerObserver.unobserve(containerRef.current);
-        }
-        if (targetRef) {
-          firstSectionObserver.unobserve(targetRef);
-        }
-      };
-    }
     
     return () => {
       if (containerRef.current) {
         containerObserver.unobserve(containerRef.current);
       }
     };
-  }, [containerRef, sectionRefs, firstSectionRef, threshold, onComplete, currentSectionIndex, completed, setIsActive, setCompleted, isActivatedRef, hasStartedRef]);
+  }, [containerRef, sectionRefs, threshold, onComplete, currentSectionIndex, completed, setIsActive, setCompleted, isActivatedRef, hasStartedRef]);
 };

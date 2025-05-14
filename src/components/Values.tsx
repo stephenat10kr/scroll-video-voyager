@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -21,8 +20,6 @@ const Values: React.FC<ValuesProps> = ({
   
   // Create refs for the scroll-jacking functionality
   const containerRef = useRef<HTMLDivElement>(null);
-  const firstValueRef = useRef<HTMLDivElement>(null); // Specific ref for the first value
-  // Create an array of refs for the value sections
   const valueRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [isScrollJackActive, setIsScrollJackActive] = useState(false);
@@ -42,7 +39,6 @@ const Values: React.FC<ValuesProps> = ({
   const { isActive, currentSectionIndex: sectionIndexFromHook, completed } = useScrollJack({
     containerRef,
     sectionRefs: valueRefs.current,
-    firstSectionRef: firstValueRef,
     threshold: 0.1,
     onComplete: () => {
       console.log("Scroll jack completed");
@@ -77,7 +73,6 @@ const Values: React.FC<ValuesProps> = ({
     }
     
     if (error) {
-      console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="hidden sm:block md:block col-span-3">
             <h2 className="title-sm" style={{
@@ -114,7 +109,7 @@ const Values: React.FC<ValuesProps> = ({
           {values.map((value, index) => (
             <Value
               key={value.id}
-              ref={index === 0 ? firstValueRef : valueRefs.current[index]} 
+              ref={valueRefs.current[index]}
               valueTitle={value.valueTitle}
               valueText={value.valueText}
               isActive={currentSectionIndex === index}
@@ -137,7 +132,7 @@ const Values: React.FC<ValuesProps> = ({
     <div 
       ref={containerRef} 
       id="values-container"
-      className="w-full py-24 mb-48 relative z-10"
+      className="w-full py-16 mb-48 relative z-10"
       style={{ 
         minHeight: "100vh"
       }}
@@ -145,7 +140,7 @@ const Values: React.FC<ValuesProps> = ({
       data-current-section={currentSectionIndex}
       data-scrolljack-complete={isScrollJackComplete}
     >
-      <div className="max-w-[90%] mx-auto mb-16 text-left">
+      <div className="max-w-[90%] mx-auto mb-8 text-left">
         <h2 className="title-sm" style={{
         color: colors.roseWhite
       }}>{title}</h2>
