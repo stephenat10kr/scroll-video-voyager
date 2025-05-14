@@ -1,92 +1,38 @@
 
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { useEffect } from 'react';
+import { UseScrollJackProps } from './types';
 
-interface UseScrollJackProps {
-  containerRef: RefObject<HTMLElement>;
-  sectionRefs: RefObject<HTMLElement>[];
+interface ScrollJackStateHandlers {
+  isScrollingRef: React.MutableRefObject<boolean>;
+  lastScrollTimeRef: React.MutableRefObject<number>;
+  hasStartedRef: React.MutableRefObject<boolean>;
+  setCurrentSectionIndex: (index: number) => void;
+  currentSectionIndex: number;
+  SCROLL_THROTTLE: number;
+  setCompleted: (completed: boolean) => void;
+  isActive: boolean;
+  completed: boolean;
   onComplete?: () => void;
-  threshold?: number;
 }
 
-export const useScrollJack = ({ 
-  containerRef, 
-  sectionRefs, 
-  onComplete,
-  threshold = 0.1
-}: UseScrollJackProps) => {
-  // Core state
-  const [isActive, setIsActive] = useState(false);
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [completed, setCompleted] = useState(false);
+export const useEventHandlers = (
+  props: UseScrollJackProps,
+  stateHandlers: ScrollJackStateHandlers
+) => {
+  const { sectionRefs } = props;
+  const {
+    isScrollingRef,
+    lastScrollTimeRef,
+    hasStartedRef,
+    setCurrentSectionIndex,
+    currentSectionIndex,
+    SCROLL_THROTTLE,
+    setCompleted,
+    isActive,
+    completed,
+    onComplete
+  } = stateHandlers;
   
-  // Refs for internal state tracking
-  const isScrollingRef = useRef(false);
-  const lastScrollTimeRef = useRef(Date.now());
-  const hasStartedRef = useRef(false);
-  const isActivatedRef = useRef(false);
-  
-  // Constants
-  const SCROLL_THROTTLE = 700; // Time between scroll events
-  
-  // Reset everything when component unmounts or changes
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = '';
-      window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-      hasStartedRef.current = false;
-      isActivatedRef.current = false;
-      setCompleted(false);
-      setIsActive(false);
-      setCurrentSectionIndex(0);
-    };
-  }, [containerRef, sectionRefs]);
-  
-  // Create intersection observer to detect when container is at the top of viewport
-  useEffect(() => {
-    if (!containerRef.current || sectionRefs.length === 0) return;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        
-        // Only activate when container reaches top of viewport
-        if (entry.isIntersecting && entry.boundingClientRect.top <= 10) {
-          if (!isActivatedRef.current) {
-            console.log("Values at top of viewport, activating scroll jack");
-            setIsActive(true);
-            isActivatedRef.current = true;
-            
-            // Lock body scrolling
-            document.body.style.overflow = 'hidden';
-            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: true } }));
-          }
-        }
-        // Deactivate when scrolled past and we've viewed all sections
-        else if ((!entry.isIntersecting && entry.boundingClientRect.top < 0) || completed) {
-          if (hasStartedRef.current && currentSectionIndex >= sectionRefs.length - 1) {
-            console.log("Scroll section passed or completed, releasing scroll lock");
-            setIsActive(false);
-            setCompleted(true);
-            
-            document.body.style.overflow = '';
-            window.dispatchEvent(new CustomEvent('scrollLock', { detail: { locked: false } }));
-            
-            if (onComplete) onComplete();
-          }
-        }
-      },
-      { threshold: [0, threshold], rootMargin: "0px 0px 0px 0px" }
-    );
-    
-    observer.observe(containerRef.current);
-    
-    return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
-    };
-  }, [containerRef, sectionRefs, threshold, onComplete, currentSectionIndex, completed]);
-
   // Handle wheel, touch, and keyboard events
   useEffect(() => {
     if (!isActive || sectionRefs.length === 0) return;
@@ -238,11 +184,5 @@ export const useScrollJack = ({
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isActive, currentSectionIndex, sectionRefs, completed, onComplete]);
-
-  return {
-    isActive,
-    currentSection: currentSectionIndex,
-    completed
-  };
+  }, [isActive, currentSectionIndex, sectionRefs, completed, onComplete, SCROLL_THROTTLE]);
 };

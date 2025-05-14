@@ -1,9 +1,8 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import colors from "@/lib/theme";
-import { useScrollJack } from "@/hooks/useScrollJack";
+import { useScrollJack } from "@/hooks/scrollJack";
 import ScrollIndicator from "./ScrollIndicator";
 
 interface ValuesProps {
