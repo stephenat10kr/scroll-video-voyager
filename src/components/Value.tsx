@@ -1,142 +1,43 @@
-import React, { forwardRef, useEffect, useRef } from "react";
+
+import React from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
-import { gsap } from "gsap";
 
 interface ValueProps {
   valueTitle: string;
   valueText: string[];
-  isActive: boolean;
   isLast?: boolean;
 }
 
-const Value = forwardRef<HTMLDivElement, ValueProps>(({
+const Value: React.FC<ValueProps> = ({
   valueTitle,
   valueText,
-  isActive,
   isLast = false
-}, ref) => {
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const textContainerRef = useRef<HTMLDivElement>(null);
-  const spinnerRef = useRef<HTMLDivElement>(null);
-  const prevActiveRef = useRef<boolean>(false);
-
-  // Animation effect when the value becomes active
-  useEffect(() => {
-    if (!titleRef.current || !textContainerRef.current || !spinnerRef.current) return;
-    
-    // Store previous state
-    const wasActive = prevActiveRef.current;
-    prevActiveRef.current = isActive;
-    
-    // Kill any existing animations to prevent conflicts
-    gsap.killTweensOf([titleRef.current, spinnerRef.current]);
-    if (textContainerRef.current.children) {
-      gsap.killTweensOf([...Array.from(textContainerRef.current.children)]);
-    }
-    
-    if (isActive) {
-      // If becoming active, animate in
-      gsap.set(titleRef.current, { opacity: 0, y: 50 });
-      gsap.set(spinnerRef.current, { opacity: 0, scale: 0.8 });
-      
-      if (textContainerRef.current.children.length > 0) {
-        gsap.set([...Array.from(textContainerRef.current.children)], { opacity: 0, y: 30 });
-      }
-      
-      const tl = gsap.timeline({ 
-        defaults: { duration: 0.5, ease: "power2.out" }
-      });
-      
-      tl.to(titleRef.current, { 
-        opacity: 1, 
-        y: 0,
-        duration: 0.6
-      })
-      .to(spinnerRef.current, { 
-        opacity: 1, 
-        scale: 1, 
-        duration: 0.4
-      }, "-=0.3");
-      
-      if (textContainerRef.current.children.length > 0) {
-        tl.to([...Array.from(textContainerRef.current.children)], { 
-          opacity: 1, 
-          y: 0, 
-          stagger: 0.1,
-          duration: 0.5
-        }, "-=0.2");
-      }
-    } else if (wasActive) {
-      // If was active but now inactive, fade out
-      gsap.to(titleRef.current, {
-        opacity: 0,
-        y: -20,
-        duration: 0.3
-      });
-      
-      gsap.to(spinnerRef.current, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.3
-      });
-      
-      if (textContainerRef.current.children.length > 0) {
-        gsap.to([...Array.from(textContainerRef.current.children)], {
-          opacity: 0,
-          y: -20,
-          stagger: 0.05,
-          duration: 0.3
-        });
-      }
-    }
-  }, [isActive]);
-
+}) => {
   return (
-    <div 
-      ref={ref}
-      className={`w-full min-h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}
-      style={{
-        opacity: isActive ? 1 : 0,
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        pointerEvents: isActive ? "all" : "none",
-        zIndex: isActive ? 2 : 1
-      }}
-      data-value-section="true"
-    >
-      <div className="transform transition-all duration-300 max-w-4xl mx-auto px-4">
-        <h2 
-          ref={titleRef}
-          className="title-md mb-6 text-center py-[56px]" 
-          style={{ color: colors.coral }}
-        >
-          {valueTitle}
-        </h2>
-        
-        {/* Spinner component placed between title and text */}
-        <div ref={spinnerRef} className="flex justify-center">
-          <Spinner />
-        </div>
-        
-        <div ref={textContainerRef} className="space-y-1 mt-6">
-          {valueText.map((text, index) => (
-            <p 
-              key={index} 
-              className="title-sm text-center" 
-              style={{ color: colors.coral }}
-            >
-              {text}
-            </p>
-          ))}
-        </div>
+    <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
+      <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
+        {valueTitle}
+      </h2>
+      
+      {/* Spinner component placed between title and text */}
+      <div className="flex justify-center">
+        <Spinner />
+      </div>
+      
+      <div className="space-y-1">
+        {valueText.map((text, index) => (
+          <p 
+            key={index} 
+            className="title-sm text-center" 
+            style={{ color: colors.coral }}
+          >
+            {text}
+          </p>
+        ))}
       </div>
     </div>
   );
-});
-
-Value.displayName = "Value";
+};
 
 export default Value;
