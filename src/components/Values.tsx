@@ -37,7 +37,7 @@ const Values: React.FC<ValuesProps> = ({
   }, [values]);
 
   // Use our scroll jack hook
-  const { isActive, currentSection, completed } = useScrollJack({
+  const { isActive, currentSectionIndex, completed } = useScrollJack({
     containerRef,
     sectionRefs: valueRefs.current,
     threshold: 0.1,
@@ -49,10 +49,10 @@ const Values: React.FC<ValuesProps> = ({
   
   // Sync state from hook
   useEffect(() => {
-    setCurrentSectionIndex(currentSection);
+    setCurrentSectionIndex(currentSectionIndex);
     setIsScrollJackActive(isActive);
     setIsScrollJackComplete(completed);
-  }, [currentSection, isActive, completed]);
+  }, [currentSectionIndex, isActive, completed]);
 
   const content = () => {
     if (isLoading) {
