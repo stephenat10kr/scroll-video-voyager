@@ -1,4 +1,3 @@
-
 import React, { forwardRef, useEffect, useRef } from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
@@ -106,6 +105,7 @@ const Value = forwardRef<HTMLDivElement, ValueProps>(({
         pointerEvents: isActive ? "all" : "none",
         zIndex: isActive ? 2 : 1
       }}
+      data-value-section="true"
     >
       <div className="transform transition-all duration-300 max-w-4xl mx-auto px-4">
         <h2 

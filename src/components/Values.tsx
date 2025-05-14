@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -20,6 +21,7 @@ const Values: React.FC<ValuesProps> = ({
   
   // Create refs for the scroll-jacking functionality
   const containerRef = useRef<HTMLDivElement>(null);
+  const firstValueRef = useRef<HTMLDivElement>(null); // Specific ref for the first value
   // Create an array of refs for the value sections
   const valueRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
@@ -40,6 +42,7 @@ const Values: React.FC<ValuesProps> = ({
   const { isActive, currentSectionIndex: sectionIndexFromHook, completed } = useScrollJack({
     containerRef,
     sectionRefs: valueRefs.current,
+    firstSectionRef: firstValueRef,
     threshold: 0.1,
     onComplete: () => {
       console.log("Scroll jack completed");
@@ -111,7 +114,7 @@ const Values: React.FC<ValuesProps> = ({
           {values.map((value, index) => (
             <Value
               key={value.id}
-              ref={valueRefs.current[index]} 
+              ref={index === 0 ? firstValueRef : valueRefs.current[index]} 
               valueTitle={value.valueTitle}
               valueText={value.valueText}
               isActive={currentSectionIndex === index}
