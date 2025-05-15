@@ -104,21 +104,21 @@ const Values: React.FC = () => {
         <div 
           ref={el => sectionRefs.current[0] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#ea384c', opacity: 0.5 }} 
+          style={{ backgroundColor: '#ea384c' }} 
         />
         
         {/* Blue Box */}
         <div 
           ref={el => sectionRefs.current[1] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#1EAEDB', opacity: 0.5 }} 
+          style={{ backgroundColor: '#1EAEDB' }} 
         />
         
         {/* Green Box */}
         <div 
           ref={el => sectionRefs.current[2] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#F2FCE2', opacity: 0.5 }} 
+          style={{ backgroundColor: '#F2FCE2' }} 
         />
       </div>
     );
