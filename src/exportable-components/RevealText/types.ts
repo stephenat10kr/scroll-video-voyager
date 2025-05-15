@@ -1,12 +1,10 @@
 
-import { ContentfulClientApi, ChainModifiers, EntrySkeletonType } from 'contentful';
+import { ContentfulClientApi } from 'contentful';
 
-// Define the structure of the RevealText data in Contentful
-export interface RevealTextContentfulData {
+export interface ContentfulRevealText {
   revealText: string;
 }
 
-// Interface for the RevealText content model in Contentful
 export interface ContentfulRevealTextEntry {
   sys: {
     id: string;
@@ -16,15 +14,14 @@ export interface ContentfulRevealTextEntry {
   };
 }
 
-// Interface for the response from Contentful when fetching RevealText entries
 export interface ContentfulRevealTextResponse {
   items: Array<{
     sys: {
       id: string;
     };
-    fields: RevealTextContentfulData;
+    fields: ContentfulRevealText;
   }>;
 }
 
-// Type for the Contentful client, specifying ChainModifiers as the type parameter
-export type ContentfulRevealTextClient = ContentfulClientApi<ChainModifiers>;
+export type ContentfulRevealTextClient = ContentfulClientApi;
+
