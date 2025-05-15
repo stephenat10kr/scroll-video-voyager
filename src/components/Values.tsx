@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -7,7 +6,6 @@ import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
-
 const Values: React.FC = () => {
   const {
     data: values,
@@ -15,54 +13,76 @@ const Values: React.FC = () => {
     error
   } = useValues();
   const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Set up sticky behavior and scroll animations
+  // Set up sticky behavior for the values section
   useEffect(() => {
-    if (!values || values.length < 3 || !containerRef.current) return;
-    
-    console.log("Setting up values animations with values:", values);
-    
+    if (!wrapperRef.current) return;
+
+    // Create ScrollTrigger for sticky behavior
+    const stickyTrigger = ScrollTrigger.create({
+      trigger: wrapperRef.current,
+      start: "top top",
+      end: "bottom bottom",
+      pin: true,
+      pinSpacing: false
+    });
+    return () => {
+      stickyTrigger.kill();
+    };
+  }, []);
+
+  // Set up the scrolljacking for values
+  useEffect(() => {
+    if (!values || values.length === 0 || !containerRef.current) return;
+
+    // Clear any existing refs
+    sectionRefs.current = [];
+
+    // Create ScrollTrigger for each value
+    const sections = sectionRefs.current.filter(Boolean);
+    if (sections.length === 0) return;
+
+    // Set initial state - hide all values except the first one
+    gsap.set(sections.slice(1), {
+      autoAlpha: 0
+    });
+
     // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "+=300%", // Make the scroll last for 3x the viewport height
+        end: `+=${sections.length * 100}vh`,
         pin: true,
         anticipatePin: 1,
-        scrub: true,
-        markers: false
+        scrub: 1,
+        invalidateOnRefresh: true
       }
     });
 
-    // Get the DOM elements for each value
-    const value1 = containerRef.current.querySelector('.value-1');
-    const value2 = containerRef.current.querySelector('.value-2');
-    const value3 = containerRef.current.querySelector('.value-3');
-
-    if (!value1 || !value2 || !value3) {
-      console.error("Could not find all value elements", { value1, value2, value3 });
-      return;
-    }
-
-    // Hide value2 and value3 initially
-    gsap.set([value2, value3], { autoAlpha: 0 });
-    
-    // First animation: value1 -> value2 at 33% of the scroll
-    tl.to(value1, { autoAlpha: 0, duration: 0.3 }, "+=0.3");
-    tl.to(value2, { autoAlpha: 1, duration: 0.3 }, "-=0.1");
-    
-    // Second animation: value2 -> value3 at 66% of the scroll
-    tl.to(value2, { autoAlpha: 0, duration: 0.3 }, "+=0.3");
-    tl.to(value3, { autoAlpha: 1, duration: 0.3 }, "-=0.1");
-
+    // Add animations for each section
+    sections.forEach((section, i) => {
+      if (i > 0) {
+        tl.to(sections[i - 1], {
+          autoAlpha: 0,
+          duration: 0.5
+        }, `section${i}`);
+        tl.to(section, {
+          autoAlpha: 1,
+          duration: 0.5
+        }, `section${i}`);
+      }
+      if (i < sections.length - 1) {
+        tl.addLabel(`section${i + 1}`, "+=0.5");
+      }
+    });
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
-
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -86,45 +106,27 @@ const Values: React.FC = () => {
           </div>
         </div>;
     }
-    if (!values || values.length < 3) {
+    if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-12">
             <p className="body-text" style={{
             color: colors.coral
-          }}>Not enough values available (need at least 3)</p>
+          }}>No values available</p>
           </div>
         </div>;
     }
-    
-    // Get the first 3 values for our animation sequence
-    const value1 = values[0];
-    const value2 = values[1];
-    const value3 = values[2];
-    
-    return (
-      <div className="values-container relative h-screen" ref={containerRef}>
-        <div className="value-1 absolute top-0 left-0 w-full h-full flex items-center justify-center">
-          <Value valueTitle={value1.valueTitle} valueText={value1.valueText} isLast={false} />
-        </div>
-        <div className="value-2 absolute top-0 left-0 w-full h-full flex items-center justify-center">
-          <Value valueTitle={value2.valueTitle} valueText={value2.valueText} isLast={false} />
-        </div>
-        <div className="value-3 absolute top-0 left-0 w-full h-full flex items-center justify-center">
-          <Value valueTitle={value3.valueTitle} valueText={value3.valueText} isLast={true} />
-        </div>
-      </div>
-    );
+    return <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
+            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
+          </div>)}
+      </div>;
   };
-
-  return (
-    <div ref={wrapperRef} className="values-wrapper w-full">
+  return <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
           {content()}
         </div>
       </ChladniPattern>
-    </div>
-  );
+    </div>;
 };
-
 export default Values;
