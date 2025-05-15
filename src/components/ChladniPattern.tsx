@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -295,15 +294,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full bg-[#203435] sticky top-0 left-0"
-      style={{ 
-        position: 'sticky', 
-        top: 0, 
-        left: 0,
-        overflow: 'hidden', 
-        backgroundColor: colors.darkGreen,
-        zIndex: -1 // Keep pattern behind content
-      }}
+      className="relative w-full h-full bg-[#203435]"
+      style={{ position: 'relative', overflow: 'hidden', backgroundColor: colors.darkGreen }}
     >
       <canvas 
         ref={canvasRef}
