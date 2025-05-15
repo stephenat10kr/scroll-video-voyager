@@ -24,34 +24,42 @@ const Values: React.FC<ValuesProps> = ({
   
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const stickyWrapperRef = useRef<HTMLDivElement>(null);
   
-  // Set up the scrolljacking for values
+  // Set up the sticky scrolling and scrolljacking for values
   useEffect(() => {
-    if (!values || values.length === 0 || !containerRef.current) return;
+    if (!values || values.length === 0 || !containerRef.current || !stickyWrapperRef.current) return;
     
     // Clear any existing refs
     sectionRefs.current = [];
     
-    // Create ScrollTrigger for each value
-    const sections = sectionRefs.current.filter(Boolean);
-    
-    if (sections.length === 0) return;
-    
-    // Set initial state - hide all values except the first one
-    gsap.set(sections.slice(1), { autoAlpha: 0 });
+    // Create ScrollTrigger for the sticky container
+    const stickyTrigger = ScrollTrigger.create({
+      trigger: stickyWrapperRef.current,
+      start: "top top",
+      end: `bottom top+=${window.innerHeight}px`,
+      pin: true,
+      pinSpacing: true
+    });
     
     // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `+=${sections.length * 100}vh`,
-        pin: true,
-        anticipatePin: 1,
+        end: `+=${values.length * 100}vh`,
         scrub: 1,
         invalidateOnRefresh: true,
       }
     });
+    
+    // Get sections and set initial state
+    const sections = sectionRefs.current.filter(Boolean);
+    
+    if (sections.length === 0) return;
+    
+    // Hide all values except the first one
+    gsap.set(sections.slice(1), { autoAlpha: 0 });
     
     // Add animations for each section
     sections.forEach((section, i) => {
@@ -67,6 +75,7 @@ const Values: React.FC<ValuesProps> = ({
     
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
+      stickyTrigger.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
@@ -138,16 +147,20 @@ const Values: React.FC<ValuesProps> = ({
     );
   };
 
-  return <ChladniPattern>
-      <div className="w-full py-24 mb-48">
-        <div className="max-w-[90%] mx-auto mb-16 text-left">
-          <h2 className="title-sm" style={{
-          color: colors.roseWhite
-        }}>{title}</h2>
+  return (
+    <div ref={stickyWrapperRef} className="w-full">
+      <ChladniPattern>
+        <div className="w-full py-24 mb-48">
+          <div className="max-w-[90%] mx-auto mb-16 text-left">
+            <h2 className="title-sm" style={{
+            color: colors.roseWhite
+          }}>{title}</h2>
+          </div>
+          {content()}
         </div>
-        {content()}
-      </div>
-    </ChladniPattern>;
+      </ChladniPattern>
+    </div>
+  );
 };
 
 export default Values;
