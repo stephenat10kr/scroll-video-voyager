@@ -14,7 +14,7 @@ const Index = () => {
     <div className="bg-[#203435] min-h-screen w-full relative">
       <ChladniPattern />
       <Video />
-      <div className="relative" style={{ zIndex: 2 }}>
+      <div className="relative" style={{ zIndex: 1 }}>
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />

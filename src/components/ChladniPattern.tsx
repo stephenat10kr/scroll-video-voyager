@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -304,7 +303,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         height: '100%',
         overflow: 'hidden', 
         backgroundColor: colors.darkGreen,
-        zIndex: -1 // Changed from 0 to -1 to place behind video
+        zIndex: 0 // Changed back to 0 so it's visible but behind content
       }}
     >
       <canvas 
@@ -316,7 +315,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: -1, // Changed from 0 to -1
+          zIndex: 0, // Changed back to 0
           pointerEvents: 'none',
           opacity: isMobile ? 0.3 : 0.5
         }}
