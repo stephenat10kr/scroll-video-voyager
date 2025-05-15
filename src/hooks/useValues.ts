@@ -35,8 +35,10 @@ export const useValues = () => {
         orderNumber: typeof item.fields.orderNumber === 'number' ? item.fields.orderNumber : 999
       }));
       
-      // Sort by orderNumber
-      return mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
+      // Sort by orderNumber and log the values
+      const sortedValues = mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
+      console.log('Sorted values:', sortedValues);
+      return sortedValues;
     }
   });
 };
