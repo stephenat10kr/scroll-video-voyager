@@ -304,7 +304,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         height: '100%',
         overflow: 'hidden', 
         backgroundColor: colors.darkGreen,
-        zIndex: 0
+        zIndex: -1 // Changed from 0 to -1 to place behind video
       }}
     >
       <canvas 
@@ -316,7 +316,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: 0,
+          zIndex: -1, // Changed from 0 to -1
           pointerEvents: 'none',
           opacity: isMobile ? 0.3 : 0.5
         }}
