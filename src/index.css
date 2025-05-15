@@ -133,6 +133,10 @@
 
 /* Typography utility classes */
 @layer components {
+  .title-xl {
+    @apply font-gt-super text-title-xl-mobile md:text-title-xl;
+  }
+
   .title-lg {
     @apply font-gt-super text-title-lg-mobile md:text-title-lg;
   }
