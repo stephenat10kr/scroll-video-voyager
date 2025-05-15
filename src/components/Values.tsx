@@ -9,13 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface ValuesProps {
-  title: string;
-}
-
-const Values: React.FC<ValuesProps> = ({
-  title
-}) => {
+const Values: React.FC = () => {
   const {
     data: values,
     isLoading,
@@ -74,12 +68,7 @@ const Values: React.FC<ValuesProps> = ({
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="hidden xs:block sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
-            color: colors.roseWhite
-          }}>{title}</h2>
-          </div>
-          <div className="col-span-12 md:col-span-9">
+          <div className="col-span-12 md:col-span-12">
             <div className="mb-24 animate-pulse">
               <div className="h-16 bg-gray-800 rounded mb-6 w-1/2"></div>
               <div className="h-4 bg-gray-800 rounded mb-2 w-full"></div>
@@ -92,12 +81,7 @@ const Values: React.FC<ValuesProps> = ({
     if (error) {
       console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
-            color: colors.roseWhite
-          }}>{title}</h2>
-          </div>
-          <div className="col-span-12 md:col-span-9">
+          <div className="col-span-12 md:col-span-12">
             <p className="body-text" style={{
             color: colors.coral
           }}>Failed to load values</p>
@@ -106,12 +90,7 @@ const Values: React.FC<ValuesProps> = ({
     }
     if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
-            color: colors.roseWhite
-          }}>{title}</h2>
-          </div>
-          <div className="col-span-12 md:col-span-9">
+          <div className="col-span-12 md:col-span-12">
             <p className="body-text" style={{
             color: colors.coral
           }}>No values available</p>
@@ -140,11 +119,6 @@ const Values: React.FC<ValuesProps> = ({
 
   return <ChladniPattern>
       <div className="w-full py-24 mb-48">
-        <div className="max-w-[90%] mx-auto mb-16 text-left">
-          <h2 className="title-sm" style={{
-          color: colors.roseWhite
-        }}>{title}</h2>
-        </div>
         {content()}
       </div>
     </ChladniPattern>;

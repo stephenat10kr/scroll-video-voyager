@@ -20,7 +20,7 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        <Values title="VALUES" />
+        <Values />
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
