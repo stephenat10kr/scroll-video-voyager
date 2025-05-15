@@ -21,9 +21,7 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        {/* GreenBox has z-index: 10 so it appears above Rituals */}
         <GreenBox />
-        {/* Rituals has z-index: 1 so it appears behind GreenBox */}
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
