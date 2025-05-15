@@ -21,15 +21,18 @@ const GreenBox: React.FC<GreenBoxProps> = ({
         {/* Content can be added here if needed */}
       </div>
       
-      {/* Sticky blue box that doesn't scroll with the page */}
+      {/* Viewport-sized blue box with padding */}
       <div 
-        className="w-64 h-64 bg-blue-500 flex items-center justify-center text-white font-bold text-lg"
+        className="bg-blue-500 flex items-center justify-center text-white font-bold text-lg"
         style={{ 
           position: "sticky",
-          top: "50%",
+          top: "0",
           left: "50%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 10
+          transform: "translateX(-50%)",
+          zIndex: 10,
+          width: "calc(100vw - 4rem)", // Viewport width minus 2rem padding on each side
+          height: "calc(100vh - 4rem)", // Viewport height minus 2rem padding on each side
+          margin: "2rem" // Adding padding as margin around the box
         }}
       >
         Sticky Blue Box
