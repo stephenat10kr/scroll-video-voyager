@@ -7,11 +7,18 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
+import FixedBackground from "../components/FixedBackground";
 
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
+      {/* Fixed background that stays in place */}
+      <FixedBackground />
+      
+      {/* Video section */}
       <Video />
+      
+      {/* Content with higher z-index */}
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
