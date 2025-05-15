@@ -15,6 +15,10 @@ export interface ContentfulRevealText {
   };
   fields: {
     text: string;
+    headline?: string;
+    subheadline?: string;
+    buttonText?: string;
+    placeholderText?: string;
   };
 }
 

@@ -15,8 +15,9 @@ const RevealTextExample = () => {
       {/* Usage with Contentful */}
       {/* 
       <RevealText 
-        contentfulSpaceId="your-space-id"
-        contentfulAccessToken="your-access-token"
+        apiKey="your-contentful-api-key"
+        spaceId="your-contentful-space-id"
+        environmentId="master"
         defaultText="Fallback text if Contentful fails"
       />
       */}
@@ -25,9 +26,10 @@ const RevealTextExample = () => {
       {/* 
       <RevealText 
         defaultText="Join our community today!"
+        headline="Join our newsletter"
+        subheadline="Get the latest updates directly to your inbox"
         hubspotPortalId="your-portal-id"
         hubspotFormId="your-form-id"
-        formTitle="Sign up for updates"
       />
       */}
       
@@ -37,8 +39,8 @@ const RevealTextExample = () => {
         defaultText="Custom styled reveal text"
         backgroundColor="#000000"
         textColor="#ffffff"
-        textGradient="linear-gradient(90deg, #ff0000 0%, #ffff00 100%)"
-        buttonClassName="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+        accentColor="#FFB577"
+        buttonText="JOIN NOW"
       />
       */}
     </div>

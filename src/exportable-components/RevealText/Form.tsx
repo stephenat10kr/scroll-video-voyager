@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "@/components/ui/sonner";
 
 interface FormProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
+  headline?: string;
+  subheadline?: string;
+  buttonText?: string;
+  placeholderText?: string;
+  open?: boolean;
+  onClose?: () => void;
+  title?: string;
   hubspotPortalId?: string;
   hubspotFormId?: string;
   backgroundColor?: string;
@@ -24,9 +29,13 @@ interface FormData {
   email: string;
 }
 
-export default function ExportableForm({
-  open,
-  onClose,
+export default function Form({
+  headline,
+  subheadline,
+  buttonText = "SUBMIT",
+  placeholderText,
+  open = false,
+  onClose = () => {},
   title,
   hubspotPortalId,
   hubspotFormId,
@@ -42,6 +51,16 @@ export default function ExportableForm({
     formState: { errors }
   } = useForm<FormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpen, setIsOpen] = useState(open);
+
+  const openForm = () => {
+    setIsOpen(true);
+  };
+  
+  const closeForm = () => {
+    setIsOpen(false);
+    onClose();
+  };
 
   const submitToHubspot = async (data: FormData) => {
     if (!hubspotPortalId || !hubspotFormId) {
@@ -119,7 +138,7 @@ export default function ExportableForm({
     if (success) {
       toast.success("Thank you for your submission!");
       reset();
-      onClose();
+      closeForm();
     } else {
       toast.error("There was a problem submitting your form. Please try again.");
     }
@@ -127,15 +146,29 @@ export default function ExportableForm({
     setIsSubmitting(false);
   };
 
+  // If we're using the button mode
+  if (!open && !isOpen && buttonText) {
+    return (
+      <Button 
+        variant="default" 
+        className="h-[48px] rounded-full"
+        style={{ backgroundColor: accentColor, color: backgroundColor }}
+        onClick={openForm}
+      >
+        {buttonText}
+      </Button>
+    );
+  }
+
   return (
-    <Sheet open={open} onOpenChange={onClose}>
+    <Sheet open={open || isOpen} onOpenChange={closeForm}>
       <SheetContent className="w-full sm:w-[540px] border-none" style={{ backgroundColor }}>
         <div className="relative">
           <Button 
             variant="default" 
             className="absolute left-0 top-0 p-0 w-[48px] h-[48px] rounded-full flex items-center justify-center" 
             style={{ backgroundColor: accentColor, color: backgroundColor }}
-            onClick={onClose}
+            onClick={closeForm}
           >
             <X className="h-6 w-6" style={{ stroke: backgroundColor }} />
           </Button>
@@ -144,13 +177,16 @@ export default function ExportableForm({
           <h2 
             className="mt-16 text-2xl font-gt-super" 
             style={{ color: textColor }} 
-            dangerouslySetInnerHTML={{ __html: title }} 
+            dangerouslySetInnerHTML={{ __html: title || headline || "" }} 
           />
+          {subheadline && (
+            <p className="text-base" style={{ color: textColor }}>{subheadline}</p>
+          )}
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm" style={{ color: textColor }}>First name</label>
-            <Input {...register("firstName", { required: true })} className="border-roseWhite bg-transparent" style={{ borderColor: textColor, color: textColor }} />
+            <Input {...register("firstName", { required: true })} className="border-roseWhite bg-transparent" style={{ borderColor: textColor, color: textColor }} placeholder={placeholderText} />
             {errors.firstName && <p className="text-xs" style={{ color: accentColor }}>First name is required</p>}
           </div>
           <div className="space-y-2">
@@ -182,7 +218,7 @@ export default function ExportableForm({
             className="rounded-full px-8"
             style={{ backgroundColor: accentColor, color: backgroundColor }}
           >
-            {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+            {isSubmitting ? "SUBMITTING..." : buttonText}
           </Button>
         </form>
       </SheetContent>
