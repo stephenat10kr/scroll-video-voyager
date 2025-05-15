@@ -2,7 +2,6 @@
 import React from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
-import Values from "../components/Values";
 import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
@@ -20,7 +19,6 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        <Values />
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
