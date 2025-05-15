@@ -51,7 +51,7 @@ const Values: React.FC = () => {
         start: "top top",
         end: "+=300vh", // 3 sections of 100vh each
         scrub: true,
-        pin: false // Remove duplicate pin setting
+        pin: true
       }
     });
 
@@ -97,37 +97,29 @@ const Values: React.FC = () => {
         </div>;
     }
     
-    // Display color boxes stacked on top of each other, fixed to the top
+    // Display color boxes instead of values
     return (
-      <div className="color-boxes-container relative h-[300vh] w-full" ref={containerRef}>
-        {/* Increase height to 300vh to accommodate all three sections */}
+      <div className="color-boxes-container" ref={containerRef}>
+        {/* Red Box */}
+        <div 
+          ref={el => sectionRefs.current[0] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#ea384c' }} 
+        />
         
-        {/* Create a separate container for the fixed color boxes */}
-        <div className="fixed-boxes-container fixed top-0 left-0 w-full h-screen">
-          {/* Red Box - Bottom Layer */}
-          <div 
-            ref={el => sectionRefs.current[0] = el} 
-            className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
-            style={{ backgroundColor: '#ea384c', zIndex: 1 }} 
-          />
-          
-          {/* Blue Box - Middle Layer */}
-          <div 
-            ref={el => sectionRefs.current[1] = el} 
-            className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
-            style={{ backgroundColor: '#1EAEDB', zIndex: 2 }} 
-          />
-          
-          {/* Green Box - Top Layer */}
-          <div 
-            ref={el => sectionRefs.current[2] = el} 
-            className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
-            style={{ backgroundColor: '#F2FCE2', zIndex: 3 }} 
-          />
-        </div>
+        {/* Blue Box */}
+        <div 
+          ref={el => sectionRefs.current[1] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#1EAEDB' }} 
+        />
         
-        {/* This spacer div provides the height needed for scrolling */}
-        <div className="h-[300vh]"></div>
+        {/* Green Box */}
+        <div 
+          ref={el => sectionRefs.current[2] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#F2FCE2' }} 
+        />
       </div>
     );
   };
