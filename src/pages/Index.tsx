@@ -7,6 +7,7 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import HeroText from "../components/HeroText";
+import GreenBox from "../components/GreenBox";
 
 const Index = () => {
   return (
@@ -19,6 +20,7 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
+        <GreenBox backgroundColor={colors.darkGreen} />
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
