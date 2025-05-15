@@ -64,15 +64,15 @@ export const useRevealTextData = ({
           // Using proper Contentful types
           const entry = await client.getEntry<any>(entryId);
           
-          // Transform the entry to our ContentfulRevealText type
+          // Transform the entry to our ContentfulRevealText type with safe type conversions
           const transformedEntry: ContentfulRevealText = {
             sys: entry.sys,
             fields: {
-              text: entry.fields.text || '',
-              headline: entry.fields.headline,
-              subheadline: entry.fields.subheadline,
-              buttonText: entry.fields.buttonText,
-              placeholderText: entry.fields.placeholderText,
+              text: String(entry.fields.text || ''),
+              headline: entry.fields.headline ? String(entry.fields.headline) : undefined,
+              subheadline: entry.fields.subheadline ? String(entry.fields.subheadline) : undefined,
+              buttonText: entry.fields.buttonText ? String(entry.fields.buttonText) : undefined,
+              placeholderText: entry.fields.placeholderText ? String(entry.fields.placeholderText) : undefined,
             }
           };
           
@@ -87,15 +87,15 @@ export const useRevealTextData = ({
           if (response.items.length > 0) {
             const item = response.items[0];
             
-            // Transform the entry to our ContentfulRevealText type
+            // Transform the entry to our ContentfulRevealText type with safe type conversions
             const transformedEntry: ContentfulRevealText = {
               sys: item.sys,
               fields: {
-                text: item.fields.text || '',
-                headline: item.fields.headline,
-                subheadline: item.fields.subheadline,
-                buttonText: item.fields.buttonText,
-                placeholderText: item.fields.placeholderText,
+                text: String(item.fields.text || ''),
+                headline: item.fields.headline ? String(item.fields.headline) : undefined,
+                subheadline: item.fields.subheadline ? String(item.fields.subheadline) : undefined,
+                buttonText: item.fields.buttonText ? String(item.fields.buttonText) : undefined,
+                placeholderText: item.fields.placeholderText ? String(item.fields.placeholderText) : undefined,
               }
             };
             
