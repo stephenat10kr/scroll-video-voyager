@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
@@ -24,6 +24,7 @@ const Values: React.FC<ValuesProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const patternRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [scrollProgress, setScrollProgress] = useState(0);
   
   // Set up the scrolljacking for values
   useEffect(() => {
@@ -48,30 +49,44 @@ const Values: React.FC<ValuesProps> = ({
       scrollTrigger: {
         trigger: valueContainer,
         pin: true,
+        pinSpacing: true,
         start: "top top",
         end: `+=${sections.length * 100}vh`, // Each value takes up one full viewport height of scrolling
-        scrub: true, // Smoother scrubbing for better user experience
+        scrub: 0.5, // Smoother scrubbing
         anticipatePin: 1,
-        markers: false, // Set to true for debugging
+        fastScrollEnd: true, // Improve performance
+        preventOverlaps: true, // Prevent overlapping animations
+        onUpdate: (self) => {
+          // Update scroll progress for pattern
+          setScrollProgress(self.progress);
+          
+          // Update pattern position - keep it fixed during the scroll sequence
+          if (patternRef.current && self.progress > 0 && self.progress < 1) {
+            if (patternRef.current.style.position !== 'fixed') {
+              gsap.set(patternRef.current, { 
+                position: 'fixed', 
+                top: 0, 
+                left: 0, 
+                width: '100%', 
+                height: '100vh', 
+                zIndex: 10 
+              });
+            }
+          } else if (patternRef.current) {
+            // Reset when outside of scroll sequence
+            if (patternRef.current.style.position !== 'relative') {
+              gsap.set(patternRef.current, { 
+                position: 'relative', 
+                top: 'auto', 
+                left: 'auto',
+                height: '100%',
+                width: '100%', 
+                zIndex: 'auto' 
+              });
+            }
+          }
+        },
         id: "values-scrolljack",
-        onEnter: () => {
-          // Fix the Chladni pattern when entering the section
-          if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: 10 });
-          }
-        },
-        onLeaveBack: () => {
-          // Reset when scrolling back up
-          if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%', zIndex: 'auto' });
-          }
-        },
-        onLeave: () => {
-          // Reset when scrolling past the section
-          if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%', zIndex: 'auto' });
-          }
-        }
       }
     });
     
@@ -84,29 +99,44 @@ const Values: React.FC<ValuesProps> = ({
         tl.to(sections[i-1], { 
           autoAlpha: 0, 
           duration: 0.3,
-          ease: "power1.inOut"
+          ease: "power2.inOut"
         }, `section${i}`);
         
         // Then fade in the current section
         tl.to(section, { 
           autoAlpha: 1, 
           duration: 0.3,
-          ease: "power1.inOut" 
+          ease: "power2.inOut" 
         }, `section${i}+=0.15`); // Slight overlap for smoother transition
       }
       
-      // Add a label for the next section
+      // Add a label for the next section transition
       if (i < sections.length - 1) {
         // This creates equal spacing between each section transition
-        tl.addLabel(`section${i+1}`, `+=${1/(sections.length)}`);
+        tl.addLabel(`section${i+1}`, `+=${1/(sections.length-1)}`);
       }
     });
     
+    // Force a refresh of ScrollTrigger
+    ScrollTrigger.refresh(true);
+    
+    // Update on resize to maintain correct layout
+    const handleResize = () => {
+      setTimeout(() => {
+        ScrollTrigger.refresh(true);
+      }, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
     return () => {
-      // Clean up ScrollTrigger instances when component unmounts
+      // Clean up ScrollTrigger instances
       scrollTriggers.forEach(trigger => {
         if (trigger) trigger.kill();
       });
+      
+      // Clean up resize listener
+      window.removeEventListener('resize', handleResize);
       
       // Reset any GSAP styles
       if (patternRef.current) {
@@ -204,7 +234,7 @@ const Values: React.FC<ValuesProps> = ({
         }}>{title}</h2>
       </div>
       <div ref={patternRef} className="w-full h-full">
-        <ChladniPattern>
+        <ChladniPattern scrollProgress={scrollProgress}>
           {renderContent()}
         </ChladniPattern>
       </div>
