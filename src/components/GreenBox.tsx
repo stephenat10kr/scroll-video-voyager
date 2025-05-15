@@ -57,7 +57,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
     >
       {/* Sticky text at the top */}
       <div 
-        className="sticky top-0 w-full py-8 text-center text-2xl font-bold"
+        className="sticky top-0 w-full py-8 text-center title-lg"
         style={{
           color: colors.darkGreen,
           zIndex: 10
