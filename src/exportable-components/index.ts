@@ -2,6 +2,7 @@
 // Main exports
 export { default as Video } from './Video';
 export { default as HeroText } from './HeroText';
+export { default as RevealText } from './RevealText';
 
 // Supporting components
 export { default as ScrollVideo } from './ScrollVideo';
@@ -18,3 +19,4 @@ export { useIsMobile } from './use-mobile';
 
 // Export types
 export * from './types';
+export * from './RevealText/types';
