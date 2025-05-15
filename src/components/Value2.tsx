@@ -3,20 +3,18 @@ import React from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
 
-interface ValueProps {
+interface Value2Props {
   valueTitle: string;
   valueText: string[];
-  isLast?: boolean;
 }
 
-const Value: React.FC<ValueProps> = ({
+const Value2: React.FC<Value2Props> = ({
   valueTitle,
-  valueText,
-  isLast = false
+  valueText
 }) => {
   return (
     <div className="w-full flex flex-col items-center justify-center px-4">
-      <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
+      <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral, textTransform: 'uppercase' }}>
         {valueTitle}
       </h2>
       
@@ -25,7 +23,7 @@ const Value: React.FC<ValueProps> = ({
         <Spinner />
       </div>
       
-      <div className="space-y-4 max-w-2xl mx-auto">
+      <div className="space-y-6 max-w-2xl mx-auto">
         {valueText.map((text, index) => (
           <p 
             key={index} 
@@ -40,4 +38,4 @@ const Value: React.FC<ValueProps> = ({
   );
 };
 
-export default Value;
+export default Value2;
