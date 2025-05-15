@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ContentfulClient, ContentfulRevealText } from './types';
 import { createClient } from 'contentful';
+import { Entry, EntryCollection } from 'contentful';
 
 interface UseRevealTextDataProps {
   apiKey?: string;
@@ -35,6 +36,10 @@ export const useRevealTextData = ({
         sys: { id: 'mock-id' },
         fields: {
           text: 'This is mock text for the RevealText component in local development mode.',
+          headline: 'Mock Headline',
+          subheadline: 'Mock Subheadline',
+          buttonText: 'Sign Up',
+          placeholderText: 'Enter your email',
         },
       });
       setIsLoading(false);
@@ -56,16 +61,45 @@ export const useRevealTextData = ({
         });
 
         if (entryId) {
-          const entry = await client.getEntry<ContentfulRevealText['fields']>(entryId);
-          setData(entry as unknown as ContentfulRevealText);
+          // Using proper Contentful types
+          const entry = await client.getEntry<any>(entryId);
+          
+          // Transform the entry to our ContentfulRevealText type
+          const transformedEntry: ContentfulRevealText = {
+            sys: entry.sys,
+            fields: {
+              text: entry.fields.text || '',
+              headline: entry.fields.headline,
+              subheadline: entry.fields.subheadline,
+              buttonText: entry.fields.buttonText,
+              placeholderText: entry.fields.placeholderText,
+            }
+          };
+          
+          setData(transformedEntry);
         } else {
-          const response = await client.getEntries<ContentfulRevealText['fields']>({
+          // Using proper Contentful types
+          const response = await client.getEntries<any>({
             content_type: 'revealText',
             limit: 1,
           });
           
           if (response.items.length > 0) {
-            setData(response.items[0] as unknown as ContentfulRevealText);
+            const item = response.items[0];
+            
+            // Transform the entry to our ContentfulRevealText type
+            const transformedEntry: ContentfulRevealText = {
+              sys: item.sys,
+              fields: {
+                text: item.fields.text || '',
+                headline: item.fields.headline,
+                subheadline: item.fields.subheadline,
+                buttonText: item.fields.buttonText,
+                placeholderText: item.fields.placeholderText,
+              }
+            };
+            
+            setData(transformedEntry);
           } else {
             setError(new Error('No reveal text entries found'));
           }
