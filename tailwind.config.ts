@@ -25,7 +25,7 @@ export default {
 			},
 			fontSize: {
 				// Title-XL (new)
-				'title-xl': ['144px', {
+				'title-xl': ['112px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
 					fontWeight: 'normal',
