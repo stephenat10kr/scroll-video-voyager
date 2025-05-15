@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -6,6 +7,7 @@ import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
+
 const Values: React.FC = () => {
   const {
     data: values,
@@ -33,56 +35,64 @@ const Values: React.FC = () => {
     };
   }, []);
 
-  // Set up the scrolljacking for values
+  // Set up the scrolljacking for values with one full scroll per transition
   useEffect(() => {
     if (!values || values.length === 0 || !containerRef.current) return;
 
     // Clear any existing refs
     sectionRefs.current = [];
 
-    // Create ScrollTrigger for each value
-    const sections = sectionRefs.current.filter(Boolean);
-    if (sections.length === 0) return;
-
-    // Set initial state - hide all values except the first one
-    gsap.set(sections.slice(1), {
-      autoAlpha: 0
-    });
-
-    // Create a timeline for the values animation
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: `+=${sections.length * 100}vh`,
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-        invalidateOnRefresh: true
-      }
-    });
-
-    // Add animations for each section
-    sections.forEach((section, i) => {
-      if (i > 0) {
-        tl.to(sections[i - 1], {
-          autoAlpha: 0,
-          duration: 0.5
-        }, `section${i}`);
-        tl.to(section, {
-          autoAlpha: 1,
-          duration: 0.5
-        }, `section${i}`);
-      }
-      if (i < sections.length - 1) {
-        tl.addLabel(`section${i + 1}`, "+=0.5");
-      }
-    });
+    // Wait a bit to ensure DOM is ready
+    setTimeout(() => {
+      // Create ScrollTrigger for each value
+      const sections = sectionRefs.current.filter(Boolean);
+      if (sections.length === 0) return;
+  
+      // Set initial state - hide all values except the first one
+      gsap.set(sections.slice(1), {
+        autoAlpha: 0
+      });
+  
+      // Create a timeline for the values animation
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          end: `+=${(sections.length - 1) * window.innerHeight}`, // One viewport height per transition
+          pin: true,
+          anticipatePin: 1,
+          scrub: 0.5, // Smoother scrubbing for better transitions
+          invalidateOnRefresh: true
+        }
+      });
+  
+      // Add animations for each section with one full screen scroll per transition
+      sections.forEach((section, i) => {
+        if (i > 0) {
+          // Set a position marker at every window height
+          const position = `+=${i * 100}%`;
+          
+          // Fade out the previous value
+          tl.to(sections[i - 1], {
+            autoAlpha: 0,
+            duration: 0.5
+          }, position);
+          
+          // Fade in the current value
+          tl.to(section, {
+            autoAlpha: 1,
+            duration: 0.5
+          }, position);
+        }
+      });
+    }, 100);
+    
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
+
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -121,6 +131,7 @@ const Values: React.FC = () => {
           </div>)}
       </div>;
   };
+
   return <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
@@ -129,4 +140,5 @@ const Values: React.FC = () => {
       </ChladniPattern>
     </div>;
 };
+
 export default Values;
