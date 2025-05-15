@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -6,13 +5,10 @@ import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 gsap.registerPlugin(ScrollTrigger);
-
 interface ValuesProps {
   title: string;
 }
-
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
@@ -21,18 +17,17 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
-  
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const stickyWrapperRef = useRef<HTMLDivElement>(null);
-  
+
   // Set up the sticky scrolling and scrolljacking for values
   useEffect(() => {
     if (!values || values.length === 0 || !containerRef.current || !stickyWrapperRef.current) return;
-    
+
     // Clear any existing refs
     sectionRefs.current = [];
-    
+
     // Create ScrollTrigger for the sticky container
     const stickyTrigger = ScrollTrigger.create({
       trigger: stickyWrapperRef.current,
@@ -41,7 +36,7 @@ const Values: React.FC<ValuesProps> = ({
       pin: true,
       pinSpacing: true
     });
-    
+
     // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -49,37 +44,41 @@ const Values: React.FC<ValuesProps> = ({
         start: "top top",
         end: `+=${values.length * 100}vh`,
         scrub: 1,
-        invalidateOnRefresh: true,
+        invalidateOnRefresh: true
       }
     });
-    
+
     // Get sections and set initial state
     const sections = sectionRefs.current.filter(Boolean);
-    
     if (sections.length === 0) return;
-    
+
     // Hide all values except the first one
-    gsap.set(sections.slice(1), { autoAlpha: 0 });
-    
+    gsap.set(sections.slice(1), {
+      autoAlpha: 0
+    });
+
     // Add animations for each section
     sections.forEach((section, i) => {
       if (i > 0) {
-        tl.to(sections[i-1], { autoAlpha: 0, duration: 0.5 }, `section${i}`);
-        tl.to(section, { autoAlpha: 1, duration: 0.5 }, `section${i}`);
+        tl.to(sections[i - 1], {
+          autoAlpha: 0,
+          duration: 0.5
+        }, `section${i}`);
+        tl.to(section, {
+          autoAlpha: 1,
+          duration: 0.5
+        }, `section${i}`);
       }
-      
       if (i < sections.length - 1) {
-        tl.addLabel(`section${i+1}`, "+=0.5");
+        tl.addLabel(`section${i + 1}`, "+=0.5");
       }
     });
-    
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
       stickyTrigger.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
-  
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -127,40 +126,21 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    
-    return (
-      <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => (
-          <div 
-            key={value.id} 
-            className="value-section h-screen flex items-center justify-center w-full" 
-            ref={el => sectionRefs.current[index] = el}
-          >
-            <Value 
-              valueTitle={value.valueTitle} 
-              valueText={value.valueText} 
-              isLast={index === values.length - 1} 
-            />
-          </div>
-        ))}
-      </div>
-    );
+    return <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
+            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
+          </div>)}
+      </div>;
   };
-
-  return (
-    <div ref={stickyWrapperRef} className="w-full">
+  return <div ref={stickyWrapperRef} className="w-full">
       <ChladniPattern>
-        <div className="w-full py-24 mb-48">
+        <div className="w-full mb-48 py-0">
           <div className="max-w-[90%] mx-auto mb-16 text-left">
-            <h2 className="title-sm" style={{
-            color: colors.roseWhite
-          }}>{title}</h2>
+            
           </div>
           {content()}
         </div>
       </ChladniPattern>
-    </div>
-  );
+    </div>;
 };
-
 export default Values;
