@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -50,31 +49,27 @@ const Values: React.FC<ValuesProps> = ({
         trigger: valueContainer,
         pin: true,
         start: "top top",
-        end: `+=${sections.length * window.innerHeight}`, // Each value takes up one full viewport height of scrolling
-        scrub: 0.5, // Smoother scrubbing for better user experience
+        end: `+=${sections.length * 100}vh`, // Each value takes up one full viewport height of scrolling
+        scrub: true, // Smoother scrubbing for better user experience
         anticipatePin: 1,
         markers: false, // Set to true for debugging
         id: "values-scrolljack",
-        onUpdate: (self) => {
-          // Optional: log progress for debugging
-          // console.log("ScrollTrigger progress:", self.progress.toFixed(3));
-        },
         onEnter: () => {
-          // Pin the Chladni pattern when entering the scrolljack area
+          // Fix the Chladni pattern when entering the section
           if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh' });
+            gsap.set(patternRef.current, { position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: 10 });
           }
         },
         onLeaveBack: () => {
-          // Unpin the Chladni pattern when scrolling back above the values section
+          // Reset when scrolling back up
           if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%' });
+            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%', zIndex: 'auto' });
           }
         },
         onLeave: () => {
-          // Unpin the Chladni pattern when leaving the scrolljack area
+          // Reset when scrolling past the section
           if (patternRef.current) {
-            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%' });
+            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%', zIndex: 'auto' });
           }
         }
       }
@@ -82,17 +77,17 @@ const Values: React.FC<ValuesProps> = ({
     
     scrollTriggers.push(ScrollTrigger.getById("values-scrolljack") as ScrollTrigger);
     
-    // Add animations for each section with proper spacing
+    // Add transitions for each section
     sections.forEach((section, i) => {
       if (i > 0) {
-        // First, hide the previous section
+        // First fade out the previous section
         tl.to(sections[i-1], { 
           autoAlpha: 0, 
           duration: 0.3,
           ease: "power1.inOut"
         }, `section${i}`);
         
-        // Then show the current section
+        // Then fade in the current section
         tl.to(section, { 
           autoAlpha: 1, 
           duration: 0.3,
@@ -100,10 +95,10 @@ const Values: React.FC<ValuesProps> = ({
         }, `section${i}+=0.15`); // Slight overlap for smoother transition
       }
       
-      // Add a label at the appropriate scroll position for the next section
-      // Each section transition happens at equal intervals through the scroll range
+      // Add a label for the next section
       if (i < sections.length - 1) {
-        tl.addLabel(`section${i+1}`, `+=${0.8/(sections.length-1)}`);
+        // This creates equal spacing between each section transition
+        tl.addLabel(`section${i+1}`, `+=${1/(sections.length)}`);
       }
     });
     
@@ -182,10 +177,12 @@ const Values: React.FC<ValuesProps> = ({
         {values.map((value, index) => (
           <div 
             key={value.id} 
+            ref={el => sectionRefs.current[index] = el}
             className="value-section absolute top-0 left-0 w-full h-full flex items-center justify-center"
             style={{ 
               visibility: index === 0 ? 'visible' : 'hidden', 
-              opacity: index === 0 ? 1 : 0 
+              opacity: index === 0 ? 1 : 0,
+              zIndex: 20 // Ensure content is above the pattern
             }}
           >
             <Value 
@@ -200,7 +197,7 @@ const Values: React.FC<ValuesProps> = ({
   };
 
   return (
-    <div className="values-wrapper w-full relative">
+    <div className="values-wrapper w-full relative overflow-hidden">
       <div className="max-w-[90%] mx-auto pb-8">
         <h2 className="title-sm" style={{
           color: colors.roseWhite
