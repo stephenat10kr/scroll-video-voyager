@@ -13,7 +13,7 @@ export interface RevealTextProps {
   buttonText?: string;
   buttonColor?: string;
   defaultText?: string;
-  customClient?: ContentfulClientApi;
+  customClient?: ContentfulClientApi<any>;
 }
 
 export interface ContentfulRevealText {
