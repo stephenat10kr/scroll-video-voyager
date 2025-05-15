@@ -1,5 +1,5 @@
 
-import { ContentfulClientApi, ChainModifiers } from 'contentful';
+import { ContentfulClientApi } from 'contentful';
 
 export interface ContentfulRevealText {
   revealText: string;
@@ -23,5 +23,5 @@ export interface ContentfulRevealTextResponse {
   }>;
 }
 
-export type ContentfulRevealTextClient = ContentfulClientApi<ChainModifiers>;
+export type ContentfulRevealTextClient = ContentfulClientApi;
 

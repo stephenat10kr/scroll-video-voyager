@@ -2,13 +2,12 @@
 import React from "react";
 import Video from "../components/Video";
 import RevealText from "../components/RevealText";
+import Values from "../components/Values";
 import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import HeroText from "../components/HeroText";
-import GreenBox from "../components/GreenBox";
-import colors from "../lib/theme";
 
 const Index = () => {
   return (
@@ -21,7 +20,7 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        <GreenBox />
+        <Values title="VALUES" />
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
