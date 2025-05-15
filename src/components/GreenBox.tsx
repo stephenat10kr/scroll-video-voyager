@@ -11,12 +11,23 @@ const GreenBox: React.FC<GreenBoxProps> = ({
 }) => {
   return (
     <div 
-      className="w-full flex items-center justify-center"
+      className="w-full relative flex items-center justify-center"
       style={{ 
         backgroundColor,
         height: "300vh" // Fixed height of 300vh instead of min-height
       }}
     >
+      {/* Sticky text at the top */}
+      <div 
+        className="sticky top-0 w-full py-8 text-center text-2xl font-bold"
+        style={{
+          color: colors.darkGreen,
+          zIndex: 10
+        }}
+      >
+        Value 1
+      </div>
+      
       <div className="max-w-[90%] mx-auto">
         {/* Content can be added here if needed */}
       </div>
