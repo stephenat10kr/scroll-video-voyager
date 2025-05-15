@@ -1,84 +1,91 @@
-
 import React, { useRef, useEffect } from "react";
-import Value1 from "./Value1";
-import Value2 from "./Value2";
-import Value3 from "./Value3";
+import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
-
 const Values: React.FC = () => {
   const {
     data: values,
     isLoading,
     error
   } = useValues();
-  
   const containerRef = useRef<HTMLDivElement>(null);
-  const value1Ref = useRef<HTMLDivElement>(null);
-  const value2Ref = useRef<HTMLDivElement>(null);
-  const value3Ref = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Set up the scroll-triggered animations for values
+  // Set up sticky behavior for the values section
   useEffect(() => {
-    if (!values || values.length < 3 || !containerRef.current) return;
-    
-    // Sort values by orderNumber (should already be sorted by the hook)
-    const sortedValues = [...values].sort((a, b) => a.orderNumber - b.orderNumber);
-    const value1 = sortedValues[0];
-    const value2 = sortedValues[1];
-    const value3 = sortedValues[2];
-    
-    if (!value1 || !value2 || !value3) return;
-    
-    // Pin the container
-    const pinTrigger = ScrollTrigger.create({
-      trigger: containerRef.current,
+    if (!wrapperRef.current) return;
+
+    // Create ScrollTrigger for sticky behavior
+    const stickyTrigger = ScrollTrigger.create({
+      trigger: wrapperRef.current,
       start: "top top",
-      end: "+=300vh", // 3 x 100vh for each value
+      end: "bottom bottom",
       pin: true,
-      pinSpacing: true,
+      pinSpacing: false
     });
-    
-    // Make value1 visible initially, hide others
-    gsap.set(value1Ref.current, { autoAlpha: 1 });
-    gsap.set([value2Ref.current, value3Ref.current], { autoAlpha: 0 });
-    
-    // Create timeline for transitions
+    return () => {
+      stickyTrigger.kill();
+    };
+  }, []);
+
+  // Set up the scrolljacking for values
+  useEffect(() => {
+    if (!values || values.length === 0 || !containerRef.current) return;
+
+    // Clear any existing refs
+    sectionRefs.current = [];
+
+    // Create ScrollTrigger for each value
+    const sections = sectionRefs.current.filter(Boolean);
+    if (sections.length === 0) return;
+
+    // Set initial state - hide all values except the first one
+    gsap.set(sections.slice(1), {
+      autoAlpha: 0
+    });
+
+    // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "+=300vh",
+        end: `+=${sections.length * 100}vh`,
+        pin: true,
+        anticipatePin: 1,
         scrub: 1,
-        markers: false,
-        invalidateOnRefresh: true,
+        invalidateOnRefresh: true
       }
     });
-    
-    // Transition from value1 to value2 after 100vh
-    tl.to(value1Ref.current, { autoAlpha: 0, duration: 0.3 }, "+=0.9");
-    tl.to(value2Ref.current, { autoAlpha: 1, duration: 0.3 }, "-=0.1");
-    
-    // Transition from value2 to value3 after another 100vh
-    tl.to(value2Ref.current, { autoAlpha: 0, duration: 0.3 }, "+=0.9");
-    tl.to(value3Ref.current, { autoAlpha: 1, duration: 0.3 }, "-=0.1");
-    
+
+    // Add animations for each section
+    sections.forEach((section, i) => {
+      if (i > 0) {
+        tl.to(sections[i - 1], {
+          autoAlpha: 0,
+          duration: 0.5
+        }, `section${i}`);
+        tl.to(section, {
+          autoAlpha: 1,
+          duration: 0.5
+        }, `section${i}`);
+      }
+      if (i < sections.length - 1) {
+        tl.addLabel(`section${i + 1}`, "+=0.5");
+      }
+    });
     return () => {
-      // Clean up ScrollTrigger instances
-      pinTrigger.kill();
-      tl.scrollTrigger?.kill();
+      // Clean up ScrollTrigger instances when component unmounts
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
-
   const content = () => {
     if (isLoading) {
-      return (
-        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+      return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-12">
             <div className="mb-24 animate-pulse">
               <div className="h-16 bg-gray-800 rounded mb-6 w-1/2"></div>
@@ -87,75 +94,39 @@ const Values: React.FC = () => {
               <div className="h-4 bg-gray-800 rounded w-3/4"></div>
             </div>
           </div>
-        </div>
-      );
+        </div>;
     }
-
     if (error) {
       console.error("Error loading values:", error);
-      return (
-        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+      return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-12">
-            <p className="body-text" style={{ color: colors.coral }}>
-              Failed to load values
-            </p>
+            <p className="body-text" style={{
+            color: colors.coral
+          }}>Failed to load values</p>
           </div>
-        </div>
-      );
+        </div>;
     }
-
-    if (!values || values.length < 3) {
-      return (
-        <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+    if (!values || values.length === 0) {
+      return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-12">
-            <p className="body-text" style={{ color: colors.coral }}>
-              Need at least 3 values in Contentful
-            </p>
+            <p className="body-text" style={{
+            color: colors.coral
+          }}>No values available</p>
           </div>
-        </div>
-      );
+        </div>;
     }
-
-    // Sort values by orderNumber (should already be sorted by the hook)
-    const sortedValues = [...values].sort((a, b) => a.orderNumber - b.orderNumber);
-    const value1 = sortedValues[0];
-    const value2 = sortedValues[1];
-    const value3 = sortedValues[2];
-
-    return (
-      <div className="values-container h-screen" ref={containerRef}>
-        <div className="value-section h-screen flex items-center justify-center w-full" ref={value1Ref}>
-          <Value1 
-            valueTitle={value1.valueTitle} 
-            valueText={value1.valueText} 
-          />
-        </div>
-        <div className="value-section h-screen flex items-center justify-center w-full" ref={value2Ref}>
-          <Value2 
-            valueTitle={value2.valueTitle} 
-            valueText={value2.valueText} 
-          />
-        </div>
-        <div className="value-section h-screen flex items-center justify-center w-full" ref={value3Ref}>
-          <Value3 
-            valueTitle={value3.valueTitle} 
-            valueText={value3.valueText} 
-            isLast={true}
-          />
-        </div>
-      </div>
-    );
+    return <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
+            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
+          </div>)}
+      </div>;
   };
-
-  return (
-    <div ref={wrapperRef} className="values-wrapper w-full">
+  return <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
           {content()}
         </div>
       </ChladniPattern>
-    </div>
-  );
+    </div>;
 };
-
 export default Values;

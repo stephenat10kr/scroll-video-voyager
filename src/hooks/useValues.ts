@@ -27,7 +27,7 @@ export const useValues = () => {
         return [];
       }
       
-      // Map the data and ensure orderNumber is used
+      // Map the data and include orderNumber
       const mappedValues = data.items.map(item => ({
         id: item.sys.id,
         valueTitle: item.fields.valueTitle || "",
@@ -35,7 +35,7 @@ export const useValues = () => {
         orderNumber: typeof item.fields.orderNumber === 'number' ? item.fields.orderNumber : 999
       }));
       
-      // Sort by orderNumber to ensure proper order
+      // Sort by orderNumber
       return mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
     }
   });
