@@ -36,9 +36,7 @@ export const useValues = () => {
       }));
       
       // Sort by orderNumber
-      const sortedValues = mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
-      console.log('Sorted values:', sortedValues);
-      return sortedValues;
+      return mappedValues.sort((a, b) => a.orderNumber - b.orderNumber);
     }
   });
 };

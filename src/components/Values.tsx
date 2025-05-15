@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -7,103 +6,83 @@ import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
-
 const Values: React.FC = () => {
   const {
     data: values,
     isLoading,
     error
   } = useValues();
-  
   const containerRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Set up the values section with fixed height to allow for scrolling through all sections
+  // Set up sticky behavior for the values section
   useEffect(() => {
-    if (!containerRef.current || !values || values.length === 0) return;
-    
-    // Set container height to allow for scrolling through all values
-    // Each value takes 100vh of scroll space
-    gsap.set(containerRef.current, {
-      height: `${values.length * 100}vh`,
-    });
-    
-    // Clean up function
-    return () => {
-      // Reset any gsap modifications
-      if (containerRef.current) {
-        gsap.set(containerRef.current, { clearProps: "all" });
-      }
-    };
-  }, [values]);
+    if (!wrapperRef.current) return;
 
-  // Set up pin and animations for the values section
-  useEffect(() => {
-    if (!values || values.length === 0 || !containerRef.current || !wrapperRef.current) return;
-
-    // Make all sections invisible except the first one
-    sectionRefs.current.forEach((section, i) => {
-      if (section) {
-        gsap.set(section, {
-          autoAlpha: i === 0 ? 1 : 0,
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-        });
-      }
-    });
-
-    // Create the scroll trigger for the overall section
-    const pinTrigger = ScrollTrigger.create({
+    // Create ScrollTrigger for sticky behavior
+    const stickyTrigger = ScrollTrigger.create({
       trigger: wrapperRef.current,
       start: "top top",
-      end: `bottom bottom`,
+      end: "bottom bottom",
       pin: true,
-      anticipatePin: 1,
+      pinSpacing: false
+    });
+    return () => {
+      stickyTrigger.kill();
+    };
+  }, []);
+
+  // Set up the scrolljacking for values
+  useEffect(() => {
+    if (!values || values.length === 0 || !containerRef.current) return;
+
+    // Clear any existing refs
+    sectionRefs.current = [];
+
+    // Create ScrollTrigger for each value
+    const sections = sectionRefs.current.filter(Boolean);
+    if (sections.length === 0) return;
+
+    // Set initial state - hide all values except the first one
+    gsap.set(sections.slice(1), {
+      autoAlpha: 0
     });
 
-    // Create a timeline for transitioning between values
+    // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `+=${values.length * 100}vh`, // Total scroll height
-        scrub: 0.5, // Smooth scrubbing
-        pin: false, // The section is already pinned above
+        end: `+=${sections.length * 100}vh`,
+        pin: true,
+        anticipatePin: 1,
+        scrub: 1,
+        invalidateOnRefresh: true
       }
     });
 
-    // Add animations for each transition between values
-    values.forEach((_, i) => {
-      if (i < values.length - 1) {
-        // Calculate scroll position for this transition
-        // Each value gets shown for 100vh of scroll
-        const scrollPos = i + 1; 
-        
-        // Fade out current value
-        tl.to(sectionRefs.current[i], {
+    // Add animations for each section
+    sections.forEach((section, i) => {
+      if (i > 0) {
+        tl.to(sections[i - 1], {
           autoAlpha: 0,
-          duration: 0.3,
-        }, scrollPos);
-        
-        // Fade in next value
-        tl.to(sectionRefs.current[i + 1], {
+          duration: 0.5
+        }, `section${i}`);
+        tl.to(section, {
           autoAlpha: 1,
-          duration: 0.3,
-        }, scrollPos);
+          duration: 0.5
+        }, `section${i}`);
+      }
+      if (i < sections.length - 1) {
+        tl.addLabel(`section${i + 1}`, "+=0.5");
       }
     });
-
-    // Clean up ScrollTrigger instances when component unmounts
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-      tl.kill();
-      pinTrigger.kill();
+      // Clean up ScrollTrigger instances when component unmounts
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
-
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -136,35 +115,18 @@ const Values: React.FC = () => {
           </div>
         </div>;
     }
-
-    return (
-      <div className="values-container h-screen relative" ref={containerRef}>
-        {values.map((value, index) => (
-          <div 
-            key={value.id} 
-            className="value-section h-screen w-full flex items-center justify-center"
-            ref={el => sectionRefs.current[index] = el}
-          >
-            <Value 
-              valueTitle={value.valueTitle} 
-              valueText={value.valueText} 
-              isLast={index === values.length - 1} 
-            />
-          </div>
-        ))}
-      </div>
-    );
+    return <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
+            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
+          </div>)}
+      </div>;
   };
-
-  return (
-    <div ref={wrapperRef} className="values-wrapper w-full h-screen overflow-hidden">
+  return <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
           {content()}
         </div>
       </ChladniPattern>
-    </div>
-  );
+    </div>;
 };
-
 export default Values;
