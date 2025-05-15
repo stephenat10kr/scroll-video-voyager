@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -96,27 +97,27 @@ const Values: React.FC = () => {
         </div>;
     }
     
-    // Display color boxes stacked on top of each other
+    // Display color boxes stacked on top of each other, fixed to the top
     return (
       <div className="color-boxes-container relative h-screen w-full" ref={containerRef}>
         {/* Red Box - Bottom Layer */}
         <div 
           ref={el => sectionRefs.current[0] = el} 
-          className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
+          className="color-box fixed top-0 left-0 h-screen w-full flex items-center justify-center"
           style={{ backgroundColor: '#ea384c', zIndex: 1 }} 
         />
         
         {/* Blue Box - Middle Layer */}
         <div 
           ref={el => sectionRefs.current[1] = el} 
-          className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
+          className="color-box fixed top-0 left-0 h-screen w-full flex items-center justify-center"
           style={{ backgroundColor: '#1EAEDB', zIndex: 2 }} 
         />
         
         {/* Green Box - Top Layer */}
         <div 
           ref={el => sectionRefs.current[2] = el} 
-          className="color-box absolute top-0 left-0 h-screen w-full flex items-center justify-center"
+          className="color-box fixed top-0 left-0 h-screen w-full flex items-center justify-center"
           style={{ backgroundColor: '#F2FCE2', zIndex: 3 }} 
         />
       </div>
