@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -5,50 +6,53 @@ import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 gsap.registerPlugin(ScrollTrigger);
+
 const Values: React.FC = () => {
   const {
     data: values,
     isLoading,
     error
   } = useValues();
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
+  
   // Set up sticky behavior for the values section
   useEffect(() => {
     if (!wrapperRef.current) return;
-
+    
     // Create ScrollTrigger for sticky behavior
     const stickyTrigger = ScrollTrigger.create({
       trigger: wrapperRef.current,
       start: "top top",
       end: "bottom bottom",
       pin: true,
-      pinSpacing: false
+      pinSpacing: false,
     });
+    
     return () => {
       stickyTrigger.kill();
     };
   }, []);
-
+  
   // Set up the scrolljacking for values
   useEffect(() => {
     if (!values || values.length === 0 || !containerRef.current) return;
-
+    
     // Clear any existing refs
     sectionRefs.current = [];
-
+    
     // Create ScrollTrigger for each value
     const sections = sectionRefs.current.filter(Boolean);
+    
     if (sections.length === 0) return;
-
+    
     // Set initial state - hide all values except the first one
-    gsap.set(sections.slice(1), {
-      autoAlpha: 0
-    });
-
+    gsap.set(sections.slice(1), { autoAlpha: 0 });
+    
     // Create a timeline for the values animation
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -58,31 +62,28 @@ const Values: React.FC = () => {
         pin: true,
         anticipatePin: 1,
         scrub: 1,
-        invalidateOnRefresh: true
+        invalidateOnRefresh: true,
       }
     });
-
+    
     // Add animations for each section
     sections.forEach((section, i) => {
       if (i > 0) {
-        tl.to(sections[i - 1], {
-          autoAlpha: 0,
-          duration: 0.5
-        }, `section${i}`);
-        tl.to(section, {
-          autoAlpha: 1,
-          duration: 0.5
-        }, `section${i}`);
+        tl.to(sections[i-1], { autoAlpha: 0, duration: 0.5 }, `section${i}`);
+        tl.to(section, { autoAlpha: 1, duration: 0.5 }, `section${i}`);
       }
+      
       if (i < sections.length - 1) {
-        tl.addLabel(`section${i + 1}`, "+=0.5");
+        tl.addLabel(`section${i+1}`, "+=0.5");
       }
     });
+    
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
   }, [values]);
+  
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -115,18 +116,35 @@ const Values: React.FC = () => {
           </div>
         </div>;
     }
-    return <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
-            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
-          </div>)}
-      </div>;
+    
+    return (
+      <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => (
+          <div 
+            key={value.id} 
+            className="value-section h-screen flex items-center justify-center w-full" 
+            ref={el => sectionRefs.current[index] = el}
+          >
+            <Value 
+              valueTitle={value.valueTitle} 
+              valueText={value.valueText} 
+              isLast={index === values.length - 1} 
+            />
+          </div>
+        ))}
+      </div>
+    );
   };
-  return <div ref={wrapperRef} className="values-wrapper w-full">
+
+  return (
+    <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
-        <div className="w-full mb-48 py-0">
+        <div className="w-full py-24 mb-48">
           {content()}
         </div>
       </ChladniPattern>
-    </div>;
+    </div>
+  );
 };
+
 export default Values;
