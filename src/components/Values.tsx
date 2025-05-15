@@ -18,6 +18,25 @@ const Values: React.FC = () => {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  
+  // Set up sticky behavior for the values section
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    
+    // Create ScrollTrigger for sticky behavior
+    const stickyTrigger = ScrollTrigger.create({
+      trigger: wrapperRef.current,
+      start: "top top",
+      end: "bottom bottom",
+      pin: true,
+      pinSpacing: false,
+    });
+    
+    return () => {
+      stickyTrigger.kill();
+    };
+  }, []);
   
   // Set up the scrolljacking for values
   useEffect(() => {
@@ -117,11 +136,15 @@ const Values: React.FC = () => {
     );
   };
 
-  return <ChladniPattern>
-      <div className="w-full py-24 mb-48">
-        {content()}
-      </div>
-    </ChladniPattern>;
+  return (
+    <div ref={wrapperRef} className="values-wrapper w-full">
+      <ChladniPattern>
+        <div className="w-full py-24 mb-48">
+          {content()}
+        </div>
+      </ChladniPattern>
+    </div>
+  );
 };
 
 export default Values;
