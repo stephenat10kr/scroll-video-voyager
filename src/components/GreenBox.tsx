@@ -11,7 +11,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
 }) => {
   return (
     <div 
-      className="w-full relative flex flex-col justify-center"
+      className="w-full relative flex flex-col"
       style={{ 
         backgroundColor,
         height: "300vh" // Fixed height of 300vh instead of min-height
