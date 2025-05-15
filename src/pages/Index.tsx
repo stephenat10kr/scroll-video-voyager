@@ -7,17 +7,11 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import HeroText from "../components/HeroText";
 
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
-      <div className="relative">
-        <Video />
-        <div className="absolute top-0 left-0 w-full" style={{ zIndex: 2 }}>
-          <HeroText />
-        </div>
-      </div>
+      <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />

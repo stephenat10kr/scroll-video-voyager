@@ -1,17 +1,11 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import Preloader from "./Preloader";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
-// Set the scroll distance for the video to remain sticky
-const SCROLL_DURATION_VH = 10; // 10 viewport heights
 
 const Video = () => {
-  // Use the specific Contentful asset ID for the video
+  // Use the specific Contentful asset ID for the scrub-optimized video
   const { data: videoAsset, isLoading, error } = useContentfulAsset("1A0xTn5l44SvzrObLYLQmG");
   
   // Use undefined as fallback instead of local video reference
@@ -21,9 +15,6 @@ const Video = () => {
   
   const [loadProgress, setLoadProgress] = useState(0);
   const [showPreloader, setShowPreloader] = useState(true);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   
   // Simulate loading progress
   useEffect(() => {
@@ -70,45 +61,16 @@ const Video = () => {
     };
   }, [isLoading, showPreloader, videoSrc]);
   
-  // Setup scroll scrubbing for the video
-  useEffect(() => {
-    const video = videoRef.current;
-    const container = containerRef.current;
-    
-    if (!video || !container || !videoLoaded || !videoSrc) return;
-    
-    // Calculate the height based on viewport height
-    const vh = window.innerHeight;
-    const scrollDurationPx = vh * SCROLL_DURATION_VH;
-    
-    // Create scroll trigger for video scrubbing
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: `bottom-=${vh} top`,
-      scrub: true,
-      markers: false,
-      onUpdate: (self) => {
-        if (!video.duration) return;
-        
-        // Update video time based on scroll position
-        const progress = self.progress;
-        video.currentTime = progress * video.duration;
-      }
-    });
+  // Log for debugging
+  console.log('Video component - videoSrc:', videoSrc);
+  console.log('Video component - asset data:', videoAsset);
+  console.log('Video component - loading:', isLoading);
+  console.log('Video component - error:', error);
+  console.log('Video component - progress:', loadProgress);
 
-    return () => {
-      scrollTrigger.kill();
-    };
-  }, [videoLoaded, videoSrc]);
-  
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
     document.body.style.overflow = 'auto'; // Re-enable scrolling
-  };
-
-  const handleVideoLoad = () => {
-    setVideoLoaded(true);
   };
 
   // Disable scrolling while preloader is active
@@ -130,29 +92,7 @@ const Video = () => {
           onComplete={handlePreloaderComplete} 
         />
       )}
-      <div 
-        ref={containerRef} 
-        className="relative w-full" 
-        style={{ 
-          height: `${SCROLL_DURATION_VH + 1}00vh` // Add extra 100vh to ensure video stays visible long enough
-        }}
-      >
-        <div className="sticky top-0 w-full h-screen overflow-hidden bg-black">
-          <video 
-            ref={videoRef}
-            src={videoSrc}
-            onLoadedData={handleVideoLoad}
-            playsInline 
-            preload="auto" 
-            muted 
-            className="w-full h-full object-cover"
-            style={{
-              opacity: videoLoaded ? 1 : 0,
-              transition: "opacity 0.3s ease-in-out",
-            }}
-          />
-        </div>
-      </div>
+      <ScrollVideo src={videoSrc} />
     </>
   );
 };

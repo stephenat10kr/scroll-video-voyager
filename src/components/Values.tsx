@@ -1,18 +1,11 @@
-
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
 import ChladniPattern from "./ChladniPattern";
 import colors from "@/lib/theme";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
 interface ValuesProps {
   title: string;
 }
-
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
@@ -21,56 +14,6 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
-  
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
-  
-  // Set up the scrolljacking for values
-  useEffect(() => {
-    if (!values || values.length === 0 || !containerRef.current) return;
-    
-    // Clear any existing refs
-    sectionRefs.current = [];
-    
-    // Create ScrollTrigger for each value
-    const sections = sectionRefs.current.filter(Boolean);
-    
-    if (sections.length === 0) return;
-    
-    // Set initial state - hide all values except the first one
-    gsap.set(sections.slice(1), { autoAlpha: 0 });
-    
-    // Create a timeline for the values animation
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: `+=${sections.length * 100}vh`,
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-        invalidateOnRefresh: true,
-      }
-    });
-    
-    // Add animations for each section
-    sections.forEach((section, i) => {
-      if (i > 0) {
-        tl.to(sections[i-1], { autoAlpha: 0, duration: 0.5 }, `section${i}`);
-        tl.to(section, { autoAlpha: 1, duration: 0.5 }, `section${i}`);
-      }
-      
-      if (i < sections.length - 1) {
-        tl.addLabel(`section${i+1}`, "+=0.5");
-      }
-    });
-    
-    return () => {
-      // Clean up ScrollTrigger instances when component unmounts
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
-    };
-  }, [values]);
-  
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -118,26 +61,10 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    
-    return (
-      <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => (
-          <div 
-            key={value.id} 
-            className="value-section h-screen flex items-center justify-center w-full" 
-            ref={el => sectionRefs.current[index] = el}
-          >
-            <Value 
-              valueTitle={value.valueTitle} 
-              valueText={value.valueText} 
-              isLast={index === values.length - 1} 
-            />
-          </div>
-        ))}
-      </div>
-    );
+    return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto">
+        {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+      </div>;
   };
-
   return <ChladniPattern>
       <div className="w-full py-24 mb-48">
         <div className="max-w-[90%] mx-auto mb-16 text-left">
@@ -149,5 +76,4 @@ const Values: React.FC<ValuesProps> = ({
       </div>
     </ChladniPattern>;
 };
-
 export default Values;
