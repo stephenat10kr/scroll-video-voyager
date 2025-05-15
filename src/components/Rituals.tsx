@@ -96,21 +96,13 @@ const Rituals: React.FC<RitualsProps> = ({
   }];
   return <div style={{
     backgroundColor: colors.coral,
-    borderTop: `4px solid ${colors.coral}`,
-    position: "relative",
-    zIndex: 5 // Setting a z-index that's lower than GreenBox but higher than background
+    borderTop: `4px solid ${colors.coral}`
   }} className="w-full relative py-[192px]">
       {/* Curved top SVG - with shape rendering and coral border */}
-      <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-full" style={{ 
-        borderBottom: `2px solid ${colors.coral}`,
-        zIndex: 5,
-        display: "block"
+      <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-[calc(100%+1px)]" style={{ 
+        borderBottom: `2px solid ${colors.coral}`
       }}>
-        <svg width="100%" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ 
-          aspectRatio: "1440/269", 
-          height: "auto", 
-          display: "block" 
-        }} shapeRendering="crispEdges">
+        <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }} shapeRendering="crispEdges">
           <path d="M1440 270V0H1439.64C1439.64 122.835 1288.99 8.01951 1127.06 34.9638C919.9 69.4371 898.46 215.546 719.82 215.546C541.18 215.546 519.75 69.429 312.58 34.9638C150.65 8.02768 0 126.359 0 0V270H1440Z" fill={colors.coral} />
         </svg>
       </div>
