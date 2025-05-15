@@ -83,12 +83,44 @@ const GreenBox: React.FC<GreenBoxProps> = ({
           height: "100vh"
         }}
       >
-        <div className="flip-container">
-          <div className={`flip-box ${isFlipping ? 'flipping' : ''}`}>
-            <div className="flip-box-front title-lg">
+        <div className="flip-container" style={{ perspective: "1000px" }}>
+          <div 
+            className={`flip-box ${isFlipping ? 'flipping' : ''}`} 
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "120px",
+              transition: "transform 0.8s",
+              transformStyle: "preserve-3d"
+            }}
+          >
+            <div 
+              className="flip-box-front title-lg"
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                backfaceVisibility: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
               {isFlipping ? previousValue.current : currentValue}
             </div>
-            <div className="flip-box-back title-lg">
+            <div 
+              className="flip-box-back title-lg"
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                backfaceVisibility: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transform: "rotateX(180deg)"
+              }}
+            >
               {currentValue}
             </div>
           </div>
@@ -99,37 +131,13 @@ const GreenBox: React.FC<GreenBoxProps> = ({
         {/* Content can be added here if needed */}
       </div>
       
-      <style jsx>{`
-        .flip-container {
-          perspective: 1000px;
-        }
-        
-        .flip-box {
-          position: relative;
-          width: 100%;
-          height: 120px;
-          transition: transform 0.8s;
-          transform-style: preserve-3d;
-        }
-        
-        .flip-box.flipping {
-          transform: rotateX(180deg);
-        }
-        
-        .flip-box-front, .flip-box-back {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          backface-visibility: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .flip-box-back {
-          transform: rotateX(180deg);
-        }
-      `}</style>
+      <style>
+        {`
+          .flip-box.flipping {
+            transform: rotateX(180deg);
+          }
+        `}
+      </style>
     </div>
   );
 };
