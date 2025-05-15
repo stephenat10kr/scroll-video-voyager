@@ -33,7 +33,7 @@ const Values: React.FC<ValuesProps> = ({
     sectionRefs.current = [];
     
     // Create ScrollTrigger for each value
-    const sections = sectionRefs.current.filter(Boolean);
+    const sections = Array.from(containerRef.current.querySelectorAll('.value-section'));
     
     if (sections.length === 0) return;
     
@@ -125,7 +125,6 @@ const Values: React.FC<ValuesProps> = ({
           <div 
             key={value.id} 
             className="value-section h-screen flex items-center justify-center w-full" 
-            ref={el => sectionRefs.current[index] = el}
           >
             <Value 
               valueTitle={value.valueTitle} 
