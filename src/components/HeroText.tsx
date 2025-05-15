@@ -18,36 +18,21 @@ const HeroText: React.FC = () => {
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
 
-  // Enhanced logging for debugging
-  console.log('Hero Text Component - All Items:', heroTextItems);
-  console.log('Hero Text Component - First Item:', firstHeroText);
-  if (firstHeroText) {
-    console.log('First Hero Text Fields:', {
-      eyebrow: firstHeroText.fields.heroTextEyebrow,
-      title: firstHeroText.fields.heroTextTitle,
-      content: firstHeroText.fields.heroTextText
-    });
-  }
-  console.log('Hero Text Component - Second Item:', secondHeroText);
-  if (secondHeroText) {
-    console.log('Second Hero Text Fields:', {
-      eyebrow: secondHeroText.fields.heroTextEyebrow,
-      title: secondHeroText.fields.heroTextTitle,
-      content: secondHeroText.fields.heroTextText
-    });
-  }
   if (isLoading) {
-    return <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+    return <div className="w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
         <Spinner />
       </div>;
   }
+  
   if (error || !heroTextItems || heroTextItems.length < 2) {
     console.error('Error loading hero text data:', error);
-    return <div className="relative w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
+    return <div className="w-full z-10 bg-transparent min-h-screen flex items-center justify-center">
         <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
       </div>;
   }
-  return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
+  
+  return (
+    <div className="w-full">
       <div className="w-full max-w-none">
         {/* Section 1 - Logo section with hardcoded "WELCOME TO" */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
@@ -98,6 +83,8 @@ const HeroText: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default HeroText;

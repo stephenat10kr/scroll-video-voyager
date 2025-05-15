@@ -12,9 +12,13 @@ import HeroText from "../components/HeroText";
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
-      <Video />
+      <div className="relative">
+        <Video />
+        <div className="absolute top-0 left-0 w-full" style={{ zIndex: 2 }}>
+          <HeroText />
+        </div>
+      </div>
       <div className="relative" style={{ zIndex: 2 }}>
-        <HeroText />
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />

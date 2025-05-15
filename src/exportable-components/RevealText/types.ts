@@ -5,6 +5,15 @@ export interface ContentfulRevealText {
   revealText: string;
 }
 
+export interface ContentfulRevealTextEntry {
+  sys: {
+    id: string;
+  };
+  fields: {
+    text: string;
+  };
+}
+
 export interface ContentfulRevealTextResponse {
   items: Array<{
     sys: {
@@ -14,4 +23,5 @@ export interface ContentfulRevealTextResponse {
   }>;
 }
 
-export type ContentfulRevealTextClient = ContentfulClientApi<any>;
+export type ContentfulRevealTextClient = ContentfulClientApi;
+
