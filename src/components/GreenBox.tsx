@@ -1,6 +1,8 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import colors from "@/lib/theme";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 interface GreenBoxProps {
   backgroundColor?: string;
@@ -9,8 +11,30 @@ interface GreenBoxProps {
 const GreenBox: React.FC<GreenBoxProps> = ({ 
   backgroundColor = "#90EE90" // Light green color as requested
 }) => {
+  const boxRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // Register the ScrollTrigger plugin
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Create the scroll trigger effect
+    const trigger = ScrollTrigger.create({
+      trigger: boxRef.current,
+      start: "top top", // When the top of the box reaches the top of the viewport
+      end: "+=300vh", // Keep it pinned for 300vh worth of scrolling
+      pin: true, // Pin the element in place
+      pinSpacing: true // Creates the scroll space needed
+    });
+    
+    // Cleanup function
+    return () => {
+      trigger.kill(); // Kill the ScrollTrigger instance when component unmounts
+    };
+  }, []);
+  
   return (
     <div 
+      ref={boxRef}
       className="w-full min-h-screen flex items-center justify-center"
       style={{ backgroundColor }}
     >
