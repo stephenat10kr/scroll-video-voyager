@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -6,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import ExportableForm from "./Form";
 import { createContentfulClient } from "./contentfulClient";
-import { ContentfulRevealTextEntry } from "./types";
+import { ContentfulRevealText } from "./types";
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -79,7 +80,7 @@ const RevealText = ({
               fields: {
                 text: textContent
               }
-            } as ContentfulRevealTextEntry;
+            } as ContentfulRevealText;
           }
         } else {
           // Otherwise query entries by content type
@@ -104,7 +105,7 @@ const RevealText = ({
               fields: {
                 text: textContent
               }
-            } as ContentfulRevealTextEntry;
+            } as ContentfulRevealText;
           }
           console.log("Entry found but missing expected field, fields available:", Object.keys(entry.fields));
         }
