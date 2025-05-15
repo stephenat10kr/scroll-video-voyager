@@ -8,6 +8,7 @@ import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import HeroText from "../components/HeroText";
 import GreenBox from "../components/GreenBox";
+import colors from "../lib/theme";
 
 const Index = () => {
   return (
