@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -35,7 +34,7 @@ const Values: React.FC = () => {
     };
   }, []);
 
-  // Set up the scrolljacking for values with one full scroll per transition
+  // Set up the flip animation for values when scrolling
   useEffect(() => {
     if (!values || values.length === 0 || !containerRef.current) return;
 
@@ -50,7 +49,9 @@ const Values: React.FC = () => {
   
       // Set initial state - hide all values except the first one
       gsap.set(sections.slice(1), {
-        autoAlpha: 0
+        autoAlpha: 0,
+        rotationX: 90, // Start flipped
+        transformPerspective: 1000 // Add perspective for 3D effect
       });
   
       // Create a timeline for the values animation
@@ -66,22 +67,26 @@ const Values: React.FC = () => {
         }
       });
   
-      // Add animations for each section with one full screen scroll per transition
+      // Add animations for each section with flip transition
       sections.forEach((section, i) => {
         if (i > 0) {
           // Set a position marker at every window height
           const position = `+=${i * 100}%`;
           
-          // Fade out the previous value
+          // Flip out the previous value
           tl.to(sections[i - 1], {
             autoAlpha: 0,
-            duration: 0.5
+            rotationX: -90,
+            duration: 0.5,
+            ease: "power1.in"
           }, position);
           
-          // Fade in the current value
+          // Flip in the current value
           tl.to(section, {
             autoAlpha: 1,
-            duration: 0.5
+            rotationX: 0,
+            duration: 0.5,
+            ease: "power1.out"
           }, position);
         }
       });
@@ -126,19 +131,28 @@ const Values: React.FC = () => {
         </div>;
     }
     return <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
+        {values.map((value, index) => (
+          <div 
+            key={value.id} 
+            className="value-section h-screen flex items-center justify-center w-full transform-gpu" 
+            ref={el => sectionRefs.current[index] = el}
+            style={{ backfaceVisibility: 'hidden' }} // Helps with flip animation
+          >
             <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
-          </div>)}
+          </div>
+        ))}
       </div>;
   };
 
-  return <div ref={wrapperRef} className="values-wrapper w-full">
+  return (
+    <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
           {content()}
         </div>
       </ChladniPattern>
-    </div>;
+    </div>
+  );
 };
 
 export default Values;
