@@ -97,28 +97,28 @@ const Values: React.FC = () => {
         </div>;
     }
     
-    // Display color boxes instead of values
+    // Display color boxes instead of values with semi-transparency
     return (
       <div className="color-boxes-container" ref={containerRef}>
         {/* Red Box */}
         <div 
           ref={el => sectionRefs.current[0] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#ea384c' }} 
+          style={{ backgroundColor: 'rgba(234, 56, 76, 0.7)' }} // Semi-transparent red
         />
         
         {/* Blue Box */}
         <div 
           ref={el => sectionRefs.current[1] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#1EAEDB' }} 
+          style={{ backgroundColor: 'rgba(30, 174, 219, 0.7)' }} // Semi-transparent blue
         />
         
         {/* Green Box */}
         <div 
           ref={el => sectionRefs.current[2] = el} 
           className="color-box h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: '#F2FCE2' }} 
+          style={{ backgroundColor: 'rgba(242, 252, 226, 0.7)' }} // Semi-transparent green
         />
       </div>
     );
