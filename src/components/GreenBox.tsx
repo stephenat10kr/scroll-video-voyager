@@ -7,7 +7,7 @@ interface GreenBoxProps {
 }
 
 const GreenBox: React.FC<GreenBoxProps> = ({ 
-  backgroundColor = "#F2FCE2" // Light green default
+  backgroundColor = "#90EE90" // Light green color as requested
 }) => {
   return (
     <div 
