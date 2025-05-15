@@ -26,20 +26,20 @@ const Values: React.FC<ValuesProps> = ({
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const stickyWrapperRef = useRef<HTMLDivElement>(null);
   
-  // Set up the sticky scrolling and scrolljacking for values
+  // Set up the sticky scrolling for exactly 300vh
   useEffect(() => {
     if (!values || values.length === 0 || !containerRef.current || !stickyWrapperRef.current) return;
     
     // Clear any existing refs
     sectionRefs.current = [];
     
-    // Create ScrollTrigger for the sticky container
+    // Create ScrollTrigger for the sticky container - exactly 300vh
     const stickyTrigger = ScrollTrigger.create({
       trigger: stickyWrapperRef.current,
       start: "top top",
-      end: `bottom top+=${window.innerHeight}px`,
+      end: "bottom top+=300vh", // Pin for exactly 300vh
       pin: true,
-      pinSpacing: true
+      pinSpacing: true,
     });
     
     // Create a timeline for the values animation
@@ -47,7 +47,7 @@ const Values: React.FC<ValuesProps> = ({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `+=${values.length * 100}vh`,
+        end: "+=300vh", // Fixed 300vh scroll distance regardless of number of values
         scrub: 1,
         invalidateOnRefresh: true,
       }
@@ -61,17 +61,30 @@ const Values: React.FC<ValuesProps> = ({
     // Hide all values except the first one
     gsap.set(sections.slice(1), { autoAlpha: 0 });
     
-    // Add animations for each section
-    sections.forEach((section, i) => {
-      if (i > 0) {
-        tl.to(sections[i-1], { autoAlpha: 0, duration: 0.5 }, `section${i}`);
-        tl.to(section, { autoAlpha: 1, duration: 0.5 }, `section${i}`);
-      }
+    // Limit to only the first 3 values, if there are more than 3
+    const visibleSections = sections.slice(0, 3);
+    
+    // Handle case where there's only 1 or 2 values
+    if (visibleSections.length === 1) {
+      // If only one value, show it for the whole 300vh scroll
+      // No animation needed as it's already visible
+    } else if (visibleSections.length === 2) {
+      // If two values, split the 300vh into two 150vh sections
+      tl.to(visibleSections[0], { autoAlpha: 0, duration: 0.5 }, "150vh");
+      tl.to(visibleSections[1], { autoAlpha: 1, duration: 0.5 }, "150vh");
+    } else {
+      // If three or more values, show each for 100vh
       
-      if (i < sections.length - 1) {
-        tl.addLabel(`section${i+1}`, "+=0.5");
-      }
-    });
+      // Value 1 is shown from 0-100vh (already visible)
+      
+      // Transition to Value 2 at 100vh
+      tl.to(visibleSections[0], { autoAlpha: 0, duration: 0.5 }, "100vh");
+      tl.to(visibleSections[1], { autoAlpha: 1, duration: 0.5 }, "100vh");
+      
+      // Transition to Value 3 at 200vh
+      tl.to(visibleSections[1], { autoAlpha: 0, duration: 0.5 }, "200vh");
+      tl.to(visibleSections[2], { autoAlpha: 1, duration: 0.5 }, "200vh");
+    }
     
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
@@ -130,7 +143,7 @@ const Values: React.FC<ValuesProps> = ({
     
     return (
       <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => (
+        {values.slice(0, 3).map((value, index) => (
           <div 
             key={value.id} 
             className="value-section h-screen flex items-center justify-center w-full" 
@@ -139,7 +152,7 @@ const Values: React.FC<ValuesProps> = ({
             <Value 
               valueTitle={value.valueTitle} 
               valueText={value.valueText} 
-              isLast={index === values.length - 1} 
+              isLast={index === Math.min(values.length - 1, 2)} 
             />
           </div>
         ))}

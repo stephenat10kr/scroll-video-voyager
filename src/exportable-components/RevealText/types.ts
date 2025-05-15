@@ -1,27 +1,29 @@
 
+import { Entry } from 'contentful';
 import { ContentfulClientApi } from 'contentful';
 
-export interface ContentfulRevealText {
-  revealText: string;
+export interface RevealTextProps {
+  eventTitle?: string;
+  isSmall?: boolean;
+  titleColor?: string;
 }
 
-export interface ContentfulRevealTextEntry {
-  sys: {
-    id: string;
-  };
-  fields: {
-    text: string;
-  };
+export interface RevealTextContentfulData {
+  teaserText: string;
+  headline: string;
 }
 
-export interface ContentfulRevealTextResponse {
-  items: Array<{
-    sys: {
-      id: string;
-    };
-    fields: ContentfulRevealText;
-  }>;
+export interface RevealTextContentfulResponse {
+  items: Entry<RevealTextContentfulData>[];
 }
 
-export type ContentfulRevealTextClient = ContentfulClientApi;
+interface ModifierOptions {
+  locale: string;
+  preview: boolean;
+}
 
+interface Modifiers {
+  options: ModifierOptions;
+}
+
+export type ContentfulClient = ContentfulClientApi<unknown>;
