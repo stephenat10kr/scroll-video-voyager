@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -6,6 +7,7 @@ import colors from "@/lib/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
+
 const Values: React.FC = () => {
   const {
     data: values,
@@ -16,73 +18,61 @@ const Values: React.FC = () => {
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Set up sticky behavior for the values section
+  // Set up the sticky behavior and color box transitions
   useEffect(() => {
-    if (!wrapperRef.current) return;
+    if (!containerRef.current) return;
 
     // Create ScrollTrigger for sticky behavior
     const stickyTrigger = ScrollTrigger.create({
-      trigger: wrapperRef.current,
+      trigger: containerRef.current,
       start: "top top",
-      end: "bottom bottom",
+      end: "+=300vh", // 3 sections of 100vh each
       pin: true,
-      pinSpacing: false
-    });
-    return () => {
-      stickyTrigger.kill();
-    };
-  }, []);
-
-  // Set up the scrolljacking for values
-  useEffect(() => {
-    if (!values || values.length === 0 || !containerRef.current) return;
-
-    // Clear any existing refs
-    sectionRefs.current = [];
-
-    // Create ScrollTrigger for each value
-    const sections = sectionRefs.current.filter(Boolean);
-    if (sections.length === 0) return;
-
-    // Set initial state - hide all values except the first one
-    gsap.set(sections.slice(1), {
-      autoAlpha: 0
+      pinSpacing: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true
     });
 
-    // Create a timeline for the values animation
+    // Get references to the color boxes
+    const redBox = sectionRefs.current[0];
+    const blueBox = sectionRefs.current[1];
+    const greenBox = sectionRefs.current[2];
+
+    if (!redBox || !blueBox || !greenBox) return;
+
+    // Set initial state - show red box, hide others
+    gsap.set(redBox, { autoAlpha: 1 });
+    gsap.set([blueBox, greenBox], { autoAlpha: 0 });
+
+    // Create a timeline for the color box transitions
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `+=${sections.length * 100}vh`,
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-        invalidateOnRefresh: true
+        end: "+=300vh", // 3 sections of 100vh each
+        scrub: true,
+        pin: true
       }
     });
 
-    // Add animations for each section
-    sections.forEach((section, i) => {
-      if (i > 0) {
-        tl.to(sections[i - 1], {
-          autoAlpha: 0,
-          duration: 0.5
-        }, `section${i}`);
-        tl.to(section, {
-          autoAlpha: 1,
-          duration: 0.5
-        }, `section${i}`);
-      }
-      if (i < sections.length - 1) {
-        tl.addLabel(`section${i + 1}`, "+=0.5");
-      }
-    });
+    // Add animations for transitions between boxes
+    // Transition from red to blue at 100vh
+    tl.to(redBox, { autoAlpha: 0, duration: 0.5 }, "section1");
+    tl.to(blueBox, { autoAlpha: 1, duration: 0.5 }, "section1");
+    tl.addLabel("section1", "+=0.5");
+
+    // Transition from blue to green at 200vh
+    tl.to(blueBox, { autoAlpha: 0, duration: 0.5 }, "section2");
+    tl.to(greenBox, { autoAlpha: 1, duration: 0.5 }, "section2");
+    tl.addLabel("section2", "+=0.5");
+
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
+      stickyTrigger.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
     };
-  }, [values]);
+  }, []);
+
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -106,21 +96,34 @@ const Values: React.FC = () => {
           </div>
         </div>;
     }
-    if (!values || values.length === 0) {
-      return <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="col-span-12 md:col-span-12">
-            <p className="body-text" style={{
-            color: colors.coral
-          }}>No values available</p>
-          </div>
-        </div>;
-    }
-    return <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => <div key={value.id} className="value-section h-screen flex items-center justify-center w-full" ref={el => sectionRefs.current[index] = el}>
-            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
-          </div>)}
-      </div>;
+    
+    // Display color boxes instead of values
+    return (
+      <div className="color-boxes-container" ref={containerRef}>
+        {/* Red Box */}
+        <div 
+          ref={el => sectionRefs.current[0] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#ea384c' }} 
+        />
+        
+        {/* Blue Box */}
+        <div 
+          ref={el => sectionRefs.current[1] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#1EAEDB' }} 
+        />
+        
+        {/* Green Box */}
+        <div 
+          ref={el => sectionRefs.current[2] = el} 
+          className="color-box h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: '#F2FCE2' }} 
+        />
+      </div>
+    );
   };
+
   return <div ref={wrapperRef} className="values-wrapper w-full">
       <ChladniPattern>
         <div className="w-full mb-48 py-0">
@@ -129,4 +132,5 @@ const Values: React.FC = () => {
       </ChladniPattern>
     </div>;
 };
+
 export default Values;
