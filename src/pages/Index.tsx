@@ -12,7 +12,7 @@ import colors from "../lib/theme";
 
 const Index = () => {
   return (
-    <div className="bg-[#203435] min-h-screen w-full relative">
+    <div className="bg-[#203435] min-h-screen w-full relative overflow-x-hidden">
       <div className="relative">
         <Video />
         <div className="absolute top-0 left-0 w-full" style={{ zIndex: 2 }}>
@@ -21,7 +21,10 @@ const Index = () => {
       </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
-        <GreenBox />
+        {/* GreenBox is now placed in a wrapper to support proper scroll pinning */}
+        <div className="relative w-full">
+          <GreenBox />
+        </div>
         <Rituals title="RITUALS" />
         <Gallery 
           title="SPACE"
