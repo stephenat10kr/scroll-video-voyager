@@ -92,8 +92,8 @@ const FixedBackground: React.FC = () => {
           float threshold = u_isMobile ? 0.12 : 0.05;
           float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
           
-          // Lower opacity for background effect
-          float opacity = u_isMobile ? 0.3 : 0.4; 
+          // Higher opacity for better visibility
+          float opacity = u_isMobile ? 0.5 : 0.65; 
           gl_FragColor = vec4(1.0, 1.0, 1.0, col * opacity);
         }
       `;
