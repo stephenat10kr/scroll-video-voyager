@@ -7,14 +7,12 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import ChladniPattern from "../components/ChladniPattern";
 
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
-      <ChladniPattern />
       <Video />
-      <div className="relative" style={{ zIndex: 1 }}>
+      <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />

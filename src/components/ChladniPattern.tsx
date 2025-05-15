@@ -294,17 +294,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 w-full h-full bg-[#203435]"
-      style={{ 
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden', 
-        backgroundColor: colors.darkGreen,
-        zIndex: 0 // Changed back to 0 so it's visible but behind content
-      }}
+      className="relative w-full h-full bg-[#203435]"
+      style={{ position: 'relative', overflow: 'hidden', backgroundColor: colors.darkGreen }}
     >
       <canvas 
         ref={canvasRef}
@@ -315,9 +306,9 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: 0, // Changed back to 0
+          zIndex: 0,
           pointerEvents: 'none',
-          opacity: isMobile ? 0.3 : 0.5
+          opacity: isMobile ? 0.3 : 0.5 // Further reduced opacity on mobile from 0.35 to 0.3
         }}
       />
       <div className="relative z-10">
