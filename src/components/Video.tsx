@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from "react";
-import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import Preloader from "./Preloader";
 
 const Video = () => {
-  // Use the specific Contentful asset ID for the scrub-optimized video
+  // Use the specific Contentful asset ID for the video
   const { data: videoAsset, isLoading, error } = useContentfulAsset("1A0xTn5l44SvzrObLYLQmG");
   
   // Use undefined as fallback instead of local video reference
@@ -15,6 +14,7 @@ const Video = () => {
   
   const [loadProgress, setLoadProgress] = useState(0);
   const [showPreloader, setShowPreloader] = useState(true);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   
   // Simulate loading progress
   useEffect(() => {
@@ -61,16 +61,13 @@ const Video = () => {
     };
   }, [isLoading, showPreloader, videoSrc]);
   
-  // Log for debugging
-  console.log('Video component - videoSrc:', videoSrc);
-  console.log('Video component - asset data:', videoAsset);
-  console.log('Video component - loading:', isLoading);
-  console.log('Video component - error:', error);
-  console.log('Video component - progress:', loadProgress);
-
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
     document.body.style.overflow = 'auto'; // Re-enable scrolling
+  };
+
+  const handleVideoLoad = () => {
+    setVideoLoaded(true);
   };
 
   // Disable scrolling while preloader is active
@@ -92,7 +89,24 @@ const Video = () => {
           onComplete={handlePreloaderComplete} 
         />
       )}
-      <ScrollVideo src={videoSrc} />
+      <div className="relative w-full h-[1000vh]">
+        <div className="sticky top-0 w-full h-screen overflow-hidden bg-black">
+          <video 
+            src={videoSrc}
+            onLoadedData={handleVideoLoad}
+            playsInline 
+            preload="auto" 
+            muted 
+            loop
+            autoPlay
+            className="w-full h-full object-cover"
+            style={{
+              opacity: videoLoaded ? 1 : 0,
+              transition: "opacity 0.3s ease-in-out",
+            }}
+          />
+        </div>
+      </div>
     </>
   );
 };

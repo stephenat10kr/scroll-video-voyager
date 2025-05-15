@@ -1,22 +1,17 @@
 
-// Define the structure of a Contentful reveal text entry
-export interface ContentfulRevealTextEntry {
-  sys: {
-    id: string;
-    contentType?: {
-      sys: {
-        id: string;
-      };
-    };
-  };
-  fields: {
-    text: string;
-  };
+import { ContentfulClientApi } from 'contentful';
+
+export interface ContentfulRevealText {
+  revealText: string;
 }
 
-// Form data interface
-export interface RevealTextFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
+export interface ContentfulRevealTextResponse {
+  items: Array<{
+    sys: {
+      id: string;
+    };
+    fields: ContentfulRevealText;
+  }>;
 }
+
+export type ContentfulRevealTextClient = ContentfulClientApi<any>;

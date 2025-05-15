@@ -15,17 +15,17 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   return (
-    <div className={`w-full h-screen flex flex-col justify-center ${isLast ? '' : 'mb-6'}`}>
+    <div className="w-full flex flex-col items-center justify-center px-4">
       <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
         {valueTitle}
       </h2>
       
       {/* Spinner component placed between title and text */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-8">
         <Spinner />
       </div>
       
-      <div className="space-y-1">
+      <div className="space-y-4 max-w-2xl mx-auto">
         {valueText.map((text, index) => (
           <p 
             key={index} 
