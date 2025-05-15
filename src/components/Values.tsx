@@ -23,6 +23,7 @@ const Values: React.FC<ValuesProps> = ({
   } = useValues();
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const patternRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   
   // Set up the scrolljacking for values
@@ -57,6 +58,24 @@ const Values: React.FC<ValuesProps> = ({
         onUpdate: (self) => {
           // Optional: log progress for debugging
           // console.log("ScrollTrigger progress:", self.progress.toFixed(3));
+        },
+        onEnter: () => {
+          // Pin the Chladni pattern when entering the scrolljack area
+          if (patternRef.current) {
+            gsap.set(patternRef.current, { position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh' });
+          }
+        },
+        onLeaveBack: () => {
+          // Unpin the Chladni pattern when scrolling back above the values section
+          if (patternRef.current) {
+            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%' });
+          }
+        },
+        onLeave: () => {
+          // Unpin the Chladni pattern when leaving the scrolljack area
+          if (patternRef.current) {
+            gsap.set(patternRef.current, { position: 'relative', top: 'auto', left: 'auto', width: '100%', height: '100%' });
+          }
         }
       }
     });
@@ -93,6 +112,11 @@ const Values: React.FC<ValuesProps> = ({
       scrollTriggers.forEach(trigger => {
         if (trigger) trigger.kill();
       });
+      
+      // Reset any GSAP styles
+      if (patternRef.current) {
+        gsap.set(patternRef.current, { clearProps: "all" });
+      }
     };
   }, [values]);
   
@@ -182,9 +206,11 @@ const Values: React.FC<ValuesProps> = ({
           color: colors.roseWhite
         }}>{title}</h2>
       </div>
-      <ChladniPattern>
-        {renderContent()}
-      </ChladniPattern>
+      <div ref={patternRef} className="w-full h-full">
+        <ChladniPattern>
+          {renderContent()}
+        </ChladniPattern>
+      </div>
     </div>
   );
 };
