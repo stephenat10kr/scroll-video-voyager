@@ -1,5 +1,5 @@
 
-import { Entry } from 'contentful';
+import { Entry, EntrySkeletonType, ChainModifiers } from 'contentful';
 import { ContentfulClientApi } from 'contentful';
 
 export interface RevealTextProps {
@@ -8,13 +8,28 @@ export interface RevealTextProps {
   titleColor?: string;
 }
 
-export interface RevealTextContentfulData {
-  teaserText: string;
-  headline: string;
+// Define a content type ID for RevealText entries
+export interface RevealTextContentfulData extends EntrySkeletonType {
+  fields: {
+    teaserText: string;
+    headline: string;
+    revealText?: string; // Added for backward compatibility
+  };
+  contentTypeId: 'revealText';
 }
 
 export interface RevealTextContentfulResponse {
   items: Entry<RevealTextContentfulData>[];
+}
+
+// Define ContentfulRevealTextEntry for the component
+export interface ContentfulRevealTextEntry {
+  sys: {
+    id: string;
+  };
+  fields: {
+    text: string;
+  };
 }
 
 interface ModifierOptions {
@@ -26,4 +41,4 @@ interface Modifiers {
   options: ModifierOptions;
 }
 
-export type ContentfulClient = ContentfulClientApi<unknown>;
+export type ContentfulClient = ContentfulClientApi<ChainModifiers>;
