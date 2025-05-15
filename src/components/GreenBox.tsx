@@ -17,13 +17,12 @@ const GreenBox: React.FC<GreenBoxProps> = ({
         height: "300vh" // Fixed height of 300vh instead of min-height
       }}
     >
-      {/* Sticky text positioned 100vh above */}
+      {/* Sticky text at the top */}
       <div 
-        className="sticky w-full py-8 text-center text-2xl font-bold"
+        className="sticky top-0 w-full py-8 text-center text-2xl font-bold"
         style={{
           color: colors.darkGreen,
-          zIndex: 10,
-          top: "-100vh" // Positioning 100vh above
+          zIndex: 10
         }}
       >
         Value 1
