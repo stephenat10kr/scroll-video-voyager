@@ -1,6 +1,7 @@
 
 This directory is for storing custom font files.
-Please add the following font files:
-- GT-Super-Display-Bold.woff2
-- GT-Super-Display-Bold.woff
-- GT-Super-Display-Bold.ttf
+Font files included:
+- Dahlia-Regular.woff2
+- Dahlia-Regular.woff
+- Dahlia-Regular.ttf
+- Dahlia-Regular.eot

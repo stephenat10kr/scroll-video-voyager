@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'gt-super': ['GT-Super-Display-Bold', 'serif'],
+				'gt-super': ['Dahlia-Regular', 'serif'],
 				'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', "Noto Sans", 'sans-serif'],
 			},
 			fontSize: {
@@ -28,24 +27,24 @@ export default {
 				'title-lg': ['96px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
-					fontWeight: '700',
+					fontWeight: 'normal',
 				}],
 				'title-lg-mobile': ['48px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
-					fontWeight: '700',
+					fontWeight: 'normal',
 				}],
 				
 				// Title-Md
 				'title-md': ['72px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
-					fontWeight: '700',
+					fontWeight: 'normal',
 				}],
 				'title-md-mobile': ['48px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
-					fontWeight: '700',
+					fontWeight: 'normal',
 				}],
 				
 				// Title-Sm

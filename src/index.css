@@ -98,11 +98,12 @@
 
 /* Font imports */
 @font-face {
-  font-family: 'GT-Super-Display-Bold';
-  src: url('/fonts/GT-Super-Display-Bold.woff2') format('woff2'),
-       url('/fonts/GT-Super-Display-Bold.woff') format('woff'),
-       url('/fonts/GT-Super-Display-Bold.ttf') format('truetype');
-  font-weight: bold;
+  font-family: 'Dahlia-Regular';
+  src: url('/fonts/Dahlia-Regular.woff2') format('woff2'),
+       url('/fonts/Dahlia-Regular.woff') format('woff'),
+       url('/fonts/Dahlia-Regular.ttf') format('truetype'),
+       url('/fonts/Dahlia-Regular.eot') format('embedded-opentype');
+  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
@@ -125,8 +126,8 @@
   }
 
   .font-gt-super {
-    font-family: 'GT-Super-Display-Bold', serif;
-    font-weight: bold;
+    font-family: 'Dahlia-Regular', serif;
+    font-weight: normal;
   }
 }
 
@@ -154,4 +155,3 @@
     animation: fade-in 0.5s ease-in-out forwards;
   }
 }
-
