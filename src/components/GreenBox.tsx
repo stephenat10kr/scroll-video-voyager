@@ -12,10 +12,38 @@ const GreenBox: React.FC<GreenBoxProps> = ({
   const [currentValue, setCurrentValue] = useState("Value 1");
   const [isAnimating, setIsAnimating] = useState(false);
   const previousValue = useRef("Value 1");
+  const animationInProgress = useRef(false);
+  const lastScrollTime = useRef(0);
+  const scrollTimeout = useRef<number | null>(null);
   
   useEffect(() => {
-    // Function to handle scroll events
+    // Function to handle scroll events with debouncing
     const handleScroll = () => {
+      // Debounce scroll events to prevent multiple rapid fires
+      const now = Date.now();
+      if (now - lastScrollTime.current < 50) { // 50ms debounce time
+        // Clear any pending timeout
+        if (scrollTimeout.current !== null) {
+          window.clearTimeout(scrollTimeout.current);
+        }
+        
+        // Set a new timeout
+        scrollTimeout.current = window.setTimeout(() => {
+          processScroll();
+          scrollTimeout.current = null;
+        }, 50);
+        return;
+      }
+      
+      lastScrollTime.current = now;
+      processScroll();
+    };
+    
+    // Process scroll position and determine which value to show
+    const processScroll = () => {
+      // Skip if animation is already in progress
+      if (animationInProgress.current) return;
+      
       // Get the GreenBox element
       const greenBox = document.querySelector(".green-box");
       
@@ -44,6 +72,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
         if (newValue !== currentValue) {
           previousValue.current = currentValue;
           setIsAnimating(true);
+          animationInProgress.current = true;
           
           // Set the new value after a slight delay to allow the animation to start
           setTimeout(() => {
@@ -51,6 +80,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
             // Reset the animation state after the animation completes
             setTimeout(() => {
               setIsAnimating(false);
+              animationInProgress.current = false;
             }, 500); // Match this with the CSS animation duration
           }, 250);
         }
@@ -60,11 +90,14 @@ const GreenBox: React.FC<GreenBoxProps> = ({
     // Add scroll event listener
     window.addEventListener("scroll", handleScroll);
     
-    // Clean up the event listener on component unmount
+    // Clean up the event listener and any pending timeouts on component unmount
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout.current !== null) {
+        window.clearTimeout(scrollTimeout.current);
+      }
     };
-  }, [currentValue]);
+  }, []); // Removed currentValue from dependency array to prevent recreating the handler
   
   return (
     <div 
