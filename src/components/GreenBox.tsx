@@ -10,7 +10,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
   backgroundColor = "#90EE90" // Light green color as requested
 }) => {
   const [currentValue, setCurrentValue] = useState("Value 1");
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const previousValue = useRef("Value 1");
   
   useEffect(() => {
@@ -43,14 +43,14 @@ const GreenBox: React.FC<GreenBoxProps> = ({
         // Only trigger animation if the value is actually changing
         if (newValue !== currentValue) {
           previousValue.current = currentValue;
-          setIsFlipping(true);
+          setIsAnimating(true);
           
           // Set the new value after a slight delay to allow the animation to start
           setTimeout(() => {
             setCurrentValue(newValue);
-            // Reset the flipping state after the animation completes
+            // Reset the animation state after the animation completes
             setTimeout(() => {
-              setIsFlipping(false);
+              setIsAnimating(false);
             }, 500); // Match this with the CSS animation duration
           }, 250);
         }
@@ -83,43 +83,40 @@ const GreenBox: React.FC<GreenBoxProps> = ({
           height: "100vh"
         }}
       >
-        <div className="flip-container w-full" style={{ perspective: "1000px" }}>
+        <div className="slide-container w-full" style={{ position: "relative", overflow: "hidden", height: "120px" }}>
           <div 
-            className={`flip-box ${isFlipping ? 'flipping' : ''}`} 
+            className={`slide-box ${isAnimating ? 'animating' : ''}`}
             style={{
               position: "relative",
               width: "100%",
-              height: "120px",
-              transition: "transform 0.8s",
-              transformStyle: "preserve-3d"
+              height: "240px", // Double height to contain both values
+              transition: "transform 0.8s ease"
             }}
           >
             <div 
-              className="flip-box-front title-lg"
+              className="slide-box-previous title-lg"
               style={{
                 position: "absolute",
                 width: "100%",
-                height: "100%",
-                backfaceVisibility: "hidden",
+                height: "120px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 whiteSpace: "nowrap"
               }}
             >
-              {isFlipping ? previousValue.current : currentValue}
+              {isAnimating ? previousValue.current : currentValue}
             </div>
             <div 
-              className="flip-box-back title-lg"
+              className="slide-box-current title-lg"
               style={{
                 position: "absolute",
                 width: "100%",
-                height: "100%",
-                backfaceVisibility: "hidden",
+                height: "120px",
+                top: "120px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transform: "rotateX(180deg)",
                 whiteSpace: "nowrap"
               }}
             >
@@ -135,8 +132,8 @@ const GreenBox: React.FC<GreenBoxProps> = ({
       
       <style>
         {`
-          .flip-box.flipping {
-            transform: rotateX(180deg);
+          .slide-box.animating {
+            transform: translateY(-120px);
           }
         `}
       </style>
