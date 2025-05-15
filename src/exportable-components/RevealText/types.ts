@@ -1,5 +1,5 @@
 
-import { ContentfulClientApi, EntryCollection } from 'contentful';
+import { ContentfulClientApi } from 'contentful';
 
 export interface ContentfulRevealText {
   revealText: string;
@@ -23,6 +23,5 @@ export interface ContentfulRevealTextResponse {
   }>;
 }
 
-// Update the ContentfulRevealTextClient with the required type argument
-// Use 'any' as the generic parameter to match default behavior
-export type ContentfulRevealTextClient = ContentfulClientApi<any>;
+export type ContentfulRevealTextClient = ContentfulClientApi;
+
