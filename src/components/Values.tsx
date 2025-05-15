@@ -43,9 +43,11 @@ const Values: React.FC = () => {
 
     // Wait a bit to ensure DOM is ready
     setTimeout(() => {
-      // Create ScrollTrigger for each value
+      // Get all sections once refs are populated
       const sections = sectionRefs.current.filter(Boolean);
       if (sections.length === 0) return;
+      
+      console.log(`Found ${sections.length} value sections for animations`);
   
       // Set initial state - hide all values except the first one
       gsap.set(sections.slice(1), {
@@ -63,7 +65,11 @@ const Values: React.FC = () => {
           pin: true,
           anticipatePin: 1,
           scrub: 0.5, // Smoother scrubbing for better transitions
-          invalidateOnRefresh: true
+          invalidateOnRefresh: true,
+          markers: true, // For debugging - remove in production
+          onUpdate: (self) => {
+            console.log(`ScrollTrigger progress: ${self.progress.toFixed(2)}`);
+          }
         }
       });
   
@@ -72,6 +78,7 @@ const Values: React.FC = () => {
         if (i > 0) {
           // Set a position marker at every window height
           const position = `+=${i * 100}%`;
+          console.log(`Setting animation for value ${i+1} at position ${position}`);
           
           // Flip out the previous value
           tl.to(sections[i - 1], {
@@ -94,7 +101,7 @@ const Values: React.FC = () => {
     
     return () => {
       // Clean up ScrollTrigger instances when component unmounts
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill(true));
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, [values]);
 
@@ -130,18 +137,28 @@ const Values: React.FC = () => {
           </div>
         </div>;
     }
-    return <div className="values-container" ref={containerRef}>
-        {values.map((value, index) => (
-          <div 
-            key={value.id} 
-            className="value-section h-screen flex items-center justify-center w-full transform-gpu" 
-            ref={el => sectionRefs.current[index] = el}
-            style={{ backfaceVisibility: 'hidden' }} // Helps with flip animation
-          >
-            <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
-          </div>
-        ))}
-      </div>;
+
+    console.log(`Rendering ${values.length} values in content()`);
+    return (
+      <div className="values-container" ref={containerRef}>
+        {values.map((value, index) => {
+          console.log(`Creating ref for value ${index+1}: ${value.valueTitle}`);
+          return (
+            <div 
+              key={value.id} 
+              className="value-section h-screen flex items-center justify-center w-full transform-gpu" 
+              ref={el => sectionRefs.current[index] = el}
+              style={{ 
+                backfaceVisibility: 'hidden',
+                transformStyle: 'preserve-3d'
+              }}
+            >
+              <Value valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
