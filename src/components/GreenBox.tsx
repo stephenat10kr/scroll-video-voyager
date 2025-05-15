@@ -11,8 +11,11 @@ const GreenBox: React.FC<GreenBoxProps> = ({
 }) => {
   return (
     <div 
-      className="w-full min-h-screen flex items-center justify-center"
-      style={{ backgroundColor }}
+      className="w-full flex items-center justify-center"
+      style={{ 
+        backgroundColor,
+        height: "300vh" // Fixed height of 300vh instead of min-height
+      }}
     >
       <div className="max-w-[90%] mx-auto">
         {/* Content can be added here if needed */}
