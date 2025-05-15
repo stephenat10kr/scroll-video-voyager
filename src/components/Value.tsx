@@ -15,7 +15,7 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   return (
-    <div className="value-content w-full flex flex-col items-center justify-center px-4">
+    <div className="w-full flex flex-col items-center justify-center px-4">
       <h2 className="title-md mb-6 text-center py-[56px]" style={{ color: colors.coral }}>
         {valueTitle}
       </h2>

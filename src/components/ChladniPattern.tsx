@@ -1,71 +1,22 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
-  scrollProgress?: number; // New prop to sync with scroll position
 }
 
-const ChladniPattern: React.FC<ChladniPatternProps> = ({ 
-  children, 
-  scrollProgress = 0 
-}) => {
+const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const frameIdRef = useRef<number | null>(null);
-  const programRef = useRef<WebGLProgram | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const isMobile = useIsMobile();
-  const isVisibleRef = useRef(true);
-  
-  // Keep track of last render time for consistent animations regardless of frame rate
-  const lastTimeRef = useRef<number>(0);
-  
-  // Memoize resize canvas function to avoid recreating it on every render
-  const resizeCanvas = useCallback(() => {
-    const container = containerRef.current;
-    const canvas = canvasRef.current;
-    const gl = glRef.current;
-    
-    if (!container || !canvas) return;
-    
-    const { width, height } = container.getBoundingClientRect();
-    const pixelRatio = window.devicePixelRatio || 1;
-    
-    if (canvas.width !== width * pixelRatio || canvas.height !== height * pixelRatio) {
-      // Set canvas size with device pixel ratio for sharper rendering
-      canvas.width = width * pixelRatio;
-      canvas.height = height * pixelRatio;
-      
-      // Update canvas display size
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      
-      // Update WebGL viewport
-      if (gl) {
-        gl.viewport(0, 0, canvas.width, canvas.height);
-      }
-    }
-  }, []);
-  
-  // Handle visibility changes to pause rendering when off-screen
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      isVisibleRef.current = document.visibilityState === 'visible';
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
   
   // Setup WebGL and initialize the pattern
-  const setupWebGL = useCallback(() => {
+  const setupWebGL = () => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     
@@ -74,16 +25,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
       return false;
     }
     
-    // Initialize WebGL with optimized settings
-    const gl = canvas.getContext('webgl', {
-      antialias: true,
-      alpha: true,
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: false, // Better performance
-      powerPreference: 'high-performance', // Request high performance GPU
-      failIfMajorPerformanceCaveat: false // Try WebGL even on lower-end devices
-    });
-    
+    // Initialize WebGL
+    const gl = canvas.getContext('webgl');
     if (!gl) {
       console.error('WebGL not supported');
       return false;
@@ -108,48 +51,55 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
     `;
     
     const fragmentShaderSource = `
-      precision highp float;
+      precision mediump float;
       uniform vec2 u_resolution;
       uniform float u_time;
-      uniform float u_scroll;
+      uniform vec2 u_xy;
       uniform bool u_isMobile;
       
       void main(void) {
         const float PI = 3.14159265;
-        vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
+        vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-        // Scale factor adjustment based on device
-        float scaleFactor = u_isMobile ? 2.0 : 1.5;
-        p = p * scaleFactor;
+        // Scale factor for mobile - increased from 2.0 to 3.5
+        float scaleFactor = u_isMobile ? 3.5 : 2.0; // Changed from 1.0 to 2.0 for desktop
+        p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
 
-        // Parameters for Chladni patterns
-        vec4 s1 = vec4(4.0, 5.0, 2.0, 3.0);
-        vec4 s2 = vec4(3.0, 2.0, 4.0, 2.0);
+        // Using the user-specified vector values
+        vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
+        vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
 
-        // Use scroll progress directly for smoother transitions
-        float scrollFactor = u_scroll;
+        // Reduce scroll effect by lowering the amplification factor
+        float scrollFactor = u_xy.y; // Linear response instead of squared
         
-        // Smoother time variation with reduced intensity
-        float tx = sin(u_time * 0.1) * 0.05; 
-        float ty = cos(u_time * 0.15) * 0.05;
+        // Create less dramatic time variation
+        float tx = sin(u_time * 0.2) * 0.1; 
+        float ty = cos(u_time * 0.3) * 0.1;
 
-        // Mix parameters based on scroll position
-        float a = mix(s1.x, s2.x, clamp(scrollFactor, 0.0, 1.0));
-        float b = mix(s1.y, s2.y, clamp(scrollFactor, 0.0, 1.0));
-        float n = mix(s1.z, s2.z, clamp(scrollFactor, 0.0, 1.0));
-        float m = mix(s1.w, s2.w, clamp(scrollFactor, 0.0, 1.0));
+        // Reduce parameter variation based on scroll
+        float a = mix(s1.x, s2.x, clamp(u_xy.x + tx + scrollFactor * 0.5, 0.0, 1.0));
+        float b = mix(s1.y, s2.y, clamp(u_xy.x + tx + scrollFactor * 0.4, 0.0, 1.0));
+        float n = mix(s1.z, s2.z, clamp(u_xy.y + ty + scrollFactor * 0.6, 0.0, 1.0));
+        float m = mix(s1.w, s2.w, clamp(u_xy.y + ty + scrollFactor * 0.5, 0.0, 1.0));
 
-        // Chladni equation: sin(nπx)sin(mπy) + sin(mπx)sin(nπy)
-        float amp = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
-                   b * sin(PI * m * p.x) * sin(PI * n * p.y);
+        // Create a secondary pattern with different parameters that becomes more visible with scrolling
+        float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
+                     b * sin(PI * m * p.x) * sin(PI * n * p.y);
+        
+        float amp2 = b * sin(PI * (n+1.0) * p.y) * sin(PI * (m-0.5) * p.x) + 
+                     a * sin(PI * (m+1.0) * p.y) * sin(PI * (n-0.5) * p.x);
+        
+        // Blend between patterns based on scroll position with reduced effect
+        float amp = mix(amp1, amp2, scrollFactor * 0.5);
                 
-        // Create defined pattern edges
-        float threshold = u_isMobile ? 0.08 : 0.05;
-        float pattern = 1.0 - smoothstep(abs(amp), 0.0, threshold);
+        // Create defined pattern edges with milder threshold
+        // Increased from 0.08 to 0.12 for mobile
+        float threshold = u_isMobile ? 0.12 : 0.05; // Higher threshold on mobile for larger gaps between lines
+        threshold += 0.03 * sin(scrollFactor * PI);
+        float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // Set color with adjusted opacity
-        float opacity = u_isMobile ? 0.4 : 0.6;
-        gl_FragColor = vec4(1.0, 1.0, 1.0, pattern * opacity);
+        // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
       }
     `;
     
@@ -191,8 +141,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
       return false;
     }
     
-    programRef.current = program;
-    
     // Set up buffers
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -206,70 +154,85 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
     
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
     
+    // Animation
+    let startTime = Date.now();
+    
+    // Function to update scroll-based XY values with reduced effect
+    const updateScrollXY = () => {
+      if (!gl || !program) return;
+      
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      
+      // Simple linear scroll normalization - less dramatic changes as you scroll
+      let yNorm = scrollHeight > 0 ? scrollY / scrollHeight : 0;
+      
+      const currentTime = Date.now();
+      const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+      
+      // Clear and set viewport
+      gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      
+      // Use the program
+      gl.useProgram(program);
+      
+      // Get attribute/uniform locations
+      const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+      const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
+      const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
+      const xyUniformLocation = gl.getUniformLocation(program, 'u_xy');
+      const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
+      
+      // Set uniforms
+      gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+      gl.uniform1f(timeUniformLocation, elapsedTime);
+      gl.uniform2f(xyUniformLocation, 0.5, yNorm);
+      gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
+      
+      // Set up attributes
+      gl.enableVertexAttribArray(positionAttributeLocation);
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+      
+      // Draw
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      
+      frameIdRef.current = requestAnimationFrame(updateScrollXY);
+    };
+    
     // Start rendering
-    startRendering();
+    console.log('Starting render loop with scroll-based morphing');
+    updateScrollXY();
     return true;
-  }, [isMobile, resizeCanvas]);
+  };
   
-  // Animation function
-  const renderFrame = useCallback((time: number = 0) => {
+  // Resize canvas to match container dimensions
+  const resizeCanvas = () => {
+    const container = containerRef.current;
     const canvas = canvasRef.current;
     const gl = glRef.current;
-    const program = programRef.current;
     
-    // Don't render if not visible, initialized, or missing elements
-    if (!isVisibleRef.current || !gl || !program || !canvas) {
-      frameIdRef.current = requestAnimationFrame(renderFrame);
-      return;
+    if (!container || !canvas) return;
+    
+    // Get the actual dimensions from the container
+    const { width, height } = container.getBoundingClientRect();
+    
+    // Only update if dimensions actually changed
+    if (canvas.width !== width || canvas.height !== height) {
+      console.log(`Canvas resized to ${width} x ${height}`);
+      
+      // Set canvas dimensions
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Update WebGL viewport if available
+      if (gl) {
+        gl.viewport(0, 0, width, height);
+      }
     }
-    
-    // Calculate time delta (in seconds) for smooth animation regardless of frame rate
-    const currentTime = time * 0.001; // Convert to seconds
-    const deltaTime = Math.min(0.05, currentTime - lastTimeRef.current); // Cap at 50ms to avoid large jumps
-    lastTimeRef.current = currentTime;
-    
-    // Clear canvas
-    gl.clearColor(0.125, 0.204, 0.208, 0.0); // Transparent background
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    
-    // Use the program
-    gl.useProgram(program);
-    
-    // Get attribute/uniform locations
-    const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-    const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
-    const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
-    const scrollUniformLocation = gl.getUniformLocation(program, 'u_scroll');
-    const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
-    
-    // Set uniforms
-    gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-    gl.uniform1f(timeUniformLocation, currentTime);
-    gl.uniform1f(scrollUniformLocation, scrollProgress);
-    gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
-    
-    // Set up attributes
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-    
-    // Draw
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    
-    // Request next frame
-    frameIdRef.current = requestAnimationFrame(renderFrame);
-  }, [scrollProgress, isMobile]);
+  };
   
-  // Start the rendering loop
-  const startRendering = useCallback(() => {
-    if (frameIdRef.current !== null) {
-      cancelAnimationFrame(frameIdRef.current);
-    }
-    lastTimeRef.current = performance.now() * 0.001;
-    frameIdRef.current = requestAnimationFrame(renderFrame);
-  }, [renderFrame]);
-  
-  // Initialize WebGL when component mounts
   useEffect(() => {
     // Initial setup with a slight delay to ensure DOM is ready
     const initialSetupTimeout = setTimeout(() => {
@@ -280,8 +243,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
     }, 50);
     
     // Setup resize observer for responsive canvas
-    const observer = new ResizeObserver(() => {
-      resizeCanvas();
+    const observer = new ResizeObserver((entries) => {
+      if (entries.length > 0) {
+        resizeCanvas();
+      }
     });
     
     if (containerRef.current) {
@@ -289,7 +254,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
       observerRef.current = observer;
     }
     
-    // Listen for window resize events
+    // Listen for window resize as well for good measure
     window.addEventListener('resize', resizeCanvas);
     
     // Cleanup function
@@ -304,37 +269,33 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
       
       if (frameIdRef.current !== null) {
         cancelAnimationFrame(frameIdRef.current);
-        frameIdRef.current = null;
       }
       
       // Clean up WebGL resources
       const gl = glRef.current;
       if (gl) {
-        if (programRef.current) {
-          gl.deleteProgram(programRef.current);
-        }
-        
         const loseContext = gl.getExtension('WEBGL_lose_context');
         if (loseContext) {
           loseContext.loseContext();
         }
       }
     };
-  }, [isMobile, resizeCanvas, setupWebGL]);
+  }, [isMobile]);
   
-  // Debug when scroll progress changes
+  // Force an additional resize after component mounts to catch any layout adjustments
   useEffect(() => {
-    // Re-render with new scroll progress without restarting animation loop
-    if (isInitialized && glRef.current && programRef.current) {
-      // Just let the existing animation loop handle the update
-    }
-  }, [scrollProgress, isInitialized]);
+    const forceResizeTimeout = setTimeout(() => {
+      resizeCanvas();
+    }, 300); // slightly longer delay to catch layout settling
+    
+    return () => clearTimeout(forceResizeTimeout);
+  }, []);
   
   return (
     <div 
       ref={containerRef}
-      className="chladni-container relative w-full h-full"
-      style={{ backgroundColor: colors.darkGreen }}
+      className="relative w-full h-full bg-[#203435]"
+      style={{ position: 'relative', overflow: 'hidden', backgroundColor: colors.darkGreen }}
     >
       <canvas 
         ref={canvasRef}
@@ -347,8 +308,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({
           height: '100%',
           zIndex: 0,
           pointerEvents: 'none',
-          willChange: 'transform',  // GPU acceleration hint
-          backfaceVisibility: 'hidden' // Performance optimization
+          opacity: isMobile ? 0.3 : 0.5 // Further reduced opacity on mobile from 0.35 to 0.3
         }}
       />
       <div className="relative z-10">

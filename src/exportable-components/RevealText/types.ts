@@ -1,34 +1,27 @@
 
-// This file contains types for the RevealText component and related API responses
+import { ContentfulClientApi } from 'contentful';
 
-import { ContentfulClientApi } from "contentful";
-
-// Define the structure of a Contentful reveal text
 export interface ContentfulRevealText {
+  revealText: string;
+}
+
+export interface ContentfulRevealTextEntry {
   sys: {
     id: string;
-    contentType?: {
-      sys: {
-        id: string;
-      };
-    };
   };
   fields: {
     text: string;
-    headline?: string;
-    subheadline?: string;
-    buttonText?: string;
-    placeholderText?: string;
   };
 }
 
-// Define the structure of the reveal text response from Contentful
 export interface ContentfulRevealTextResponse {
-  items: ContentfulRevealText[];
-  total: number;
-  skip: number;
-  limit: number;
+  items: Array<{
+    sys: {
+      id: string;
+    };
+    fields: ContentfulRevealText;
+  }>;
 }
 
-// Type definition for the contentful client
-export type ContentfulClient = ContentfulClientApi<any>;
+export type ContentfulRevealTextClient = ContentfulClientApi;
+
