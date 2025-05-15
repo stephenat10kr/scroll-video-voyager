@@ -83,7 +83,7 @@ const GreenBox: React.FC<GreenBoxProps> = ({
           height: "100vh"
         }}
       >
-        <div className="flip-container" style={{ perspective: "1000px" }}>
+        <div className="flip-container w-full" style={{ perspective: "1000px" }}>
           <div 
             className={`flip-box ${isFlipping ? 'flipping' : ''}`} 
             style={{
@@ -103,7 +103,8 @@ const GreenBox: React.FC<GreenBoxProps> = ({
                 backfaceVisibility: "hidden",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                whiteSpace: "nowrap"
               }}
             >
               {isFlipping ? previousValue.current : currentValue}
@@ -118,7 +119,8 @@ const GreenBox: React.FC<GreenBoxProps> = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transform: "rotateX(180deg)"
+                transform: "rotateX(180deg)",
+                whiteSpace: "nowrap"
               }}
             >
               {currentValue}
