@@ -7,6 +7,7 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
+import ChladniSection from "../components/ChladniSection";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
       <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
+        <ChladniSection />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
         <Gallery 

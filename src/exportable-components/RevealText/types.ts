@@ -1,22 +1,32 @@
 
-// Define the structure of a Contentful reveal text entry
-export interface ContentfulRevealTextEntry {
+import { ContentfulClientApi } from "contentful";
+
+export interface RevealTextProps {
+  contentfulSpaceId?: string;
+  contentfulAccessToken?: string;
+  contentfulContentType?: string;
+  contentfulEntryId?: string;
+  hubspotPortalId?: string;
+  hubspotFormId?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  buttonText?: string;
+  buttonColor?: string;
+  defaultText?: string;
+  customClient?: ContentfulClientApi;
+}
+
+export interface ContentfulRevealText {
   sys: {
     id: string;
-    contentType?: {
-      sys: {
-        id: string;
-      };
-    };
   };
   fields: {
     text: string;
   };
 }
 
-// Form data interface
-export interface RevealTextFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
+export interface ContentfulRevealTextResponse {
+  items: ContentfulRevealText[];
+  total: number;
+  sys: any;
 }
