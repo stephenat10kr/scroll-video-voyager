@@ -27,7 +27,8 @@ const Rituals: React.FC<RitualsProps> = ({
   if (isLoading) {
     return <div className="w-full py-24 relative" style={{
       backgroundColor: colors.coral,
-      borderTop: `4px solid ${colors.coral}`
+      borderTop: `4px solid ${colors.coral}`,
+      zIndex: 1 // Add lower z-index
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }} shapeRendering="crispEdges">
@@ -56,7 +57,8 @@ const Rituals: React.FC<RitualsProps> = ({
     console.error('Error loading rituals:', error);
     return <div className="w-full py-24 relative" style={{
       backgroundColor: colors.coral,
-      borderTop: `4px solid ${colors.coral}`
+      borderTop: `4px solid ${colors.coral}`,
+      zIndex: 1 // Add lower z-index
     }}>
         <div className="absolute top-0 left-0 right-0 w-full">
           <svg width="100%" height="0" viewBox="0 0 1440 269" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/269", height: "auto" }} shapeRendering="crispEdges">
@@ -96,7 +98,9 @@ const Rituals: React.FC<RitualsProps> = ({
   }];
   return <div style={{
     backgroundColor: colors.coral,
-    borderTop: `4px solid ${colors.coral}`
+    borderTop: `4px solid ${colors.coral}`,
+    position: "relative",
+    zIndex: 1 // Add lower z-index to position behind GreenBox
   }} className="w-full relative py-[192px]">
       {/* Curved top SVG - with shape rendering and coral border */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-[calc(100%+1px)]" style={{ 
