@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
@@ -46,43 +45,41 @@ const Video = () => {
     return 0;
   };
   
-  // New function to ensure smooth progress that doesn't complete too quickly
+  // Revised function to ensure progress increases steadily over time
   const updateProgressWithConstraints = (actualProgress: number) => {
     // Calculate elapsed time since loading started
     const elapsedTime = Date.now() - loadStartTimeRef.current;
     
-    // Calculate time-based progress (0-100% over MIN_LOADING_TIME)
+    // Time-based linear progress (0-100% over MIN_LOADING_TIME)
+    // This ensures we always have forward progress even if video loading is stuck
     const timeBasedProgress = Math.min(100, (elapsedTime / MIN_LOADING_TIME) * 100);
     
-    // FIXED: Ensure we have a minimum visible progress that increases over time
-    // This ensures we don't get stuck at low percentages
-    const minProgressByTime = Math.max(5, timeBasedProgress * 0.5);
+    // Always ensure progress increases by a minimum amount based on time
+    // Start at 5% and increase linearly to at least 95% over the minimum loading time
+    const minProgressByTime = Math.min(95, Math.max(5, timeBasedProgress));
     
-    // During minimum loading period, use the maximum between:
-    // 1. The time-based minimum (ensuring we always progress)
-    // 2. The actual progress (but limited by time-based maximum)
     let newProgress;
     if (elapsedTime < MIN_LOADING_TIME) {
-      // Take the higher value of minProgressByTime and limited actual progress
-      const limitedActualProgress = Math.min(actualProgress, timeBasedProgress);
-      newProgress = Math.max(minProgressByTime, limitedActualProgress);
-      console.log(`Video - Time-constrained progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%, time-based max: ${timeBasedProgress.toFixed(1)}%)`);
+      // During minimum loading period, ensure we're at least at the minimum time-based progress
+      // but also account for actual progress if it's higher
+      newProgress = Math.max(minProgressByTime, actualProgress);
+      console.log(`Video - Time-based progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%)`);
     } else {
-      // After minimum time, accelerate to completion
-      newProgress = Math.max(actualProgress, timeBasedProgress);
+      // After minimum time, accelerate toward completion
+      newProgress = Math.max(95, actualProgress);
       console.log(`Video - Post-min time progress: ${newProgress.toFixed(1)}%`);
       
-      // If we've exceeded minimum time and progress is high enough, move to completion
-      if (elapsedTime > MIN_LOADING_TIME * 1.25 && newProgress > 75) {
+      // If we've exceeded minimum time, move to completion
+      if (elapsedTime > MIN_LOADING_TIME * 1.1) {
         newProgress = 100;
-        console.log('Video - Minimum time exceeded with good progress, completing');
+        console.log('Video - Minimum time exceeded, completing');
       }
     }
     
     setLoadProgress(newProgress);
     
     // Force completion after maximum time
-    if (elapsedTime > MAX_LOADING_TIME && loadProgress < 100) {
+    if (elapsedTime > MAX_LOADING_TIME && newProgress < 100) {
       console.log('Video - Maximum loading time reached, completing');
       setLoadProgress(100);
     }
