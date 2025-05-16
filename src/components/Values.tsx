@@ -24,7 +24,7 @@ const Values: React.FC<ValuesProps> = ({
   useEffect(() => {
     const observerOptions = {
       root: null, // viewport
-      rootMargin: "200px 0px -33% 0px", // Changed from -33vh to -33% to use valid units
+      rootMargin: "200px 0px -100% 0px", // Increased negative bottom margin to make background stay longer
       threshold: 0.01 // Lower threshold so it triggers with minimal visibility
     };
     
