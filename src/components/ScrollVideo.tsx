@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -156,7 +157,7 @@ const ScrollVideo: React.FC<{
     <div 
       ref={containerRef} 
       className="relative w-full min-h-screen overflow-hidden bg-black" 
-      style={{ zIndex: 1 }}
+      style={{ zIndex: 10 }} // Increased z-index for the container
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -183,7 +184,8 @@ const ScrollVideo: React.FC<{
             opacity: videoVisible ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             display: "block",
-            visibility: "visible"
+            visibility: "visible",
+            zIndex: 10 // Added explicit z-index to ensure video is above background
           }} 
         />
       </ScrollVideoPlayer>
