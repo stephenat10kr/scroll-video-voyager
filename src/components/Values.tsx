@@ -2,12 +2,10 @@
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
-import { colors } from "@/lib/theme";
-
+import colors from "@/lib/theme";
 interface ValuesProps {
   title: string;
 }
-
 const Values: React.FC<ValuesProps> = ({
   title
 }) => {
@@ -16,7 +14,6 @@ const Values: React.FC<ValuesProps> = ({
     isLoading,
     error
   } = useValues();
-
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto bg-transparent">
@@ -64,23 +61,12 @@ const Values: React.FC<ValuesProps> = ({
           </div>
         </div>;
     }
-    
-    return (
-      <div className="col-span-12 sm:col-span-9 scroll-smooth max-w-[90%] mx-auto bg-transparent">
-        {values.map((value, index) => (
-          <Value 
-            key={value.id}
-            valueTitle={value.valueTitle}
-            valueText={value.valueText}
-            isLast={index === values.length - 1}
-          />
-        ))}
-      </div>
-    );
+    return <div className="col-span-12 sm:col-span-9 flex flex-col items-center max-w-[90%] mx-auto bg-transparent">
+        {values.map((value, index) => <Value key={value.id} valueTitle={value.valueTitle} valueText={value.valueText} isLast={index === values.length - 1} />)}
+      </div>;
   };
-
   return (
-    <div className="w-full py-24 mb-48 bg-transparent section-snap">
+    <div className="w-full py-24 mb-48 bg-transparent">
       <div className="max-w-[90%] mx-auto mb-16 text-left bg-transparent">
         <h2 className="title-sm bg-transparent" style={{
           color: colors.roseWhite
@@ -90,5 +76,4 @@ const Values: React.FC<ValuesProps> = ({
     </div>
   );
 };
-
 export default Values;
