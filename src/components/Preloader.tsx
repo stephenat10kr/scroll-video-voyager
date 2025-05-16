@@ -17,11 +17,21 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [displayedProgress, setDisplayedProgress] = useState(0);
   
   // For debugging
   useEffect(() => {
     console.log(`Preloader - Current progress: ${progress}%`);
   }, [progress]);
+  
+  // Smoothly update the displayed progress to avoid jumps
+  useEffect(() => {
+    // Only update displayed progress if actual progress is greater
+    // This prevents progress from going backwards in Safari
+    if (progress > displayedProgress) {
+      setDisplayedProgress(progress);
+    }
+  }, [progress, displayedProgress]);
 
   // Change text every 3 seconds
   useEffect(() => {
@@ -34,7 +44,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   // Handle completion - fade out when progress reaches 100%
   useEffect(() => {
-    if (progress >= 100) {
+    if (displayedProgress >= 100) {
       console.log("Preloader - 100% reached, preparing to fade out");
       
       // Show "Come in." text briefly before fading out
@@ -63,7 +73,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       
       return () => clearTimeout(welcomeTimeout);
     }
-  }, [progress, onComplete]);
+  }, [displayedProgress, onComplete]);
 
   // Disable scrolling while preloader is active
   useEffect(() => {
@@ -85,11 +95,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Loading percentage and text */}
         <div className="flex flex-col items-center justify-center gap-4 w-full">
-          {showWelcome && progress >= 100 ? (
+          {showWelcome && displayedProgress >= 100 ? (
             <span className="title-lg text-coral">Come in.</span>
           ) : (
             <span className="title-lg text-coral">
-              {Math.round(progress)}%
+              {Math.round(displayedProgress)}%
             </span>
           )}
           {!showWelcome && (

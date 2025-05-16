@@ -18,6 +18,7 @@ const Video = () => {
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoAttemptsRef = useRef(0);
   const maxVideoAttempts = 3;
+  const progressValuesRef = useRef<number[]>([]);
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
@@ -46,6 +47,7 @@ const Video = () => {
   };
   
   // Revised function to ensure progress increases steadily over time
+  // and never regresses (Safari fix)
   const updateProgressWithConstraints = (actualProgress: number) => {
     // Calculate elapsed time since loading started
     const elapsedTime = Date.now() - loadStartTimeRef.current;
@@ -54,22 +56,37 @@ const Video = () => {
     // This ensures we always have forward progress even if video loading is stuck
     const timeBasedProgress = Math.min(100, (elapsedTime / MIN_LOADING_TIME) * 100);
     
-    // Always ensure progress increases by a minimum amount based on time
-    // Start at 5% and increase linearly to at least 95% over the minimum loading time
+    // Minimum progress threshold increasing over time
     const minProgressByTime = Math.min(95, Math.max(5, timeBasedProgress));
     
-    let newProgress;
-    if (elapsedTime < MIN_LOADING_TIME) {
-      // During minimum loading period, ensure we're at least at the minimum time-based progress
-      // but also account for actual progress if it's higher
-      newProgress = Math.max(minProgressByTime, actualProgress);
-      console.log(`Video - Time-based progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%)`);
-    } else {
-      // After minimum time, accelerate toward completion
-      newProgress = Math.max(95, actualProgress);
-      console.log(`Video - Post-min time progress: ${newProgress.toFixed(1)}%`);
+    // Store current progress value in our history array
+    const prevProgress = loadProgress;
+    const historicalMax = progressValuesRef.current.length > 0 
+      ? Math.max(...progressValuesRef.current) 
+      : 0;
+    
+    // Make sure progress never goes backward (Safari fix)
+    let newProgress = Math.max(
+      minProgressByTime,  // Time-based minimum threshold
+      actualProgress,     // Actual video loading progress
+      prevProgress,       // Previous progress value
+      historicalMax       // Historical maximum progress we've reported
+    );
+    
+    // Add to progress history
+    progressValuesRef.current.push(newProgress);
+    // Keep array at reasonable size
+    if (progressValuesRef.current.length > 10) {
+      progressValuesRef.current.shift();
+    }
+    
+    console.log(`Video - Progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%)`);
+    
+    // After minimum time, accelerate toward completion
+    if (elapsedTime > MIN_LOADING_TIME) {
+      newProgress = Math.max(95, newProgress);
       
-      // If we've exceeded minimum time, move to completion
+      // If we've exceeded minimum time by 10%, move to completion
       if (elapsedTime > MIN_LOADING_TIME * 1.1) {
         newProgress = 100;
         console.log('Video - Minimum time exceeded, completing');
@@ -93,9 +110,16 @@ const Video = () => {
     console.log('Video - Starting loading sequence');
     // Reset the loading start time when the component mounts or source changes
     loadStartTimeRef.current = Date.now();
+    // Reset progress history
+    progressValuesRef.current = [];
     
     // Create a temporary video element to track loading
     const tempVideo = document.createElement('video');
+    // Specifically disable Safari auto-play prevention by adding attributes
+    tempVideo.setAttribute('playsinline', '');
+    tempVideo.setAttribute('preload', 'auto');
+    tempVideo.muted = true;
+    
     videoRef.current = tempVideo;
     
     // Set up event listeners for accurate loading progress
