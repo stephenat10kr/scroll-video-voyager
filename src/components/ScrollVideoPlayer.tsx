@@ -16,6 +16,7 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
+  videoVisible?: boolean; // Add new prop to control visibility
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -29,6 +30,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
+  videoVisible = true, // Default to visible
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
