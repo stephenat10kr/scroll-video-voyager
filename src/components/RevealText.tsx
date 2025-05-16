@@ -104,7 +104,7 @@ const RevealText = () => {
     };
   }, [revealTextContent]);
   if (isLoading) {
-    return <div className="w-full bg-darkGreen py-24">
+    return <div className="w-full bg-transparent py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
         </div>

@@ -10,7 +10,7 @@ import Footer from "../components/Footer";
 
 const Index = () => {
   return (
-    <div className="bg-[#203435] min-h-screen w-full relative">
+    <div className="bg-transparent min-h-screen w-full relative">
       {/* Fixed blue background - at the lowest z-index */}
       <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -1 }}>
         {/* Main blue background with pattern */}
