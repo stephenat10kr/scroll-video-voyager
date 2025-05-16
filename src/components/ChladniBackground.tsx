@@ -70,8 +70,8 @@ const ChladniBackground: React.FC = () => {
         float threshold = 0.1 + 0.05 * sin(scrollEffect * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // White pattern with 50% opacity
-        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
+        // White pattern with full opacity (1.0)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
       }
     `;
     
