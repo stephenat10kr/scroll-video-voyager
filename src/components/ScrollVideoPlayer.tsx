@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -100,7 +101,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     // Update container size to match viewport
     const resizeSection = () => {
       if (container) {
-        container.style.width = "100%";
+        container.style.width = "100vw";
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };

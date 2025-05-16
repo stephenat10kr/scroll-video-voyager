@@ -17,8 +17,8 @@ const Index = () => {
         <ChladniPattern />
       </div>
       
-      {/* Video section - increased width and properly contained */}
-      <div className="relative w-full" style={{ overflow: 'hidden' }}>
+      {/* Video section - full screen and sticky */}
+      <div className="w-screen" style={{ position: "relative" }}>
         <Video />
       </div>
       
