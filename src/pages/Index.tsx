@@ -7,14 +7,10 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import FixedBackground from "../components/FixedBackground";
 
 const Index = () => {
   return (
-    <div className="min-h-screen w-full relative bg-[#203435]">
-      {/* Fixed Chladni pattern background that doesn't scroll */}
-      <FixedBackground />
-      
+    <div className="bg-[#203435] min-h-screen w-full relative">
       <Video />
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
