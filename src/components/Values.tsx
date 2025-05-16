@@ -70,10 +70,10 @@ const Values: React.FC<ValuesProps> = ({
   };
   
   return (
-    <div className="w-full py-24 mb-48 bg-texture relative">
-      {/* Textured background with overlay */}
+    <div className="w-full py-24 mb-48 relative">
+      {/* Fixed position textured background with overlay */}
       <div 
-        className="absolute inset-0 z-0"
+        className="fixed top-0 left-0 w-full h-full z-0"
         style={{
           backgroundImage: `
             linear-gradient(135deg, rgba(234, 56, 76, 0.95) 0%, rgba(234, 56, 76, 0.92) 100%),
@@ -83,9 +83,9 @@ const Values: React.FC<ValuesProps> = ({
         }}
       ></div>
       
-      {/* Noise texture overlay */}
+      {/* Fixed position noise texture overlay */}
       <div 
-        className="absolute inset-0 z-0 opacity-15"
+        className="fixed top-0 left-0 w-full h-full z-0 opacity-15"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           backgroundSize: '200px 200px',
