@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -27,13 +28,6 @@ const ScrollVideo: React.FC<{
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
-  // Keep track of Safari browser specifically
-  const isSafari = useRef(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
-  // Keep track of last visibility state to prevent flickering
-  const lastVisibilityRef = useRef(true);
-  // Track if video is playing for Safari
-  const isPlayingRef = useRef(false);
-  
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
@@ -41,44 +35,13 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Significantly increase the rootMargin to make the video disappear much later
-    // This ensures the video stays visible longer when scrolling, especially on Safari
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // For Safari, we'll use a more conservative approach to visibility changes
-        if (isSafari.current) {
-          // If we're scrolling and video was previously visible, keep it visible
-          // This prevents flickering when scrolling quickly
-          if (lastVisibilityRef.current && entry.isIntersecting === false) {
-            // Don't immediately set to false, check if we're still scrolling
-            // by delaying the visibility change
-            setTimeout(() => {
-              if (document.documentElement.scrollTop > 0) {
-                // Only hide if user has actually scrolled away significantly
-                if (entry.intersectionRatio < 0.05) {
-                  setIsInViewport(false);
-                  lastVisibilityRef.current = false;
-                }
-              }
-            }, 800); // Longer delay for Safari before hiding
-            return;
-          }
-          
-          // If becoming visible again, make it immediate
-          if (!lastVisibilityRef.current && entry.isIntersecting) {
-            setIsInViewport(true);
-            lastVisibilityRef.current = true;
-            return;
-          }
-        }
-        
-        // Non-Safari browsers can use the standard approach
         setIsInViewport(entry.isIntersecting);
-        lastVisibilityRef.current = entry.isIntersecting;
       },
       { 
-        threshold: [0, 0.05, 0.1, 0.5, 1.0],  // Multiple thresholds for smoother transitions
-        rootMargin: "0px 0px 500px 0px" // Increased to 500px at the bottom for better visibility
+        threshold: 0.01,  // Trigger when just 1% of element is visible
+        rootMargin: "0px" // No additional margin
       }
     );
 
@@ -99,79 +62,17 @@ const ScrollVideo: React.FC<{
         videoRef.current.style.transition = "opacity 0s";
       }
     } else {
-      // Scrolling up - set smoother transition for Safari
+      // Scrolling up - set smooth transition
       if (videoRef.current) {
-        // Slower transition for Safari when scrolling up
-        const transitionDuration = isSafari.current ? "1s" : "0.5s";
-        videoRef.current.style.transition = `opacity ${transitionDuration} ease-in-out`;
+        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
       }
     }
     setLastProgress(progress);
   }, [progress]);
-  
-  // Enhanced visibility management for Safari
-  useEffect(() => {
-    if (!isSafari.current || !videoRef.current) return;
-    
-    // For Safari, add scroll event listener to help with visibility
-    const handleScroll = () => {
-      if (isInViewport && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        // If container is still somewhat visible in viewport
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-          // Force the video to be visible
-          if (videoRef.current && videoRef.current.style.opacity !== "1") {
-            videoRef.current.style.opacity = "1";
-            lastVisibilityRef.current = true;
-            setIsInViewport(true);
-          }
-        }
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isInViewport]);
 
-  // Add optimization for Safari specifically
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
-      // Safari-specific optimizations
-      if (isSafari.current) {
-        // Force video to stay visible longer on Safari
-        setVideoVisible(true);
-        
-        // Apply enhanced Safari-specific styles
-        video.style.willChange = 'transform, opacity';
-        video.style.transform = 'translateZ(0)';
-        video.style.webkitTransform = 'translateZ(0)';
-        
-        // Make sure playsinline is set for Safari
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        
-        // Add additional Safari-specific optimizations to keep video visible
-        video.style.backfaceVisibility = 'hidden'; 
-        video.style.webkitBackfaceVisibility = 'hidden';
-        
-        // For Safari, ensure the video stays in memory with stronger CSS
-        video.style.position = 'fixed';
-        video.style.top = '0';
-        video.style.left = '0';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        
-        // Add hardware acceleration hints for Safari
-        video.style.webkitTransform = 'translate3d(0,0,0)';
-        
-        // Make video unremovable from DOM for Safari
-        video.dataset.persistent = 'true';
-      }
-      
       // Force initial visibility for mobile devices
       if (isMobile) {
         // Immediately make video element visible
@@ -183,7 +84,6 @@ const ScrollVideo: React.FC<{
         video.load();
       }
       
-      // ... keep existing code (event handler functions and event listeners)
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
@@ -323,8 +223,7 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            // Use much longer fade-out transition for Safari to make disappearance smoother
-            transition: isSafari.current ? "opacity 1.2s ease-in-out" : "opacity 0.5s ease-in-out",
+            // Transition is now managed dynamically based on scroll direction
             display: "block",
             visibility: "visible"
           }} 
