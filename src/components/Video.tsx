@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
@@ -211,15 +212,15 @@ const Video = () => {
   console.log('Video component - progress:', loadProgress);
 
   return (
-    <>
+    <div className="relative">
+      <ScrollVideo src={videoSrc} />
       {showPreloader && (
         <Preloader 
           progress={loadProgress} 
           onComplete={handlePreloaderComplete} 
         />
       )}
-      <ScrollVideo src={videoSrc} />
-    </>
+    </div>
   );
 };
 
