@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -152,44 +151,6 @@ const ScrollVideo: React.FC<{
       };
     }
   }, [isMobile]);
-
-  // Add effect to hide/show video based on RevealText position
-  useEffect(() => {
-    const revealText = document.querySelector('.w-full.py-24');
-    if (!revealText || !containerRef.current) return;
-
-    // Create a timeline for the opacity animation
-    const videoContainer = containerRef.current;
-    
-    gsap.set(videoContainer, { 
-      opacity: 1,
-    });
-    
-    const hideVideoTrigger = ScrollTrigger.create({
-      trigger: revealText,
-      start: "top 10%", // When the top of RevealText reaches 10% from the top of viewport
-      onEnter: () => {
-        // When scrolling down and RevealText enters the trigger point
-        gsap.to(videoContainer, {
-          opacity: 0,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      },
-      onLeaveBack: () => {
-        // When scrolling back up and RevealText leaves the trigger point
-        gsap.to(videoContainer, {
-          opacity: 1,
-          duration: 0.3,
-          ease: "power2.in"
-        });
-      }
-    });
-    
-    return () => {
-      hideVideoTrigger.kill();
-    };
-  }, []);
 
   return (
     <div 
