@@ -1,3 +1,4 @@
+
 import React from "react";
 import Value from "./Value";
 import { useValues } from "@/hooks/useValues";
@@ -83,14 +84,14 @@ const Values: React.FC<ValuesProps> = ({
         }}
       ></div>
       
-      {/* Fixed position noise texture overlay - also with a very low z-index */}
+      {/* Fixed position noise texture overlay - pushed further back with lower z-index */}
       <div 
         className="fixed top-0 left-0 w-full h-full opacity-15"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           backgroundSize: '200px 200px',
           mixBlendMode: 'overlay',
-          zIndex: '-1', // Use negative z-index but higher than the base background
+          zIndex: '-3', // Decreased z-index to push it further back behind the textured background
         }}
       ></div>
       
