@@ -15,7 +15,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     if (!canvas) return;
     
     // Initialize WebGL
-    const gl = canvas.getContext('webgl');
+    const gl = canvas.getContext('webgl', { 
+      premultipliedAlpha: true,
+      alpha: true
+    });
     if (!gl) {
       console.error('WebGL not supported');
       return;
@@ -73,8 +76,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         
         float max_amp = abs(a) + abs(b);
         float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
-        float col = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
-        gl_FragColor = vec4(vec3(1.0), col * 0.5); // White color with transparency
+        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
+        
+        // Use pure white with carefully controlled alpha
+        // Premultiply the alpha to prevent color bleeding
+        float alpha = pattern * 0.5;
+        vec3 color = vec3(1.0, 1.0, 1.0);
+        gl_FragColor = vec4(color * alpha, alpha); // Premultiplied alpha
       }
     `);
     gl.compileShader(fragmentShader);
@@ -126,9 +134,12 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     // Start time tracking
     const startTime = Date.now();
     
-    // Enable transparency
+    // Enable proper blending for premultiplied alpha
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // Correct blend mode for premultiplied alpha
+    
+    // Clear color with zero alpha
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     
     // Animation and scroll interaction
     const render = () => {
@@ -170,7 +181,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       <canvas 
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full" 
-        style={{ opacity: 0.5 }}
+        style={{ 
+          opacity: 0.5,
+          backgroundColor: 'transparent'
+        }}
       />
       {children}
     </div>
