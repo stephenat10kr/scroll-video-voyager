@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import colors from '@/lib/theme';
 
@@ -24,10 +23,6 @@ const ChladniBackground: React.FC = () => {
     }
     
     glRef.current = gl;
-    
-    // Enable alpha blending for transparency
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     
     // Create shader program
     const vertexShaderSource = `
