@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -35,13 +34,15 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Increase the rootMargin to make the video disappear later
+    // This ensures the video stays visible longer, especially on Safari
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsInViewport(entry.isIntersecting);
       },
       { 
         threshold: 0.01,  // Trigger when just 1% of element is visible
-        rootMargin: "0px" // No additional margin
+        rootMargin: "0px 0px 100px 0px" // Add 100px at the bottom to keep video visible longer
       }
     );
 
@@ -70,9 +71,26 @@ const ScrollVideo: React.FC<{
     setLastProgress(progress);
   }, [progress]);
 
+  // Add optimization for Safari specifically
   useEffect(() => {
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
     const video = videoRef.current;
     if (video && secureVideoSrc) {
+      // Safari-specific optimizations
+      if (isSafari) {
+        // Force video to stay visible longer on Safari
+        setVideoVisible(true);
+        
+        // Apply Safari-specific styles
+        video.style.willChange = 'transform';
+        video.style.transform = 'translateZ(0)';
+        
+        // Make sure playsinline is set for Safari
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+      }
+      
       // Force initial visibility for mobile devices
       if (isMobile) {
         // Immediately make video element visible
@@ -84,6 +102,7 @@ const ScrollVideo: React.FC<{
         video.load();
       }
       
+      // ... keep existing code (event handler functions and event listeners)
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
@@ -223,7 +242,8 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            // Transition is now managed dynamically based on scroll direction
+            // Use longer fade-out transition to make disappearance smoother
+            transition: "opacity 0.5s ease-in-out",
             display: "block",
             visibility: "visible"
           }} 

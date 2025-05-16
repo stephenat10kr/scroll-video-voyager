@@ -32,10 +32,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Setting the progressThreshold to 0.002 as requested
+  // Reduce progress threshold to make video scrubbing smoother
   const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
+  // Add Safari detection
+  const isSafari = useRef(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
 
   useEffect(() => {
     const video = videoRef.current;
@@ -43,6 +45,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("Safari detection:", isSafari.current);
     console.log("Segment count:", segmentCount);
 
     // Optimize video element
@@ -55,8 +58,29 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.pause();
     console.log("Video paused during initialization");
 
-    // Mobile-specific optimizations that don't affect appearance
-    if (isMobile) {
+    // Safari-specific optimizations
+    if (isSafari.current) {
+      console.log("Applying Safari-specific optimizations");
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      
+      // Force hardware acceleration more aggressively
+      video.style.transform = "translate3d(0,0,0)";
+      video.style.webkitTransform = "translate3d(0,0,0)";
+      video.style.willChange = "contents";
+      
+      // Make sure the video decoding is prioritized
+      if ('playsInline' in video) {
+        video.playsInline = true;
+      }
+      
+      // Try to load a frame immediately
+      if (video.readyState >= 1) {
+        video.currentTime = 0.001;
+      }
+    }
+    // Mobile-specific optimizations
+    else if (isMobile) {
       // Keep these optimizations but remove visibility settings
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
@@ -136,13 +160,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      // For mobile, try to render a frame immediately without waiting for duration
-      if (isMobile) {
+      // For mobile or Safari, try to render a frame immediately without waiting for duration
+      if (isMobile || isSafari.current) {
         video.currentTime = 0.001;
       }
       
       // Check if video duration is available
-      if (!video.duration && !isMobile) {
+      if (!video.duration && !isMobile && !isSafari.current) {
         console.log("Video duration not yet available, waiting...");
         return;
       }
@@ -156,7 +180,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.4, // Increased scrub values for smoother scrolling
+        scrub: isSafari.current ? 0.6 : (isMobile ? 0.5 : 0.4), // Increased scrub values for Safari
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -179,8 +203,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.fetchPriority = 'high';
     }
 
-    // For mobile devices, we'll set up ScrollTrigger even without duration
-    if (isMobile) {
+    // For Safari or mobile devices, we'll set up ScrollTrigger even without duration
+    if (isSafari.current || isMobile) {
       setupScrollTrigger();
     } else if (video.readyState >= 2) {
       setupScrollTrigger();
@@ -208,12 +232,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     });
     
     // Safety timeout to ensure ScrollTrigger gets set up
+    // Reduced timeout for Safari to ensure quicker setup
     const timeoutId = setTimeout(() => {
       if (!setupCompleted.current) {
         console.log("Setting up ScrollTrigger after timeout");
         setupScrollTrigger();
       }
-    }, 300);
+    }, isSafari.current ? 200 : 300);
     
     return () => {
       window.removeEventListener("resize", resizeSection);
