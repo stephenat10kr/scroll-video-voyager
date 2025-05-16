@@ -64,9 +64,9 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
-        // Modified start and end values for more organic, flowing patterns
-        vec4 s1 = vec4(2.5, 1.5, 2.0, 3.0);    // Start values
-        vec4 s2 = vec4(-3.0, 6.0, 5.5, 3.2);   // End values
+        // New start and end values for a different visual effect
+        vec4 s1 = vec4(3.5, 2.0, 3.0, 1.5);    // Start values
+        vec4 s2 = vec4(-2.0, 5.0, 4.5, 2.8);   // End values
         
         float tx = sin(u_time)*0.1; 
         float ty = cos(u_time)*0.1; 
