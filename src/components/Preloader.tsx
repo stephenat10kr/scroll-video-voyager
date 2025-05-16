@@ -61,23 +61,15 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       }`}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Simple animated loading bar */}
-        <div className="w-[300px] h-2 bg-white/20 rounded-full overflow-hidden mb-8">
-          <div 
-            className="h-full bg-white transition-all duration-300 rounded-full"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        
-        {/* Loading text and percentage side by side */}
+        {/* Loading percentage and text */}
         <div className="flex flex-col items-center justify-center gap-4 w-full">
-          <p className="text-coral text-lg mb-2">{loadingTexts[currentTextIndex]}</p>
           <span 
             className="font-gt-super text-coral" 
             style={{ fontSize: "32px" }}
           >
             {Math.round(progress)}%
           </span>
+          <p className="text-coral text-lg">{loadingTexts[currentTextIndex]}</p>
         </div>
       </div>
     </div>
