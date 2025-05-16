@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
@@ -19,6 +20,13 @@ const Video = () => {
   const videoAttemptsRef = useRef(0);
   const maxVideoAttempts = 3;
   
+  // Track when loading started
+  const loadStartTimeRef = useRef<number>(Date.now());
+  // Minimum loading time in milliseconds (6 seconds)
+  const MIN_LOADING_TIME = 6000;
+  // Maximum loading time before forcing completion
+  const MAX_LOADING_TIME = 15000;
+  
   // Function to calculate actual video loading progress
   const calculateVideoProgress = (video: HTMLVideoElement): number => {
     // If no duration is available, we can't calculate progress
@@ -32,16 +40,49 @@ const Video = () => {
       const bufferedEnd = video.buffered.end(video.buffered.length - 1);
       // Calculate progress as percentage of duration
       const progress = (bufferedEnd / video.duration) * 100;
-      return Math.min(Math.round(progress), 98); // Cap at 98% to leave room for final ready state
+      return Math.min(Math.round(progress), 95); // Cap at 95% to leave room for final loading steps
     }
     
     return 0;
+  };
+  
+  // New function to ensure smooth progress that doesn't complete too quickly
+  const updateProgressWithConstraints = (actualProgress: number) => {
+    // Calculate elapsed time since loading started
+    const elapsedTime = Date.now() - loadStartTimeRef.current;
+    
+    // Calculate time-based progress (0-100% over MIN_LOADING_TIME)
+    const timeBasedProgress = Math.min(100, (elapsedTime / MIN_LOADING_TIME) * 100);
+    
+    // Only allow progress to advance based on time constraints
+    if (elapsedTime < MIN_LOADING_TIME) {
+      // During minimum loading period, progress can only go up to actual progress
+      // but is limited by time-based progress
+      const newProgress = Math.min(actualProgress, timeBasedProgress);
+      console.log(`Video - Time-constrained progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based: ${timeBasedProgress.toFixed(1)}%)`);
+      setLoadProgress(newProgress);
+    } else {
+      // After minimum time elapses, progress can go to 100%
+      const newProgress = actualProgress;
+      console.log(`Video - Actual progress after min time: ${newProgress.toFixed(1)}%`);
+      setLoadProgress(newProgress);
+    }
+    
+    // Force completion after maximum time
+    if (elapsedTime > MAX_LOADING_TIME && loadProgress < 100) {
+      console.log('Video - Maximum loading time reached, completing');
+      setLoadProgress(100);
+    }
   };
 
   // Set up video loading detection
   useEffect(() => {
     // If we don't have a video source yet, don't attempt to track loading
     if (!videoSrc) return;
+    
+    console.log('Video - Starting loading sequence');
+    // Reset the loading start time when the component mounts or source changes
+    loadStartTimeRef.current = Date.now();
     
     // Create a temporary video element to track loading
     const tempVideo = document.createElement('video');
@@ -50,36 +91,28 @@ const Video = () => {
     // Set up event listeners for accurate loading progress
     const onProgress = () => {
       const progress = calculateVideoProgress(tempVideo);
-      if (progress > loadProgress) {
-        setLoadProgress(progress);
-      }
+      updateProgressWithConstraints(progress);
     };
     
     const onCanPlayThrough = () => {
       console.log('Video can play through!');
       // Video is fully loaded or has enough data to play through
-      setLoadProgress(100);
-      
-      // After a short delay, hide the preloader
-      if (showPreloader) {
-        setTimeout(() => {
-          setShowPreloader(false);
-        }, 500); // Short delay to ensure smooth transition
-      }
+      // But we don't immediately set to 100% - we respect the minimum time constraint
+      updateProgressWithConstraints(100);
     };
     
     const onLoadedMetadata = () => {
       console.log('Video metadata loaded!');
       // Metadata has loaded, we have duration information
-      // Update progress to at least 15%
-      setLoadProgress(prev => Math.max(prev, 15));
+      // Update progress to at least 15% but respect time constraints
+      updateProgressWithConstraints(Math.max(15, loadProgress));
     };
     
     const onLoadedData = () => {
       console.log('Video data loaded!');
       // First frame is loaded
-      // Update progress to at least 30%
-      setLoadProgress(prev => Math.max(prev, 30));
+      // Update progress to at least 30% but respect time constraints
+      updateProgressWithConstraints(Math.max(30, loadProgress));
     };
     
     const onError = (e: ErrorEvent) => {
@@ -97,7 +130,16 @@ const Video = () => {
       } else {
         // After max attempts, force progress to complete to avoid getting stuck
         console.log('Max retry attempts reached, forcing progress complete');
-        setLoadProgress(100);
+        // Still respect minimum time
+        const elapsedTime = Date.now() - loadStartTimeRef.current;
+        if (elapsedTime >= MIN_LOADING_TIME) {
+          setLoadProgress(100);
+        } else {
+          // If min time hasn't elapsed, schedule completion
+          const remainingTime = MIN_LOADING_TIME - elapsedTime;
+          console.log(`Video - Scheduling completion in ${remainingTime}ms`);
+          setTimeout(() => setLoadProgress(100), remainingTime);
+        }
       }
     };
     
@@ -112,30 +154,13 @@ const Video = () => {
     tempVideo.src = videoSrc;
     tempVideo.load();
     
-    // Fallback timer - ensure we don't get stuck if events don't fire properly
-    const totalLoadTime = 15000; // 15 seconds maximum loading time
-    let startProgress = loadProgress;
-    
+    // Smooth progress timer - ensures we don't get stuck if events don't fire properly
     loadingTimerRef.current = setInterval(() => {
       // Check if the video has made progress on its own
       const actualProgress = calculateVideoProgress(tempVideo);
       
-      // If actual progress is advancing, prefer that over the timer
-      if (actualProgress > loadProgress) {
-        setLoadProgress(actualProgress);
-      } 
-      // Otherwise, slowly increment as a fallback
-      else if (loadProgress < 90) {
-        // Calculate time-based progress as a fallback
-        // This adds about 10% every 3 seconds as a fallback
-        const elapsed = Date.now() - startTime;
-        const timerProgress = Math.min(
-          90, // Cap at 90%
-          startProgress + (elapsed / totalLoadTime) * 80 // Allow up to 80% from timer
-        );
-        
-        setLoadProgress(Math.max(loadProgress, Math.round(timerProgress)));
-      }
+      // Update progress with time constraints
+      updateProgressWithConstraints(Math.max(actualProgress, loadProgress));
       
       // If we're at 100% or close to the max time, clear the timer
       if (loadProgress >= 100 || tempVideo.readyState >= 4) {
@@ -144,7 +169,7 @@ const Video = () => {
           loadingTimerRef.current = null;
         }
       }
-    }, 500);
+    }, 250); // Check more frequently (250ms instead of 500ms)
     
     const startTime = Date.now();
     
@@ -153,16 +178,11 @@ const Video = () => {
       console.log('Final fallback timer triggered - forcing completion');
       setLoadProgress(100);
       
-      // Ensure preloader is dismissed after max time
-      setTimeout(() => {
-        setShowPreloader(false);
-      }, 500);
-      
       if (loadingTimerRef.current) {
         clearInterval(loadingTimerRef.current);
         loadingTimerRef.current = null;
       }
-    }, totalLoadTime + 2000); // Max time plus buffer
+    }, MAX_LOADING_TIME + 2000); // Max time plus buffer
     
     // Cleanup function
     return () => {
@@ -185,7 +205,7 @@ const Video = () => {
       tempVideo.load();
       videoRef.current = null;
     };
-  }, [videoSrc, loadProgress, showPreloader]);
+  }, [videoSrc, loadProgress]);
   
   // Disable scrolling while preloader is active
   useEffect(() => {
@@ -199,6 +219,7 @@ const Video = () => {
   }, [showPreloader]);
 
   const handlePreloaderComplete = () => {
+    console.log('Preloader - Complete handler called');
     setShowPreloader(false);
     document.body.style.overflow = 'auto'; // Re-enable scrolling
   };
