@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -76,12 +77,15 @@ const RevealText = () => {
     // Split text into words
     const words = originalText.split(" ");
 
-    // Create HTML structure with words and characters wrapped in spans
+    // Create HTML structure with words and characters wrapped in spans with added padding
     const formattedHTML = words.map(word => {
-      const charSpans = word.split("").map(char => `<span class="char">${char}</span>`).join("");
-      return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
+      const charSpans = word.split("").map(char => 
+        `<span class="char" style="display: inline-block; padding-bottom: 0.2em; padding-top: 0.1em;">${char}</span>`
+      ).join("");
+      return `<div class="word" style="display: inline-block; margin-right: 0.25em; padding-bottom: 0.15em;">${charSpans}</div>`;
     }).join("");
     text.innerHTML = formattedHTML;
+    
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
@@ -125,9 +129,10 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
-          lineHeight: "1.2",
+          lineHeight: "1.4", // Increased line height
           whiteSpace: "pre-wrap",
-          wordBreak: "normal"
+          wordBreak: "normal",
+          paddingBottom: "0.2em", // Added padding at container level too
         }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
