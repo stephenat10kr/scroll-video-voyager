@@ -54,7 +54,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     if (!fragmentShader) return;
     
-    // Enhanced fragment shader with more dramatic parameters
     gl.shaderSource(fragmentShader, `
       precision mediump float;
       uniform vec2 u_resolution;
@@ -65,37 +64,25 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
-        // More dramatic parameter ranges
         vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
-        vec4 s2 = vec4(-6.0, 6.0, 6.0, 7.0); // Increased range for more complexity
+        vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
         
-        // Apply more dramatic scroll influence
-        float scrollInfluence = u_xy.y * 2.5; // Amplify scroll effect
-        float tx = sin(u_time * 0.5) * 0.3 * (1.0 + scrollInfluence); 
-        float ty = cos(u_time * 0.5) * 0.3 * (1.0 + scrollInfluence);
+        float tx = sin(u_time)*0.1; 
+        float ty = cos(u_time)*0.1; 
         
-        // Change pattern more dramatically based on scroll
         float a = mix(s1.x, s2.x, u_xy.x+tx);
         float b = mix(s1.y, s2.y, u_xy.x+tx);
         float n = mix(s1.z, s2.z, u_xy.y+ty);
         float m = mix(s1.w, s2.w, u_xy.y+ty);
         
-        // Add scroll-based rotation to the pattern
-        float rotation = PI * 0.5 * u_xy.y;
-        float nx = p.x * cos(rotation) - p.y * sin(rotation);
-        float ny = p.x * sin(rotation) + p.y * cos(rotation);
-        vec2 rotatedP = vec2(nx, ny);
-        
         float max_amp = abs(a) + abs(b);
-        float amp = a * sin(PI*n*rotatedP.x) * sin(PI*m*rotatedP.y) + b * sin(PI*m*rotatedP.x) * sin(PI*n*rotatedP.y);
-        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.12 - (u_xy.y * 0.1)); // Thinner lines at top of page
+        float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
+        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
         
-        // Add color tinting based on scroll position
-        vec3 colorTop = vec3(1.0, 1.0, 1.0); // White
-        vec3 colorBottom = vec3(1.0, 0.7, 0.47); // Coral tint
-        vec3 color = mix(colorTop, colorBottom, u_xy.y * 1.5);
-        
-        float alpha = pattern * (0.5 + u_xy.y * 0.5); // Increase opacity as you scroll
+        // Use pure white with carefully controlled alpha
+        // Premultiply the alpha to prevent color bleeding
+        float alpha = pattern * 0.5;
+        vec3 color = vec3(1.0, 1.0, 1.0);
         gl_FragColor = vec4(color * alpha, alpha); // Premultiplied alpha
       }
     `);
@@ -161,13 +148,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       const currentTime = (Date.now() - startTime) / 1000;
       gl.uniform1f(timeLocation, currentTime);
       
-      // Update xy uniform based on scroll position with more dramatic mapping
+      // Update xy uniform based on scroll position
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      let scrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
-      
-      // Apply easing for more dramatic effect
-      scrollProgress = Math.pow(scrollProgress, 0.7); // Ease out (changes happen more dramatically at beginning)
+      const scrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
       
       gl.uniform2f(xyLocation, 0.5, scrollProgress);
       
@@ -202,7 +186,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full" 
         style={{ 
-          opacity: 0.8, // Increased opacity for more dramatic effect
+          opacity: 0.5,
           backgroundColor: 'transparent'
         }}
       />
