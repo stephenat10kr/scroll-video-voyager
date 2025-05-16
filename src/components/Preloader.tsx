@@ -54,10 +54,8 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   // Setup WebGL for Chladni Pattern with enhanced mobile support
   useEffect(() => {
     // Define the preventContextLossHandler function at the top level of the effect
-    // so it's available for both adding and removing event listeners
     const preventContextLossHandler = (e: Event) => {
       e.preventDefault();
-      // This empty handler helps keep the WebGL context active
     };
     
     const setupWebGL = () => {
@@ -76,10 +74,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       const gl = canvas.getContext('webgl', { 
         preserveDrawingBuffer: true, 
         antialias: true,
-        alpha: false, // Disable alpha channel for better performance
-        depth: true,  // Enable depth buffer
-        stencil: false, // Disable stencil buffer for better performance
-        failIfMajorPerformanceCaveat: false, // Try to render even on low-end devices
+        alpha: false,
+        depth: true,
+        stencil: false,
+        failIfMajorPerformanceCaveat: false,
       });
       
       if (!gl) {
@@ -105,6 +103,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }
       `;
       
+      // Updated fragment shader to match the main pattern
       const fragmentShaderSource = `
         precision mediump float;
         uniform vec2 u_resolution;
@@ -115,14 +114,13 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           const float PI = 3.14159265;
           vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-          // Scale factor for mobile - increased for better visibility
-          // Apply 2x scaling (0.5) to make the pattern appear larger
-          float scaleFactor = u_isMobile ? 1.5 : 0.5;
+          // Scale factor - adjusted for the preloader
+          float scaleFactor = u_isMobile ? 3.0 : 2.0;
           p = p * scaleFactor; 
 
-          // Using fixed vector values for the preloader
-          vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
-          vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
+          // Symmetric values based on reference image
+          vec4 s1 = vec4(4.0, 4.0, 2.0, 2.0);
+          vec4 s2 = vec4(4.0, 4.0, 2.0, 2.0);
 
           // Create time variation
           float tx = sin(u_time * 0.15) * 0.1; 
@@ -134,17 +132,16 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           float n = mix(s1.z, s2.z, clamp(0.5 + ty, 0.0, 1.0));
           float m = mix(s1.w, s2.w, clamp(0.5 + ty, 0.0, 1.0));
 
-          // Create the pattern - simplified for performance on mobile
+          // Create the pattern
           float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
                       b * sin(PI * m * p.x) * sin(PI * n * p.y);
           
-          // Create more visible pattern edges
-          float threshold = u_isMobile ? 0.1 : 0.08;
+          // Create sharper edges
+          float threshold = u_isMobile ? 0.05 : 0.03;
           float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
           
-          // Higher opacity for mobile
-          float opacity = u_isMobile ? 0.9 : 0.6;
-          gl_FragColor = vec4(1.0, 1.0, 1.0, col * opacity);
+          // Pure white lines
+          gl_FragColor = vec4(1.0, 1.0, 1.0, col);
         }
       `;
       
@@ -211,8 +208,8 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         const currentTime = Date.now();
         const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
         
-        // Clear and set viewport
-        gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
+        // Clear and set viewport - updated to black background
+        gl.clearColor(0, 0, 0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         
         // Use the program
@@ -252,7 +249,6 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     // Add event listeners to keep the WebGL context alive on mobile
     const canvas = canvasRef.current;
     if (canvas) {
-      // Touch events help prevent context loss on some mobile devices
       canvas.addEventListener('touchstart', preventContextLossHandler, { passive: false });
       canvas.addEventListener('touchmove', preventContextLossHandler, { passive: false });
       canvas.addEventListener('touchend', preventContextLossHandler, { passive: false });
@@ -299,12 +295,12 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 bg-black ${
         visible ? "opacity-100" : "opacity-0"
       }`}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 300x400px rectangle with enhanced mobile visibility */}
+        {/* Chladni Pattern in 300x400px rectangle */}
         <div className="w-[300px] h-[400px] relative mb-4">
           <canvas 
             ref={canvasRef}
@@ -312,19 +308,19 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
             style={{ 
               width: '300px', 
               height: '400px',
-              willChange: 'transform', // Performance optimization for mobile
-              transform: 'translateZ(0)', // Force GPU acceleration
-              touchAction: 'none', // Prevent browser handling of touch gestures
-              WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+              touchAction: 'none',
+              WebkitTapHighlightColor: 'transparent',
             }}
           />
         </div>
         
         {/* Loading text and percentage side by side */}
         <div className="flex items-center justify-center gap-4 w-full">
-          <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
+          <p className="body-text text-white">{loadingTexts[currentTextIndex]}</p>
           <span 
-            className="font-gt-super text-coral" 
+            className="font-gt-super text-white" 
             style={{ fontSize: "32px" }}
           >
             {Math.round(progress)}%
