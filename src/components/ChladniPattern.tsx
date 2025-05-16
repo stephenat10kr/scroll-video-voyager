@@ -73,13 +73,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         float n = mix(s1.z, s2.z, 0.5 + timeInfluence);
         float m = mix(s1.w, s2.w, 0.5 - timeInfluence);
         
-        // Scroll affects phase of the pattern
-        float scrollPhaseX = u_xy.y * PI * 2.0; // Scroll controls phase shift
-        float scrollPhaseY = u_xy.y * PI * 1.5;
+        // Scroll affects phase of the pattern - INCREASED EFFECT
+        float scrollPhaseX = u_xy.y * PI * 6.0; // Increased from 2.0 to 6.0
+        float scrollPhaseY = u_xy.y * PI * 4.5; // Increased from 1.5 to 4.5
         
-        // Amplitude coefficients
-        float a = s1.x;
-        float b = s1.y;
+        // Amplitude coefficients - now partially affected by scroll
+        float a = s1.x + u_xy.y * 2.0; // Add scroll influence to amplitude
+        float b = s1.y + u_xy.y * 1.5; // Add scroll influence to amplitude
         
         // Pattern calculation with phase shift controlled by scrolling
         float max_amp = abs(a) + abs(b);
