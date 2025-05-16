@@ -12,7 +12,7 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
   const isVideo = type.startsWith('video/');
 
   return (
-    <AspectRatio ratio={16 / 9} className="bg-transparent rounded-lg overflow-hidden">
+    <AspectRatio ratio={16 / 9} className="bg-[#203435] rounded-lg overflow-hidden">
       {isVideo ? (
         <video
           src={url}

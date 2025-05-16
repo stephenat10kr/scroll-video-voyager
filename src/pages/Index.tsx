@@ -7,23 +7,12 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import ChladniPattern from "../components/ChladniPattern";
 
 const Index = () => {
   return (
-    <div className="bg-transparent min-h-screen w-full relative">
-      {/* Replace the fixed blue background with ChladniPattern component */}
-      <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -1 }}>
-        <ChladniPattern />
-      </div>
-      
-      {/* Video section - full screen and sticky */}
-      <div className="w-screen" style={{ position: "relative" }}>
-        <Video />
-      </div>
-      
-      {/* Content sections with higher z-index to appear above video */}
-      <div className="relative" style={{ zIndex: 6 }}>
+    <div className="bg-[#203435] min-h-screen w-full relative">
+      <Video />
+      <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />

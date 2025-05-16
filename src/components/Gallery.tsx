@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { CustomPrevButton, CustomNextButton } from "./CarouselCustomButtons";
@@ -81,7 +80,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
 
   if (isLoading) {
     return (
-      <div className="w-full bg-transparent py-24">
+      <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
           <div className="w-full h-64 bg-gray-900 animate-pulse rounded-lg"></div>
@@ -93,7 +92,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   if (error) {
     console.error('Error in Gallery component:', error);
     return (
-      <div className="w-full bg-transparent py-24">
+      <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
           <p className="body-text text-[#FFF4F1]/70">Failed to load gallery images</p>
@@ -104,7 +103,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
 
   if (!mediaItems || mediaItems.length === 0) {
     return (
-      <div className="w-full bg-transparent py-24">
+      <div className="w-full bg-[#203435] py-24">
         <div className="max-w-[90%] mx-auto">
           <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
           <p className="body-text text-[#FFF4F1]/70">No media available</p>
@@ -118,7 +117,7 @@ const Gallery: React.FC<GalleryProps> = ({ title, description, address, mapUrl }
   console.log("Rendering with currentCaption:", currentCaption);
 
   return (
-    <div className="w-full bg-transparent py-24">
+    <div className="w-full bg-[#203435] py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">{title}</h2>
         <div className="grid grid-cols-12 gap-4 md:gap-8 lg:gap-12">

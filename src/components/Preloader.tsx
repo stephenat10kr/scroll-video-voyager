@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -300,9 +299,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-transparent flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 bg-darkGreen flex flex-col items-center justify-center transition-opacity duration-500 ${
         visible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ backgroundColor: "#203435" }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Chladni Pattern in 300x400px rectangle with enhanced mobile visibility */}
@@ -313,7 +313,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
             style={{ 
               width: '300px', 
               height: '400px',
-              backgroundColor: 'transparent',
+              backgroundColor: '#203435',
               willChange: 'transform', // Performance optimization for mobile
               transform: 'translateZ(0)', // Force GPU acceleration
               touchAction: 'none', // Prevent browser handling of touch gestures

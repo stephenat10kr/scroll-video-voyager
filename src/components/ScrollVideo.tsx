@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -156,14 +155,8 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="w-screen h-screen overflow-hidden bg-black"
-      style={{ 
-        zIndex: 5,
-        position: "sticky",
-        top: 0,
-        left: 0,
-        right: 0
-      }}
+      className="relative w-full min-h-screen overflow-hidden bg-black" 
+      style={{ zIndex: 1 }}
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -184,16 +177,13 @@ const ScrollVideo: React.FC<{
           loop={false} 
           muted 
           tabIndex={-1} 
-          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
           style={{
-            width: "100vw",
-            height: "100vh",
-            objectFit: "cover",
+            minHeight: "100vh",
             opacity: videoVisible ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             display: "block",
-            visibility: "visible",
-            zIndex: 1
+            visibility: "visible"
           }} 
         />
       </ScrollVideoPlayer>
