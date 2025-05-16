@@ -24,6 +24,7 @@ const ScrollVideo: React.FC<{
   const [videoVisible, setVideoVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
+  const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
@@ -52,6 +53,22 @@ const ScrollVideo: React.FC<{
       }
     };
   }, []);
+
+  // Update progress state and determine scroll direction
+  useEffect(() => {
+    if (progress > lastProgress) {
+      // Scrolling down - set immediate transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0s";
+      }
+    } else {
+      // Scrolling up - set smooth transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+      }
+    }
+    setLastProgress(progress);
+  }, [progress]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -206,7 +223,7 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            transition: "opacity 0.3s ease-in-out",
+            // Transition is now managed dynamically based on scroll direction
             display: "block",
             visibility: "visible"
           }} 
