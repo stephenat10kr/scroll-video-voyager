@@ -153,45 +153,43 @@ const ScrollVideo: React.FC<{
     }
   }, [isMobile]);
 
-  // Add effect to hide video when RevealText reaches the top
+  // Add effect to hide/show video based on RevealText position
   useEffect(() => {
-    // Find RevealText element
-    const revealTextElement = document.querySelector('.title-md.text-roseWhite');
-    const containerElement = containerRef.current;
+    const revealText = document.querySelector('.w-full.py-24');
+    if (!revealText || !containerRef.current) return;
+
+    // Create a timeline for the opacity animation
+    const videoContainer = containerRef.current;
     
-    if (revealTextElement && containerElement) {
-      // Create ScrollTrigger to track RevealText position
-      const hideVideoTrigger = ScrollTrigger.create({
-        trigger: revealTextElement,
-        start: "top 10%", // When the top of RevealText reaches 10% from the top of viewport
-        onEnter: () => {
-          gsap.to(containerElement, {
-            opacity: 0,
-            duration: 0.5,
-            ease: "power2.out",
-            onComplete: () => {
-              containerElement.style.display = "none";
-            }
-          });
-          console.log("RevealText reached top, hiding video");
-        },
-        onLeaveBack: () => {
-          containerElement.style.display = "block";
-          gsap.to(containerElement, {
-            opacity: 1,
-            duration: 0.5,
-            ease: "power2.in"
-          });
-          console.log("RevealText left top, showing video");
-        }
-      });
-      
-      return () => {
-        // Clean up ScrollTrigger
-        hideVideoTrigger.kill();
-      };
-    }
-  }, [videoLoaded]);
+    gsap.set(videoContainer, { 
+      opacity: 1,
+    });
+    
+    const hideVideoTrigger = ScrollTrigger.create({
+      trigger: revealText,
+      start: "top 10%", // When the top of RevealText reaches 10% from the top of viewport
+      onEnter: () => {
+        // When scrolling down and RevealText enters the trigger point
+        gsap.to(videoContainer, {
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      },
+      onLeaveBack: () => {
+        // When scrolling back up and RevealText leaves the trigger point
+        gsap.to(videoContainer, {
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.in"
+        });
+      }
+    });
+    
+    return () => {
+      hideVideoTrigger.kill();
+    };
+  }, []);
 
   return (
     <div 
