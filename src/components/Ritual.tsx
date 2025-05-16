@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
@@ -52,7 +53,7 @@ const Ritual: React.FC<RitualProps> = ({
         <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{
         zIndex: 30
       }}>
-          <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
+          <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg w-full">
             <div className="w-full h-full relative">
               {/* SVG Mask definition with gradient */}
               <svg width="0" height="0" className="absolute">
@@ -70,7 +71,7 @@ const Ritual: React.FC<RitualProps> = ({
               </svg>
               
               {/* Image with mask */}
-              <div className="w-full h-full overflow-hidden" style={{
+              <div className="w-full h-full" style={{
               clipPath: "url(#starMask)",
               WebkitClipPath: "url(#starMask)" // Adding browser prefix
             }}>
