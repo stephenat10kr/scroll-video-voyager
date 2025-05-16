@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
 
@@ -17,11 +17,43 @@ const Ritual: React.FC<RitualProps> = ({
   imageSrc,
   imageAlt
 }) => {
+  const imageRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  // Add parallax effect
+  useEffect(() => {
+    const imageElement = imageRef.current;
+    const textElement = textRef.current;
+    
+    if (!imageElement || !textElement) return;
+    
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const imageParallaxFactor = 0.05; // Lower values for subtler effect
+      const textParallaxFactor = 0.03;
+      
+      // Apply transform to image
+      imageElement.style.transform = `translateY(${scrollPosition * imageParallaxFactor}px)`;
+      
+      // Apply transform to text
+      textElement.style.transform = `translateY(${scrollPosition * textParallaxFactor}px)`;
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial call to set positions
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-48">
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1">
         <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
-          <div className="w-full h-full relative">
+          <div className="w-full h-full relative" ref={imageRef}>
             {/* SVG Mask definition with gradient */}
             <svg width="0" height="0" className="absolute">
               <defs>
@@ -70,7 +102,7 @@ const Ritual: React.FC<RitualProps> = ({
       {/* Gap at columns 6-7 is created by the grid and gap-8 */}
       
       {/* Text Section - Always on right (cols 8-12) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
+      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center" ref={textRef}>
         <h2 className="title-md mb-6" style={{
         color: colors.darkGreen
       }}>
