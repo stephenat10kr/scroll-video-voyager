@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -152,46 +151,6 @@ const ScrollVideo: React.FC<{
       };
     }
   }, [isMobile]);
-
-  // Add effect to hide video when RevealText reaches the top
-  useEffect(() => {
-    // Find RevealText element
-    const revealTextElement = document.querySelector('.title-md.text-roseWhite');
-    const containerElement = containerRef.current;
-    
-    if (revealTextElement && containerElement) {
-      // Create ScrollTrigger to track RevealText position
-      const hideVideoTrigger = ScrollTrigger.create({
-        trigger: revealTextElement,
-        start: "top 10%", // When the top of RevealText reaches 10% from the top of viewport
-        onEnter: () => {
-          gsap.to(containerElement, {
-            opacity: 0,
-            duration: 0.5,
-            ease: "power2.out",
-            onComplete: () => {
-              containerElement.style.display = "none";
-            }
-          });
-          console.log("RevealText reached top, hiding video");
-        },
-        onLeaveBack: () => {
-          containerElement.style.display = "block";
-          gsap.to(containerElement, {
-            opacity: 1,
-            duration: 0.5,
-            ease: "power2.in"
-          });
-          console.log("RevealText left top, showing video");
-        }
-      });
-      
-      return () => {
-        // Clean up ScrollTrigger
-        hideVideoTrigger.kill();
-      };
-    }
-  }, [videoLoaded]);
 
   return (
     <div 
