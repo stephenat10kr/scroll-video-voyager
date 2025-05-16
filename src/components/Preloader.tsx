@@ -37,10 +37,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     if (progress >= 100) {
       console.log("Preloader - 100% reached, preparing to fade out");
       
-      // Show "Welcome." text briefly before fading out
+      // Show "Come in." text briefly before fading out
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Welcome." state for 1.5 seconds
+      // First delay - stay at 100% "Come in." state for 1.5 seconds
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
@@ -59,7 +59,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }, 1000); // Wait 1 second at 100% before fading
         
         return () => clearTimeout(fadeOutTimeout);
-      }, 1500); // Show "Welcome." for 1.5 seconds
+      }, 1500); // Show "Come in." for 1.5 seconds
       
       return () => clearTimeout(welcomeTimeout);
     }
@@ -86,7 +86,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         {/* Loading percentage and text */}
         <div className="flex flex-col items-center justify-center gap-4 w-full">
           {showWelcome && progress >= 100 ? (
-            <span className="title-xl text-coral">Welcome.</span>
+            <span className="title-lg text-coral">Come in.</span>
           ) : (
             <span className="title-xl text-coral">
               {Math.round(progress)}%
