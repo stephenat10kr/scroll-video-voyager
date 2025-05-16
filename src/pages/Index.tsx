@@ -7,10 +7,12 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
+import ChladniPattern from "../components/ChladniPattern";
 
 const Index = () => {
   return (
     <div className="min-h-screen w-full relative">
+      <ChladniPattern />
       <Video />
       <div className="content-overlay relative" style={{ zIndex: 2 }}>
         <RevealText />
