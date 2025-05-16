@@ -24,7 +24,7 @@ const Questions: React.FC<QuestionsProps> = ({
   } = useQuestions();
   const isMobile = useIsMobile();
   if (isLoading) {
-    return <div className="w-full bg-[#203435] py-24">
+    return <div className="w-full py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">Loading questions...</h2>
         <p className="body-text text-[#FFF4F1]/70">Please wait while we fetch the questions.</p>
@@ -33,7 +33,7 @@ const Questions: React.FC<QuestionsProps> = ({
   }
   if (error) {
     console.error('Error in Questions component:', error);
-    return <div className="w-full bg-[#203435] py-24">
+    return <div className="w-full py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">Failed to load questions</h2>
         <p className="body-text text-[#FFF4F1]/70">Please check the console for more details.</p>
@@ -41,7 +41,7 @@ const Questions: React.FC<QuestionsProps> = ({
     </div>;
   }
   if (!questions || Object.keys(questions).length === 0) {
-    return <div className="w-full bg-[#203435] py-24">
+    return <div className="w-full py-24">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">No questions available</h2>
         <p className="body-text text-[#FFF4F1]/70">Please add questions in Contentful with the content type 'question'.</p>
@@ -51,7 +51,7 @@ const Questions: React.FC<QuestionsProps> = ({
 
   // Use different column classes based on device size
   const tabsClassName = isMobile ? "col-start-1 col-end-13" : "col-start-5 col-end-13";
-  return <div className="w-full py-24 bg-[#203435]">
+  return <div className="w-full py-24">
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
         <h2 className="title-sm text-[#FFF4F1] mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
