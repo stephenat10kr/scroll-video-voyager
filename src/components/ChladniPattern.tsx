@@ -64,52 +64,26 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
-        // More dramatic parameter ranges
         vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
-        vec4 s2 = vec4(-6.0, 6.0, 8.0, 8.0); // More dramatic range
+        vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
         
-        // Amplify scroll effect
-        float scrollFactor = u_xy.y * 2.0; // Double the effect of scrolling
+        float tx = sin(u_time)*0.1; 
+        float ty = cos(u_time)*0.1; 
         
-        // Add dynamic rotation based on scroll
-        float angle = scrollFactor * PI * 0.5; // Rotate up to 90 degrees
-        mat2 rotation = mat2(
-          cos(angle), -sin(angle),
-          sin(angle), cos(angle)
-        );
-        p = rotation * p;
-        
-        // More dynamic time factor
-        float tx = sin(u_time * (0.1 + scrollFactor * 0.2)) * 0.2;
-        float ty = cos(u_time * (0.1 + scrollFactor * 0.1)) * 0.2;
-        
-        // Enhanced parameter mixing (more dramatic)
-        float a = mix(s1.x, s2.x, u_xy.x + tx + scrollFactor * 0.5);
-        float b = mix(s1.y, s2.y, u_xy.x + tx - scrollFactor * 0.3);
-        float n = mix(s1.z, s2.z, u_xy.y + ty + scrollFactor);
-        float m = mix(s1.w, s2.w, u_xy.y + ty + sin(scrollFactor * PI));
+        float a = mix(s1.x, s2.x, u_xy.x+tx);
+        float b = mix(s1.y, s2.y, u_xy.x+tx);
+        float n = mix(s1.z, s2.z, u_xy.y+ty);
+        float m = mix(s1.w, s2.w, u_xy.y+ty);
         
         float max_amp = abs(a) + abs(b);
         float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
+        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
         
-        // Variable line thickness based on scroll
-        float lineThickness = 0.1 - scrollFactor * 0.05;
-        float pattern = 1.0 - smoothstep(abs(amp), 0.0, lineThickness);
-        
-        // Color tinting based on scroll position
-        vec3 tintColor = mix(
-          vec3(1.0, 1.0, 1.0), // White at the beginning
-          vec3(1.0, 0.9, 0.8), // Subtle warm tint as scrolling progresses
-          scrollFactor
-        );
-        
-        // Increase base alpha for more visibility
-        float alpha = pattern * (0.6 + scrollFactor * 0.2); // Increase opacity as user scrolls
-        
-        // Apply easing to create smoother transitions
-        float easedAlpha = alpha * (0.8 + sin(scrollFactor * PI) * 0.2);
-        
-        gl_FragColor = vec4(tintColor * easedAlpha, easedAlpha); // Premultiplied alpha
+        // Use pure white with carefully controlled alpha
+        // Premultiply the alpha to prevent color bleeding
+        float alpha = pattern * 0.5;
+        vec3 color = vec3(1.0, 1.0, 1.0);
+        gl_FragColor = vec4(color * alpha, alpha); // Premultiplied alpha
       }
     `);
     gl.compileShader(fragmentShader);
@@ -168,23 +142,18 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     // Clear color with zero alpha
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     
-    // Animation and scroll interaction with enhanced smoothing
+    // Animation and scroll interaction
     const render = () => {
       // Update time uniform (in seconds)
       const currentTime = (Date.now() - startTime) / 1000;
       gl.uniform1f(timeLocation, currentTime);
       
-      // Update xy uniform based on scroll position with enhanced smoothing
+      // Update xy uniform based on scroll position
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const rawScrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
+      const scrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
       
-      // Apply easing function to scroll progress for smoother transitions
-      // Using smoothstep for a more natural easing effect
-      const t = rawScrollProgress;
-      const smoothScrollProgress = t * t * (3.0 - 2.0 * t);
-      
-      gl.uniform2f(xyLocation, 0.5, smoothScrollProgress);
+      gl.uniform2f(xyLocation, 0.5, scrollProgress);
       
       // Draw
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -217,7 +186,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full" 
         style={{ 
-          opacity: 0.7, // Increased from 0.5 for more visibility
+          opacity: 0.5,
           backgroundColor: 'transparent'
         }}
       />
