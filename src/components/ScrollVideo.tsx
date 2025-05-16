@@ -156,7 +156,7 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="relative w-screen h-screen overflow-hidden bg-black"
+      className="w-screen h-screen overflow-hidden bg-black"
       style={{ 
         zIndex: 5,
         position: "sticky",
@@ -188,12 +188,12 @@ const ScrollVideo: React.FC<{
           style={{
             width: "100vw",
             height: "100vh",
-            objectFit: "cover", // Changed back to cover to fill the screen
+            objectFit: "cover",
             opacity: videoVisible ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             display: "block",
             visibility: "visible",
-            zIndex: 1 // Lower z-index for the video within its container
+            zIndex: 1
           }} 
         />
       </ScrollVideoPlayer>
