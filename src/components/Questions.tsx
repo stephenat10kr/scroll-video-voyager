@@ -24,7 +24,7 @@ const Questions: React.FC<QuestionsProps> = ({
   } = useQuestions();
   const isMobile = useIsMobile();
   if (isLoading) {
-    return <div className="w-full py-24">
+    return <div className="w-full py-24 bg-transparent">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">Loading questions...</h2>
         <p className="body-text text-[#FFF4F1]/70">Please wait while we fetch the questions.</p>
@@ -33,7 +33,7 @@ const Questions: React.FC<QuestionsProps> = ({
   }
   if (error) {
     console.error('Error in Questions component:', error);
-    return <div className="w-full py-24">
+    return <div className="w-full py-24 bg-transparent">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">Failed to load questions</h2>
         <p className="body-text text-[#FFF4F1]/70">Please check the console for more details.</p>
@@ -41,7 +41,7 @@ const Questions: React.FC<QuestionsProps> = ({
     </div>;
   }
   if (!questions || Object.keys(questions).length === 0) {
-    return <div className="w-full py-24">
+    return <div className="w-full py-24 bg-transparent">
       <div className="max-w-[90%] mx-auto">
         <h2 className="title-sm text-[#FFF4F1] mb-12">No questions available</h2>
         <p className="body-text text-[#FFF4F1]/70">Please add questions in Contentful with the content type 'question'.</p>
@@ -51,7 +51,7 @@ const Questions: React.FC<QuestionsProps> = ({
 
   // Use different column classes based on device size
   const tabsClassName = isMobile ? "col-start-1 col-end-13" : "col-start-5 col-end-13";
-  return <div className="w-full py-24">
+  return <div className="w-full py-24 bg-transparent">
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
         <h2 className="title-sm text-[#FFF4F1] mb-12 col-span-12">{title}</h2>
         <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
@@ -61,8 +61,8 @@ const Questions: React.FC<QuestionsProps> = ({
               </TabsTrigger>)}
           </TabsList>
           {TABS.map(tab => <TabsContent key={tab} value={tab} className="col-start-5 col-span-8">
-              <Accordion type="single" collapsible className="w-full">
-                {questions[tab]?.map((question, index) => <AccordionItem key={index} value={`${tab}-${index}`} className="border-t border-[#FFF4F1]/20 py-4">
+              <Accordion type="single" collapsible className="w-full bg-transparent">
+                {questions[tab]?.map((question, index) => <AccordionItem key={index} value={`${tab}-${index}`} className="border-t border-[#FFF4F1]/20 py-4 bg-transparent">
                     <AccordionTrigger className="body-text text-[#FFF4F1] hover:no-underline text-left">
                       {question.title}
                     </AccordionTrigger>

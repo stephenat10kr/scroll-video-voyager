@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -110,9 +109,9 @@ const RevealText = () => {
   }, [revealTextContent]);
 
   if (isLoading) {
-    return <div className="w-full py-24">
+    return <div className="w-full py-24 bg-transparent">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800 rounded" />
+          <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800/50 rounded" />
         </div>
       </div>;
   }
@@ -123,7 +122,7 @@ const RevealText = () => {
 
   return (
     <>
-      <div className="w-full py-24">
+      <div className="w-full py-24 bg-transparent">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
             background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
