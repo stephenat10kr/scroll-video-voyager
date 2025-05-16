@@ -37,8 +37,8 @@ const Ritual: React.FC<RitualProps> = ({
         const relativePos = (scrollPosition + window.innerHeight - containerTop) / 
                            (window.innerHeight + containerRect.height);
         
-        // Apply a subtle transform - move 5% up or down based on scroll position
-        const translateY = (relativePos - 0.5) * 10; // 10px max movement
+        // Apply a more pronounced transform - move 100px up or down based on scroll position
+        const translateY = (relativePos - 0.5) * 100; // 100px max movement
         imageContainer.style.transform = `translateY(${translateY}px)`;
       }
     };
