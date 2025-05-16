@@ -44,7 +44,7 @@ const Ritual: React.FC<RitualProps> = ({
   }, []);
   return <div style={{
     zIndex: 10
-  }} className="grid grid-cols-12 gap-8 mb-16 last:mb-48 relative py-[12px]">
+  }} className="grid grid-cols-12 gap-8 mb-16 last:mb-48 relative py-[10px]">
       {/* Image Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1 relative" style={{
       zIndex: 20
