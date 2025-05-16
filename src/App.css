@@ -13,7 +13,7 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   position: relative;
-  background-color: #ea384c; /* Red background color */
+  background-color: #203435; /* Changed from #ea384c (red) to #203435 (dark green) */
   /* Removed the pattern background-image */
 }
 
