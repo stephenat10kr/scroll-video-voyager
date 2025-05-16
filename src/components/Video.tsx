@@ -4,8 +4,8 @@ import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import Preloader from "./Preloader";
 
 const Video = () => {
-  // Use the specific Contentful asset ID for the scrub-optimized video
-  const { data: videoAsset, isLoading, error } = useContentfulAsset("1A0xTn5l44SvzrObLYLQmG");
+  // Update the Contentful asset ID to use the Hero Video
+  const { data: videoAsset, isLoading, error } = useContentfulAsset("5LzoveNWfrc4blO79Fr80U");
   
   // Use undefined as fallback instead of local video reference
   const videoSrc = videoAsset?.fields?.file?.url 
