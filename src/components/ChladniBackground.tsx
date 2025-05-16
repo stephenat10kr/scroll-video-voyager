@@ -53,15 +53,22 @@ const ChladniBackground: React.FC = () => {
         float tx = sin(u_time)*0.1; 
         float ty = cos(u_time)*0.1; 
 
-        // Use scroll position instead of cursor
-        float a = mix(s1.x, s2.x, u_scroll+tx);
-        float b = mix(s1.y, s2.y, u_scroll+tx);
-        float n = mix(s1.z, s2.z, u_scroll+ty);
-        float m = mix(s1.w, s2.w, u_scroll+ty);
+        // Amplify the scroll effect by using a non-linear function
+        // This creates more dramatic changes when scrolling
+        float scrollEffect = pow(u_scroll, 2.0) * 1.5; // Square the scroll value and multiply by 1.5
+        
+        // Use amplified scroll position for more dramatic effect
+        float a = mix(s1.x, s2.x, min(scrollEffect + tx, 1.0));
+        float b = mix(s1.y, s2.y, min(scrollEffect + tx, 1.0));
+        float n = mix(s1.z, s2.z, min(scrollEffect + ty, 1.0));
+        float m = mix(s1.w, s2.w, min(scrollEffect + ty, 1.0));
 
         float max_amp = abs(a) + abs(b);
         float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
-        float col = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
+        
+        // Make the pattern changes more visible by adjusting the threshold
+        float threshold = 0.1 + 0.05 * sin(scrollEffect * PI);
+        float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
         // White pattern with 50% opacity
         gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
