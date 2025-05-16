@@ -25,9 +25,10 @@ const ChladniBackground: React.FC = () => {
     
     glRef.current = gl;
     
-    // Enable alpha blending for transparency
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // Remove alpha blending setup to make pattern fully opaque
+    // The following two lines have been removed:
+    // gl.enable(gl.BLEND);
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     
     // Create shader program
     const vertexShaderSource = `
@@ -70,8 +71,8 @@ const ChladniBackground: React.FC = () => {
         float threshold = 0.1 + 0.05 * sin(scrollEffect * PI);
         float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
         
-        // White pattern with 50% opacity
-        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
+        // White pattern with full opacity (1.0) instead of 50% opacity (0.5)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
       }
     `;
     
