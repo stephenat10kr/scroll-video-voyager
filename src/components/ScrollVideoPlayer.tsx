@@ -97,8 +97,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     srcAssigned = true;
     // --- End: Video source selection and logging ---
 
+    // Update container size to match viewport
     const resizeSection = () => {
       if (container) {
+        container.style.width = "100%";
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };

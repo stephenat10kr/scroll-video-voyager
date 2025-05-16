@@ -17,8 +17,8 @@ const Index = () => {
         <ChladniPattern />
       </div>
       
-      {/* Video section - z-index of container is set in the ScrollVideo component */}
-      <div className="relative w-full" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+      {/* Video section - increased width and properly contained */}
+      <div className="relative w-full" style={{ overflow: 'hidden' }}>
         <Video />
       </div>
       
