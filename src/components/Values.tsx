@@ -29,10 +29,10 @@ const Values: React.FC<ValuesProps> = ({
           </div>
           <div className="col-span-12 md:col-span-9">
             <div className="mb-24 animate-pulse">
-              <div className="h-16 bg-gray-800 rounded mb-6 w-1/2"></div>
-              <div className="h-4 bg-gray-800 rounded mb-2 w-full"></div>
-              <div className="h-4 bg-gray-800 rounded mb-2 w-full"></div>
-              <div className="h-4 bg-gray-800 rounded w-3/4"></div>
+              <div className="h-16 bg-gray-800/50 rounded mb-6 w-1/2"></div>
+              <div className="h-4 bg-gray-800/50 rounded mb-2 w-full"></div>
+              <div className="h-4 bg-gray-800/50 rounded mb-2 w-full"></div>
+              <div className="h-4 bg-gray-800/50 rounded w-3/4"></div>
             </div>
           </div>
         </div>;
@@ -72,7 +72,7 @@ const Values: React.FC<ValuesProps> = ({
   };
   
   return (
-    <section ref={sectionRef} className="w-full py-24 mb-48 relative">
+    <section ref={sectionRef} className="w-full py-24 mb-48 relative bg-transparent">
       <div className="max-w-[90%] mx-auto mb-16 text-left relative z-20">
         <h2 className="title-sm" style={{
           color: colors.roseWhite
