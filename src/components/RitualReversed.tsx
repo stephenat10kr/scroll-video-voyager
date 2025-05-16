@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,37 +18,6 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   imageAlt
 }) => {
   const isMobile = useIsMobile();
-  const imageRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  
-  // Add parallax effect
-  useEffect(() => {
-    const imageElement = imageRef.current;
-    const textElement = textRef.current;
-    
-    if (!imageElement || !textElement) return;
-    
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const imageParallaxFactor = 0.05; // Lower values for subtler effect
-      const textParallaxFactor = 0.03;
-      
-      // Apply transform to image
-      imageElement.style.transform = `translateY(${scrollPosition * imageParallaxFactor}px)`;
-      
-      // Apply transform to text
-      textElement.style.transform = `translateY(${scrollPosition * textParallaxFactor}px)`;
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Initial call to set positions
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   // For mobile view, use the same layout as the regular Ritual component
   if (isMobile) {
@@ -57,7 +26,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         {/* Image Section - Always on left on mobile (cols 1-12) */}
         <div className="col-span-12 md:col-span-5 md:col-start-1">
           <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
-            <div className="w-full h-full relative" ref={imageRef}>
+            <div className="w-full h-full relative">
               {/* SVG Mask definition with gradient */}
               <svg width="0" height="0" className="absolute">
                 <defs>
@@ -104,7 +73,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         </div>
         
         {/* Text Section - Below image on mobile (cols 1-12) */}
-        <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center" ref={textRef}>
+        <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
           <h2 className="title-md mb-6" style={{
             color: colors.darkGreen
           }}>
@@ -128,7 +97,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   return (
     <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
       {/* Text Section - Always on left (cols 1-5) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center" ref={textRef}>
+      <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center">
         <h2 className="title-md mb-6" style={{
           color: colors.darkGreen
         }}>
@@ -150,7 +119,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       {/* Image Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8">
         <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
-          <div className="w-full h-full relative" ref={imageRef}>
+          <div className="w-full h-full relative">
             {/* SVG Mask definition */}
             <svg width="0" height="0" className="absolute">
               <defs>
