@@ -1,5 +1,4 @@
-
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
@@ -21,33 +20,11 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isVideoVisible, setIsVideoVisible] = useState(true);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
-
-  // Control video visibility based on scroll position
-  useEffect(() => {
-    const handleScroll = () => {
-      // Check if we've scrolled past 4 viewport heights
-      const scrollPosition = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      const threshold = viewportHeight * 4;
-      
-      if (scrollPosition > threshold && isVideoVisible) {
-        setIsVideoVisible(false);
-      } else if (scrollPosition <= threshold && !isVideoVisible) {
-        setIsVideoVisible(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isVideoVisible]);
 
   return (
     <div 
@@ -78,8 +55,8 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: 1, // Always visible
-            display: isVideoVisible ? "block" : "none",
-            visibility: isVideoVisible ? "visible" : "hidden"
+            display: "block",
+            visibility: "visible"
           }} 
         />
       </ScrollVideoPlayer>
