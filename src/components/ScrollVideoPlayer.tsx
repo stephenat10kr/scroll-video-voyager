@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -32,7 +33,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Setting the progressThreshold to 0.002 as requested
   const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
@@ -55,34 +55,18 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.pause();
     console.log("Video paused during initialization");
 
-    // Mobile-specific optimizations that don't affect appearance
+    // Basic video optimizations
+    video.style.willChange = "contents";
+    
     if (isMobile) {
-      // Keep these optimizations but remove visibility settings
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
-      
-      // Force hardware acceleration
       video.style.transform = "translate3d(0,0,0)";
-      video.style.willChange = "contents";
-      
-      // Ensure muted state for autoplay capability
-      video.muted = true;
-      
-      // Force the first frame to display immediately
-      if (video.readyState >= 1) {
-        video.currentTime = 0.001;
-      }
-    } else {
-      // Chrome-specific optimizations still apply
-      video.style.willChange = "contents";
-      if (navigator.userAgent.indexOf("Chrome") > -1) {
-        video.style.transform = "translate3d(0,0,0)";
-      }
+    } else if (navigator.userAgent.indexOf("Chrome") > -1) {
+      video.style.transform = "translate3d(0,0,0)";
     }
 
-    // --- Begin: Video source selection and logging ---
-    let srcAssigned = false;
-    
+    // Log source selection
     if (!src) {
       console.log("[ScrollVideo] No src provided.");
       return;
@@ -94,8 +78,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       const extension = src.split(".").pop() || "unknown";
       console.log(`[ScrollVideo] Assigned ${extension.toUpperCase()} video source: ${src}`);
     }
-    srcAssigned = true;
-    // --- End: Video source selection and logging ---
 
     const resizeSection = () => {
       if (container) {
@@ -104,11 +86,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
     resizeSection();
     window.addEventListener("resize", resizeSection);
-
-    // Calculate segment length based on the dynamic segmentCount
-    const calculateSegmentLength = (segments: number) => {
-      return 1 / (segments + 1);
-    };
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
@@ -136,7 +113,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      // For mobile, try to render a frame immediately without waiting for duration
+      // For mobile, try to render a frame immediately 
       if (isMobile) {
         video.currentTime = 0.001;
       }
@@ -156,7 +133,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.4, // Increased scrub values for smoother scrolling
+        scrub: isMobile ? 0.5 : 0.4,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -173,20 +150,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       console.log("ScrollTrigger setup completed");
     };
 
-    // Request high priority loading for the video
+    // Try to load the video with high priority
     if ('fetchPriority' in HTMLImageElement.prototype) {
       // @ts-ignore - TypeScript doesn't know about fetchPriority yet
       video.fetchPriority = 'high';
     }
 
-    // For mobile devices, we'll set up ScrollTrigger even without duration
+    // Set up ScrollTrigger based on device and readiness
     if (isMobile) {
       setupScrollTrigger();
     } else if (video.readyState >= 2) {
       setupScrollTrigger();
     }
 
-    // Set up event listeners regardless of initial state
+    // Set up event listeners for video loading
     const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
     const handleVideoReady = () => {
