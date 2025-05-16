@@ -18,7 +18,7 @@ const Index = () => {
       </div>
       
       {/* Video section - z-index of container is set in the ScrollVideo component */}
-      <div className="relative">
+      <div className="relative w-full" style={{ maxWidth: '100%', overflow: 'hidden' }}>
         <Video />
       </div>
       
