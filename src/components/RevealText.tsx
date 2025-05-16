@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,17 +7,14 @@ import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
-
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
-
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
   const {
     data: revealTextContent,
     isLoading,
@@ -68,7 +64,6 @@ const RevealText = () => {
       }
     }
   });
-
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -108,7 +103,6 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
-
   if (isLoading) {
     return <div className="w-full bg-darkGreen py-24">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -116,46 +110,31 @@ const RevealText = () => {
         </div>
       </div>;
   }
-
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-
-  return (
-    <>
-      <div className="w-full py-24 bg-darkGreen">
+  return <>
+      <div className="w-full py-24 bg-transparent">
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
-            background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            lineHeight: "1.2",
-            whiteSpace: "pre-wrap",
-            wordBreak: "normal"
-          }}>
+          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          lineHeight: "1.2",
+          whiteSpace: "pre-wrap",
+          wordBreak: "normal"
+        }}>
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
-            <Button 
-              variant="default" 
-              className="h-[48px] rounded-full bg-coral text-black hover:bg-coral/90"
-              onClick={() => setIsFormOpen(true)}
-            >
+            <Button variant="default" className="h-[48px] rounded-full bg-coral text-black hover:bg-coral/90" onClick={() => setIsFormOpen(true)}>
               STAY IN THE LOOP
             </Button>
           </div>
         </div>
       </div>
       
-      <Form 
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title="Curious?<br>Sign up to hear about upcoming events and membership offerings."
-        hubspotPortalId={HUBSPOT_PORTAL_ID}
-        hubspotFormId={HUBSPOT_FORM_ID}
-      />
-    </>
-  );
+      <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
+    </>;
 };
-
 export default RevealText;
