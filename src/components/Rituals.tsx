@@ -123,12 +123,9 @@ const Rituals: React.FC<RitualsProps> = ({
         </div>
       </div>
       
-      {/* Add extra padding at the bottom to prevent clipping */}
-      <div className="h-[100px]"></div>
-      
       {/* Curved bottom SVG - with shape rendering and extended path */}
       <div className="absolute bottom-0 left-0 right-0 w-full">
-        <svg width="100%" height="0" viewBox="0 0 1440 210" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/210", height: "auto", zIndex: 5 }} shapeRendering="crispEdges">
+        <svg width="100%" height="0" viewBox="0 0 1440 210" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: "1440/210", height: "auto" }} shapeRendering="crispEdges">
           <path d="M312.58 89.2563C150.65 54.8844 0 75.5117 0 0V211H1440V0H1439.64C1439.64 75.5117 1288.99 54.8844 1127.06 89.2563C919.9 133.222 898.46 194.76 719.82 194.76C541.18 194.76 519.75 133.222 312.58 89.2563Z" fill="#203435" />
         </svg>
       </div>
