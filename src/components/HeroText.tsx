@@ -71,7 +71,7 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="col-span-12 lg:col-span-5 py-[240px]">
               <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText.fields.heroTextEyebrow}</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{firstHeroText.fields.heroTextTitle}</h1>
+              <h1 className="title-xl text-roseWhite mb-6 text-center">{firstHeroText.fields.heroTextTitle}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
@@ -87,7 +87,7 @@ const HeroText: React.FC = () => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="py-[240px]">
               <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
-              <h1 className="title-lg text-roseWhite mb-6 text-center">{secondHeroText.fields.heroTextTitle}</h1>
+              <h1 className="title-xl text-roseWhite mb-6 text-center">{secondHeroText.fields.heroTextTitle}</h1>
             </div>
             
             <div className="grid grid-cols-12 gap-4">
