@@ -1,5 +1,4 @@
 
-
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -22,6 +21,12 @@ html, body {
 .content-overlay {
   position: relative;
   z-index: 2;
+}
+
+/* Value title animation */
+.animate-title {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 /* Keep other styles */
