@@ -51,10 +51,10 @@ const Ritual: React.FC<RitualProps> = ({
     };
   }, []);
   
-  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-48">
+  return <div className="grid grid-cols-12 gap-8 mb-16 last:mb-48 relative" style={{ zIndex: 10 }}>
       {/* Image Section - Always on left (cols 1-5) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-1">
-        <div ref={imageRef} className="transition-transform duration-300 ease-out">
+      <div className="col-span-12 md:col-span-5 md:col-start-1 relative" style={{ zIndex: 20 }}>
+        <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{ zIndex: 30 }}>
           <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
             <div className="w-full h-full relative">
               {/* SVG Mask definition with gradient */}
@@ -106,7 +106,7 @@ const Ritual: React.FC<RitualProps> = ({
       {/* Gap at columns 6-7 is created by the grid and gap-8 */}
       
       {/* Text Section - Always on right (cols 8-12) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
+      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center relative" style={{ zIndex: 15 }}>
         <h2 className="title-md mb-6" style={{
           color: colors.darkGreen
         }}>

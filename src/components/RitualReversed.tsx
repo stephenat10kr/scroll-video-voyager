@@ -55,10 +55,10 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   // For mobile view, use the same layout as the regular Ritual component
   if (isMobile) {
     return (
-      <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
+      <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0 relative" style={{ zIndex: 10 }}>
         {/* Image Section - Always on left on mobile (cols 1-12) */}
-        <div className="col-span-12 md:col-span-5 md:col-start-1">
-          <div ref={imageRef} className="transition-transform duration-300 ease-out">
+        <div className="col-span-12 md:col-span-5 md:col-start-1 relative" style={{ zIndex: 20 }}>
+          <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{ zIndex: 30 }}>
             <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
               <div className="w-full h-full relative">
                 {/* SVG Mask definition with gradient */}
@@ -108,7 +108,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         </div>
         
         {/* Text Section - Below image on mobile (cols 1-12) */}
-        <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center">
+        <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center relative" style={{ zIndex: 15 }}>
           <h2 className="title-md mb-6" style={{
             color: colors.darkGreen
           }}>
@@ -130,9 +130,9 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
   
   // Desktop view - reversed layout (text left, image right)
   return (
-    <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0">
+    <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0 relative" style={{ zIndex: 10 }}>
       {/* Text Section - Always on left (cols 1-5) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center">
+      <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center relative" style={{ zIndex: 15 }}>
         <h2 className="title-md mb-6" style={{
           color: colors.darkGreen
         }}>
@@ -152,8 +152,8 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       {/* Gap at columns 6-7 is created by the grid and gap-8 */}
       
       {/* Image Section - Always on right (cols 8-12) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-8">
-        <div ref={imageRef} className="transition-transform duration-300 ease-out">
+      <div className="col-span-12 md:col-span-5 md:col-start-8 relative" style={{ zIndex: 20 }}>
+        <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{ zIndex: 30 }}>
           <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
             <div className="w-full h-full relative">
               {/* SVG Mask definition */}
