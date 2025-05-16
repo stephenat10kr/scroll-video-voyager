@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+
+import React, { useState, useEffect } from "react";
 
 interface PreloaderProps {
   progress: number;
@@ -16,12 +16,6 @@ const loadingTexts = [
 const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const glRef = useRef<WebGLRenderingContext | null>(null);
-  const frameIdRef = useRef<number | null>(null);
-  const programRef = useRef<WebGLProgram | null>(null);
-  const isMobile = useIsMobile();
-  const renderingActiveRef = useRef(true);
 
   // Change text every 3 seconds
   useEffect(() => {
@@ -36,9 +30,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   useEffect(() => {
     if (progress >= 100) {
       const timeout = setTimeout(() => {
-        // Keep rendering active until fully faded out
         const fadeOutTimeout = setTimeout(() => {
-          renderingActiveRef.current = false;
           setVisible(false);
           const completeTimeout = setTimeout(() => {
             onComplete();
@@ -51,278 +43,35 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     }
   }, [progress, onComplete]);
 
-  // Setup WebGL for Chladni Pattern with enhanced mobile support
+  // Disable scrolling while preloader is active
   useEffect(() => {
-    // Define the preventContextLossHandler function at the top level of the effect
-    // so it's available for both adding and removing event listeners
-    const preventContextLossHandler = (e: Event) => {
-      e.preventDefault();
-      // This empty handler helps keep the WebGL context active
-    };
-    
-    const setupWebGL = () => {
-      const canvas = canvasRef.current;
-      
-      if (!canvas) {
-        console.error('Canvas not found');
-        return false;
-      }
-      
-      // Set canvas size to 300x400
-      canvas.width = 300;
-      canvas.height = 400;
-      
-      // Initialize WebGL with optimizations for mobile
-      const gl = canvas.getContext('webgl', { 
-        preserveDrawingBuffer: true, 
-        antialias: true,
-        alpha: false, // Disable alpha channel for better performance
-        depth: true,  // Enable depth buffer
-        stencil: false, // Disable stencil buffer for better performance
-        failIfMajorPerformanceCaveat: false, // Try to render even on low-end devices
-      });
-      
-      if (!gl) {
-        console.error('WebGL not supported');
-        return false;
-      }
-      
-      console.log('WebGL initialized for preloader');
-      glRef.current = gl;
-      
-      // Enable alpha blending for transparency
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      
-      // Enable depth test to help with rendering
-      gl.enable(gl.DEPTH_TEST);
-      
-      // Create shader program
-      const vertexShaderSource = `
-        attribute vec2 a_position;
-        void main() {
-          gl_Position = vec4(a_position, 0, 1);
-        }
-      `;
-      
-      const fragmentShaderSource = `
-        precision mediump float;
-        uniform vec2 u_resolution;
-        uniform float u_time;
-        uniform bool u_isMobile;
-        
-        void main(void) {
-          const float PI = 3.14159265;
-          vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
-
-          // Scale factor for mobile - increased for better visibility
-          // Apply 2x scaling (0.5) to make the pattern appear larger
-          float scaleFactor = u_isMobile ? 1.5 : 0.5;
-          p = p * scaleFactor; 
-
-          // Using fixed vector values for the preloader
-          vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
-          vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
-
-          // Create time variation
-          float tx = sin(u_time * 0.15) * 0.1; 
-          float ty = cos(u_time * 0.25) * 0.1;
-
-          // Parameters for the pattern
-          float a = mix(s1.x, s2.x, clamp(0.5 + tx, 0.0, 1.0));
-          float b = mix(s1.y, s2.y, clamp(0.5 + tx, 0.0, 1.0));
-          float n = mix(s1.z, s2.z, clamp(0.5 + ty, 0.0, 1.0));
-          float m = mix(s1.w, s2.w, clamp(0.5 + ty, 0.0, 1.0));
-
-          // Create the pattern - simplified for performance on mobile
-          float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
-                      b * sin(PI * m * p.x) * sin(PI * n * p.y);
-          
-          // Create more visible pattern edges
-          float threshold = u_isMobile ? 0.1 : 0.08;
-          float col = 1.0 - smoothstep(abs(amp1), 0.0, threshold);
-          
-          // Higher opacity for mobile
-          float opacity = u_isMobile ? 0.9 : 0.6;
-          gl_FragColor = vec4(1.0, 1.0, 1.0, col * opacity);
-        }
-      `;
-      
-      // Compile shaders
-      const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-        const shader = gl.createShader(type);
-        if (!shader) return null;
-        
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
-          gl.deleteShader(shader);
-          return null;
-        }
-        
-        return shader;
-      };
-      
-      const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-      const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-      
-      if (!vertexShader || !fragmentShader) {
-        console.error('Failed to create shaders');
-        return false;
-      }
-      
-      // Create program
-      const program = gl.createProgram();
-      if (!program) return false;
-      
-      gl.attachShader(program, vertexShader);
-      gl.attachShader(program, fragmentShader);
-      gl.linkProgram(program);
-      
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        console.error('Program linking error:', gl.getProgramInfoLog(program));
-        return false;
-      }
-
-      // Store program reference
-      programRef.current = program;
-      
-      // Set up buffers
-      const positionBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      
-      const positions = new Float32Array([
-        -1.0, -1.0,
-        1.0, -1.0,
-        -1.0, 1.0,
-        1.0, 1.0
-      ]);
-      
-      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-      
-      // Animation
-      let startTime = Date.now();
-      
-      const render = () => {
-        if (!gl || !program || !renderingActiveRef.current) return;
-        
-        const currentTime = Date.now();
-        const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
-        
-        // Clear and set viewport
-        gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        
-        // Use the program
-        gl.useProgram(program);
-        
-        // Get attribute/uniform locations
-        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-        const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
-        const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
-        const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
-        
-        // Set uniforms
-        gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-        gl.uniform1f(timeUniformLocation, elapsedTime);
-        gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
-        
-        // Set up attributes
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-        
-        // Draw
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        
-        // Request next frame - only if we're still active
-        if (renderingActiveRef.current) {
-          frameIdRef.current = requestAnimationFrame(render);
-        }
-      };
-      
-      // Start rendering
-      renderingActiveRef.current = true;
-      render();
-      return true;
-    };
-
-    // Add event listeners to keep the WebGL context alive on mobile
-    const canvas = canvasRef.current;
-    if (canvas) {
-      // Touch events help prevent context loss on some mobile devices
-      canvas.addEventListener('touchstart', preventContextLossHandler, { passive: false });
-      canvas.addEventListener('touchmove', preventContextLossHandler, { passive: false });
-      canvas.addEventListener('touchend', preventContextLossHandler, { passive: false });
+    if (visible) {
+      document.body.style.overflow = 'hidden';
     }
     
-    // Important: Delay WebGL initialization slightly to ensure DOM is fully ready
-    const initTimeout = setTimeout(() => {
-      const success = setupWebGL();
-      console.log('WebGL setup result:', success);
-    }, 100);
-    
-    // Cleanup function
     return () => {
-      clearTimeout(initTimeout);
-      
-      // Set rendering inactive to stop animation loop
-      renderingActiveRef.current = false;
-      
-      if (frameIdRef.current !== null) {
-        cancelAnimationFrame(frameIdRef.current);
-      }
-      
-      // Remove event listeners - using the same handler reference
-      if (canvas) {
-        canvas.removeEventListener('touchstart', preventContextLossHandler);
-        canvas.removeEventListener('touchmove', preventContextLossHandler);
-        canvas.removeEventListener('touchend', preventContextLossHandler);
-      }
-      
-      // Clean up WebGL resources
-      const gl = glRef.current;
-      if (gl) {
-        if (programRef.current) {
-          gl.deleteProgram(programRef.current);
-        }
-        
-        const loseContext = gl.getExtension('WEBGL_lose_context');
-        if (loseContext) {
-          loseContext.loseContext();
-        }
-      }
+      document.body.style.overflow = 'auto';
     };
-  }, [isMobile]);
+  }, [visible]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 bg-[#203435] ${
         visible ? "opacity-100" : "opacity-0"
       }`}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        {/* Chladni Pattern in 300x400px rectangle with enhanced mobile visibility */}
-        <div className="w-[300px] h-[400px] relative mb-4">
-          <canvas 
-            ref={canvasRef}
-            className="absolute inset-0"
-            style={{ 
-              width: '300px', 
-              height: '400px',
-              willChange: 'transform', // Performance optimization for mobile
-              transform: 'translateZ(0)', // Force GPU acceleration
-              touchAction: 'none', // Prevent browser handling of touch gestures
-              WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
-            }}
-          />
+        {/* Simple animated loading bar */}
+        <div className="w-[300px] h-2 bg-white/20 rounded-full overflow-hidden mb-8">
+          <div 
+            className="h-full bg-white transition-all duration-300 rounded-full"
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
         
         {/* Loading text and percentage side by side */}
-        <div className="flex items-center justify-center gap-4 w-full">
-          <p className="body-text text-coral">{loadingTexts[currentTextIndex]}</p>
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
+          <p className="text-coral text-lg mb-2">{loadingTexts[currentTextIndex]}</p>
           <span 
             className="font-gt-super text-coral" 
             style={{ fontSize: "32px" }}
