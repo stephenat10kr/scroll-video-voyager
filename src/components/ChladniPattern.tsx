@@ -64,23 +64,29 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
-        vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
-        vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
+        // Increased parameter ranges for more dramatic effect
+        vec4 s1 = vec4(0.5, 0.5, 0.8, 1.5);
+        vec4 s2 = vec4(-6.0, 6.0, 6.0, 7.0);
         
-        float tx = sin(u_time)*0.1; 
-        float ty = cos(u_time)*0.1; 
+        // Increased amplitude of time-based movement
+        float tx = sin(u_time)*0.2; 
+        float ty = cos(u_time)*0.2; 
+        
+        // Apply non-linear transformation to scroll progress for more dramatic changes
+        float scrollFactor = pow(u_xy.y, 2.0) * 1.5; // Non-linear scroll effect
         
         float a = mix(s1.x, s2.x, u_xy.x+tx);
         float b = mix(s1.y, s2.y, u_xy.x+tx);
-        float n = mix(s1.z, s2.z, u_xy.y+ty);
-        float m = mix(s1.w, s2.w, u_xy.y+ty);
+        float n = mix(s1.z, s2.z, scrollFactor+ty); // Use enhanced scroll factor
+        float m = mix(s1.w, s2.w, scrollFactor+ty); // Use enhanced scroll factor
         
         float max_amp = abs(a) + abs(b);
         float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
-        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
         
-        // Use pure white with carefully controlled alpha
-        // Premultiply the alpha to prevent color bleeding
+        // More dramatic pattern contrast with sharper transitions
+        float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.08);
+        
+        // Maintain the same alpha compositing approach
         float alpha = pattern * 0.5;
         vec3 color = vec3(1.0, 1.0, 1.0);
         gl_FragColor = vec4(color * alpha, alpha); // Premultiplied alpha
