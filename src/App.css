@@ -1,4 +1,5 @@
 
+
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -13,7 +14,7 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   position: relative;
-  background-color: #000; /* Black background for the pattern */
+  background-color: var(--dark-green); /* Dark green background for the pattern */
   background-attachment: fixed; /* Make the background sticky */
 }
 

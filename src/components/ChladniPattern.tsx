@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
+import { colors } from '../lib/theme';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
@@ -176,7 +177,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     <div 
       ref={containerRef} 
       className="fixed top-0 left-0 w-full h-full pointer-events-none"
-      style={{ zIndex: 0 }}
+      style={{ 
+        zIndex: 0, 
+        backgroundColor: colors.darkGreen // Use the darkGreen color from theme
+      }}
     >
       <canvas 
         ref={canvasRef} 
