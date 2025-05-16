@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 interface ChladniPatternProps {
@@ -57,9 +58,9 @@ const ExportableChladniPattern: React.FC<ChladniPatternProps> = ({ children }) =
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-        // Using the user-specified vector values
-        vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
-        vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
+        // Using the updated vector values for more symmetrical patterns
+        vec4 s1 = vec4(2.0, 2.0, 1.0, 1.0); // Changed from vec4(4.0, 4.0, 1.0, 4.0)
+        vec4 s2 = vec4(2.0, 2.0, 2.0, 2.0); // Changed from vec4(-3.0, 2.0, 4.0, 2.6)
 
         // Reduce scroll effect by lowering the amplification factor
         float scrollFactor = u_xy.y; // Linear response instead of squared
