@@ -129,10 +129,10 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
-          lineHeight: "1.4", // Increased line height
+          lineHeight: "1.2", // Reduced line height from 1.4 to 1.2
           whiteSpace: "pre-wrap",
           wordBreak: "normal",
-          paddingBottom: "0.2em", // Added padding at container level too
+          paddingBottom: "0.2em", // Kept padding at container level
         }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
