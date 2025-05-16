@@ -66,7 +66,7 @@ const Values: React.FC<ValuesProps> = ({
     }
     
     return (
-      <div className="col-span-12 sm:col-span-9 max-w-[90%] mx-auto bg-transparent">
+      <div className="col-span-12 sm:col-span-9 snap-y snap-mandatory h-screen overflow-y-auto scroll-smooth max-w-[90%] mx-auto bg-transparent">
         {values.map((value, index) => (
           <Value 
             key={value.id}
