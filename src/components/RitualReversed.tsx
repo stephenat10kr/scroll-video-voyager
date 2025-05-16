@@ -59,7 +59,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         {/* Image Section - Always on left on mobile (cols 1-12) */}
         <div className="col-span-12 md:col-span-5 md:col-start-1 relative" style={{ zIndex: 20 }}>
           <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{ zIndex: 30 }}>
-            <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg w-full">
+            <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
               <div className="w-full h-full relative">
                 {/* SVG Mask definition with gradient */}
                 <svg width="0" height="0" className="absolute">
@@ -77,7 +77,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                 </svg>
                 
                 {/* Image with mask */}
-                <div className="w-full h-full" style={{
+                <div className="w-full h-full overflow-hidden" style={{
                   clipPath: "url(#starMaskMobile)",
                   WebkitClipPath: "url(#starMaskMobile)",
                 }}>
@@ -154,7 +154,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
       {/* Image Section - Always on right (cols 8-12) */}
       <div className="col-span-12 md:col-span-5 md:col-start-8 relative" style={{ zIndex: 20 }}>
         <div ref={imageRef} className="transition-transform duration-300 ease-out relative" style={{ zIndex: 30 }}>
-          <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg w-full">
+          <AspectRatio ratio={1 / 1} className="mb-4 md:mb-0 rounded-lg overflow-hidden w-full">
             <div className="w-full h-full relative">
               {/* SVG Mask definition */}
               <svg width="0" height="0" className="absolute">
@@ -172,7 +172,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               </svg>
               
               {/* Image with mask */}
-              <div className="w-full h-full" style={{
+              <div className="w-full h-full overflow-hidden" style={{
                 clipPath: "url(#starMaskReversed)",
                 WebkitClipPath: "url(#starMaskReversed)",
               }}>

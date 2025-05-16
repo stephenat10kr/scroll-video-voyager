@@ -5,10 +5,12 @@
   margin: 0;
   padding: 0;
   text-align: left;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Add a background for the Chladni pattern */
 html, body {
+  overflow-x: hidden;
   width: 100%;
   position: relative;
   background-color: var(--dark-green); /* Dark green background for the pattern */
