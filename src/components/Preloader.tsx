@@ -40,7 +40,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       // Show "Come in." text briefly before fading out
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Come in." state for 1.5 seconds
+      // First delay - stay at 100% "Come in." state for 0.5 seconds (changed from 1.5s)
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
@@ -59,7 +59,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }, 1000); // Wait 1 second at 100% before fading
         
         return () => clearTimeout(fadeOutTimeout);
-      }, 1500); // Show "Come in." for 1.5 seconds
+      }, 500); // Show "Come in." for 0.5 seconds (changed from 1.5s)
       
       return () => clearTimeout(welcomeTimeout);
     }
