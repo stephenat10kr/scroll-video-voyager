@@ -77,7 +77,7 @@ const Ritual: React.FC<RitualProps> = ({
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="text-sm" style={{
+          {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile" style={{
           color: colors.darkGreen
         }}>
               {paragraph}

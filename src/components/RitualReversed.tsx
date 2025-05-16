@@ -81,7 +81,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
           </h2>
           <div className="space-y-4">
             {description.map((paragraph, idx) => (
-              <p key={idx} className="text-sm" style={{
+              <p key={idx} className="body md:body-mobile" style={{
                 color: colors.darkGreen
               }}>
                 {paragraph}
@@ -105,7 +105,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         </h2>
         <div className="space-y-4">
           {description.map((paragraph, idx) => (
-            <p key={idx} className="text-sm" style={{
+            <p key={idx} className="body md:body-mobile" style={{
               color: colors.darkGreen
             }}>
               {paragraph}
