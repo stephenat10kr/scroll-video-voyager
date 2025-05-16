@@ -88,7 +88,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           {showWelcome && progress >= 100 ? (
             <span className="title-lg text-coral">Come in.</span>
           ) : (
-            <span className="title-xl text-coral">
+            <span className="title-lg text-coral">
               {Math.round(progress)}%
             </span>
           )}
