@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import colors from '@/lib/theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -59,7 +58,9 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       
       void main(void) {
         const float PI = 3.14159265;
-        vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
+        // Scale factor - higher values = more zoomed out pattern
+        float scale = 0.35; // Zoomed out significantly (was possibly around 1.0)
+        vec2 p = scale * (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
 
         vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
         vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
