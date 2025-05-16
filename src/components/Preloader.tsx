@@ -16,7 +16,7 @@ const loadingTexts = [
 const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  const [showReady, setShowReady] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   
   // For debugging
   useEffect(() => {
@@ -37,11 +37,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     if (progress >= 100) {
       console.log("Preloader - 100% reached, preparing to fade out");
       
-      // Show "Ready" text briefly before fading out
-      setShowReady(true);
+      // Show "Welcome." text briefly before fading out
+      setShowWelcome(true);
       
-      // First delay - stay at 100% "Ready" state for 1.5 seconds
-      const readyTimeout = setTimeout(() => {
+      // First delay - stay at 100% "Welcome." state for 1.5 seconds
+      const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
         // Second delay - start fade out
@@ -59,9 +59,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }, 1000); // Wait 1 second at 100% before fading
         
         return () => clearTimeout(fadeOutTimeout);
-      }, 1500); // Show "Ready" for 1.5 seconds
+      }, 1500); // Show "Welcome." for 1.5 seconds
       
-      return () => clearTimeout(readyTimeout);
+      return () => clearTimeout(welcomeTimeout);
     }
   }, [progress, onComplete]);
 
@@ -85,14 +85,14 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Loading percentage and text */}
         <div className="flex flex-col items-center justify-center gap-4 w-full">
-          {showReady && progress >= 100 ? (
-            <span className="title-xl text-coral animate-pulse">Ready</span>
+          {showWelcome && progress >= 100 ? (
+            <span className="title-xl text-coral">Welcome.</span>
           ) : (
             <span className="title-xl text-coral">
               {Math.round(progress)}%
             </span>
           )}
-          {!showReady && (
+          {!showWelcome && (
             <p className="text-coral text-lg">{loadingTexts[currentTextIndex]}</p>
           )}
         </div>
