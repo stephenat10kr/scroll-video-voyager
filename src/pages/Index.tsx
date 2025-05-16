@@ -15,17 +15,27 @@ const Index = () => {
       <ChladniPattern />
       <Video />
       <div className="content-overlay relative" style={{ zIndex: 2 }}>
-        <RevealText />
+        <div className="section-snap">
+          <RevealText />
+        </div>
         <Values title="VALUES" />
-        <Rituals title="RITUALS" />
-        <Gallery 
-          title="SPACE"
-          description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge."
-          address="45 Howard St, New York, NY 10013"
-          mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013"
-        />
-        <Questions title="QUESTIONS" />
-        <Footer />
+        <div className="section-snap">
+          <Rituals title="RITUALS" />
+        </div>
+        <div className="section-snap">
+          <Gallery 
+            title="SPACE"
+            description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge."
+            address="45 Howard St, New York, NY 10013"
+            mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013"
+          />
+        </div>
+        <div className="section-snap">
+          <Questions title="QUESTIONS" />
+        </div>
+        <div className="section-snap">
+          <Footer />
+        </div>
       </div>
     </div>
   );

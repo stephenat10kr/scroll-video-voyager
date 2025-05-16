@@ -66,7 +66,7 @@ const Values: React.FC<ValuesProps> = ({
     }
     
     return (
-      <div className="col-span-12 sm:col-span-9 snap-y snap-mandatory h-screen overflow-y-auto scroll-smooth max-w-[90%] mx-auto bg-transparent">
+      <div className="col-span-12 sm:col-span-9 scroll-smooth max-w-[90%] mx-auto bg-transparent">
         {values.map((value, index) => (
           <Value 
             key={value.id}
@@ -80,7 +80,7 @@ const Values: React.FC<ValuesProps> = ({
   };
 
   return (
-    <div className="w-full py-24 mb-48 bg-transparent">
+    <div className="w-full py-24 mb-48 bg-transparent section-snap">
       <div className="max-w-[90%] mx-auto mb-16 text-left bg-transparent">
         <h2 className="title-sm bg-transparent" style={{
           color: colors.roseWhite

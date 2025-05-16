@@ -1,5 +1,4 @@
 
-
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -16,12 +15,33 @@ html, body {
   position: relative;
   background-color: var(--dark-green); /* Dark green background for the pattern */
   background-attachment: fixed; /* Make the background sticky */
+  scroll-behavior: smooth; /* Enable smooth scrolling */
 }
 
 /* Add a semi-transparent overlay for video and content */
 .content-overlay {
   position: relative;
   z-index: 2;
+}
+
+/* Section snap styling */
+.section-snap {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100vh; /* Full viewport height for each section */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Value snap styling */
+.value-snap {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  min-height: 100vh; /* Full viewport height for each value */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Keep other styles */
