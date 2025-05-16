@@ -1,5 +1,4 @@
 
-
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -16,6 +15,12 @@ html, body {
   position: relative;
   background-color: var(--dark-green); /* Dark green background for the pattern */
   background-attachment: fixed; /* Make the background sticky */
+  
+  /* Add scroll snap to the entire page */
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Add a semi-transparent overlay for video and content */
