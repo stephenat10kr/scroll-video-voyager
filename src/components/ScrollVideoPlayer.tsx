@@ -178,7 +178,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isMobile ? 0.5 : 0.4, // Increased scrub values for smoother scrolling
+        // Increased scrub values for slower, smoother scrolling
+        scrub: isMobile ? 1.0 : 0.8, 
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
