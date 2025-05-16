@@ -21,6 +21,7 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
           autoPlay
           muted
           loop
+          preload="auto"
           className="object-cover w-full h-full rounded-lg"
         />
       ) : (
