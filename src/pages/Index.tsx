@@ -11,7 +11,9 @@ import Footer from "../components/Footer";
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
-      <Video />
+      <div className="relative" style={{ zIndex: 1 }}>
+        <Video />
+      </div>
       <div className="relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />

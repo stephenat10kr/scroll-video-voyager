@@ -74,7 +74,7 @@ const Values: React.FC<ValuesProps> = ({
   return (
     <section ref={sectionRef} className="w-full py-24 mb-48 relative">
       {/* Fixed blue background - always visible with low z-index */}
-      <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -10 }}>
+      <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -2 }}>
         {/* Main blue background with pattern */}
         <div 
           className="w-full h-full opacity-90"
