@@ -57,6 +57,10 @@ const ExportableChladniPattern: React.FC<ChladniPatternProps> = ({ children }) =
       void main(void) {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
+        
+        // Apply scaling factor to make the pattern larger/smaller
+        // Using 0.75 to make the pattern larger (zoomed in)
+        p = p * 0.75;
 
         // Using the updated vector values for more symmetrical patterns
         vec4 s1 = vec4(2.0, 2.0, 1.0, 1.0); // Changed from vec4(4.0, 4.0, 1.0, 4.0)
