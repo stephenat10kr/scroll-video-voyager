@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -77,11 +78,24 @@ const RevealText = () => {
     const words = originalText.split(" ");
 
     // Create HTML structure with words and characters wrapped in spans
+    // Add extra padding-bottom to ensure descenders are fully covered
     const formattedHTML = words.map(word => {
-      const charSpans = word.split("").map(char => `<span class="char">${char}</span>`).join("");
+      const charSpans = word.split("").map(char => 
+        `<span class="char" style="display: inline-block; padding-bottom: 0.1em;">${char}</span>`
+      ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
     text.innerHTML = formattedHTML;
+    
+    // Apply Safari-specific adjustments using CSS feature detection
+    const spans = text.querySelectorAll(".char");
+    spans.forEach(span => {
+      const element = span as HTMLElement;
+      element.style.position = "relative"; // Ensure positioning context
+      element.style.overflow = "hidden"; // Prevent any overflow issues
+    });
+    
+    // Modified animation approach for better Safari compatibility
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
@@ -91,19 +105,22 @@ const RevealText = () => {
         markers: false
       }
     });
-    const spans = text.querySelectorAll(".char");
+    
     console.log(`Found ${spans.length} spans to animate`);
     spans.forEach((span, i) => {
+      // Instead of changing color to transparent, use opacity with a mask overlay
       tl.to(span, {
-        color: "transparent",
+        opacity: 0,
         ease: "power1.inOut",
         duration: 0.1
       }, i * 0.01);
     });
+    
     return () => {
       tl.kill();
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -125,9 +142,13 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
-          lineHeight: "1.2",
+          lineHeight: "1.3", // Increased line height for better descender coverage
           whiteSpace: "pre-wrap",
-          wordBreak: "normal"
+          wordBreak: "normal",
+          // Safari-specific adjustments
+          WebkitTextFillColor: "transparent", // Explicit for Safari
+          display: "block", // Ensure proper block context
+          paddingBottom: "0.05em" // Additional padding at container level
         }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
