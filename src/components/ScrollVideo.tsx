@@ -27,6 +27,9 @@ const ScrollVideo: React.FC<{
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
+  // Keep track of Safari browser specifically
+  const isSafari = useRef(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+  
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
@@ -34,15 +37,29 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Increase the rootMargin to make the video disappear later
-    // This ensures the video stays visible longer, especially on Safari
+    // Significantly increase the rootMargin to make the video disappear much later
+    // This ensures the video stays visible longer when scrolling, especially on Safari
     const observer = new IntersectionObserver(
       ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+        
+        // Safari-specific: keep video visible even after exiting viewport
+        if (isSafari.current && !entry.isIntersecting) {
+          // Delay setting isInViewport to false for Safari
+          setTimeout(() => {
+            // Check if we're still not intersecting before setting to false
+            if (!entry.isIntersecting) {
+              setIsInViewport(false);
+            }
+          }, 300); // 300ms delay before hiding on Safari
+          return;
+        }
+        
         setIsInViewport(entry.isIntersecting);
       },
       { 
         threshold: 0.01,  // Trigger when just 1% of element is visible
-        rootMargin: "0px 0px 100px 0px" // Add 100px at the bottom to keep video visible longer
+        rootMargin: "0px 0px 300px 0px" // Increased to 300px at the bottom for Safari
       }
     );
 
@@ -63,9 +80,11 @@ const ScrollVideo: React.FC<{
         videoRef.current.style.transition = "opacity 0s";
       }
     } else {
-      // Scrolling up - set smooth transition
+      // Scrolling up - set smoother transition for Safari
       if (videoRef.current) {
-        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+        // Slower transition for Safari when scrolling up
+        const transitionDuration = isSafari.current ? "0.5s" : "0.3s";
+        videoRef.current.style.transition = `opacity ${transitionDuration} ease-in-out`;
       }
     }
     setLastProgress(progress);
@@ -89,6 +108,13 @@ const ScrollVideo: React.FC<{
         // Make sure playsinline is set for Safari
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
+        
+        // Add additional Safari-specific optimizations to keep video visible
+        video.style.backfaceVisibility = 'hidden'; // Helps with Safari rendering
+        
+        // For Safari, we want to ensure the video stays in memory
+        video.style.display = 'block !important';
+        video.style.visibility = 'visible !important';
       }
       
       // Force initial visibility for mobile devices
@@ -242,8 +268,8 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            // Use longer fade-out transition to make disappearance smoother
-            transition: "opacity 0.5s ease-in-out",
+            // Use much longer fade-out transition for Safari to make disappearance smoother
+            transition: isSafari.current ? "opacity 0.8s ease-in-out" : "opacity 0.5s ease-in-out",
             display: "block",
             visibility: "visible"
           }} 

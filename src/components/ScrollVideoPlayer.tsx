@@ -32,12 +32,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reduce progress threshold to make video scrubbing smoother
-  const progressThreshold = 0.002; 
+  // Further reduce progress threshold for Safari to make video scrubbing smoother
+  const progressThreshold = 0.001; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Add Safari detection
   const isSafari = useRef(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+  // Keep track of the last frame render time to limit frame rate on Safari
+  const lastFrameTimeRef = useRef(0);
+  // For Safari, use a less frequent frame update (e.g., limit to 15fps to improve performance)
+  const safariFrameInterval = 67; // ~15fps
 
   useEffect(() => {
     const video = videoRef.current;
@@ -58,9 +62,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.pause();
     console.log("Video paused during initialization");
 
-    // Safari-specific optimizations
+    // Enhanced Safari-specific optimizations
     if (isSafari.current) {
-      console.log("Applying Safari-specific optimizations");
+      console.log("Applying enhanced Safari-specific optimizations");
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
       
@@ -68,6 +72,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.style.transform = "translate3d(0,0,0)";
       video.style.webkitTransform = "translate3d(0,0,0)";
       video.style.willChange = "contents";
+      
+      // Additional Safari optimizations
+      video.style.backfaceVisibility = "hidden";
+      video.style.webkitBackfaceVisibility = "hidden";
       
       // Make sure the video decoding is prioritized
       if ('playsInline' in video) {
@@ -77,6 +85,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Try to load a frame immediately
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
+      }
+      
+      // Use poster attribute for Safari to show something immediately
+      if (src) {
+        // We don't have a poster, but setting currentTime helps
+        setTimeout(() => {
+          if (!isLoaded && video.readyState >= 1) {
+            video.currentTime = 0.001;
+          }
+        }, 100);
       }
     }
     // Mobile-specific optimizations
@@ -136,10 +154,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // For Safari, throttle frame updates to improve performance
+      const now = performance.now();
+      if (isSafari.current && now - lastFrameTimeRef.current < safariFrameInterval) {
+        // Skip this frame update if we're updating too frequently on Safari
+        return;
+      }
+      
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
       lastProgressRef.current = progress;
+      lastFrameTimeRef.current = now;
       
       // Call the progress change callback
       if (onProgressChange) {
@@ -153,7 +180,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
-        onAfterVideoChange(progress >= 1);
+        
+        // For Safari, send the afterVideo event slightly earlier (at 95% progress)
+        // This helps keep the video visible longer
+        if (isSafari.current) {
+          onAfterVideoChange(progress >= 0.95);
+        } else {
+          onAfterVideoChange(progress >= 1);
+        }
       });
     };
 
@@ -180,7 +214,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: isSafari.current ? 0.6 : (isMobile ? 0.5 : 0.4), // Increased scrub values for Safari
+        scrub: isSafari.current ? 0.8 : (isMobile ? 0.5 : 0.4), // Increased scrub values for Safari even more
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -188,6 +222,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           const progress = self.progress;
           if (isNaN(progress)) return;
           updateVideoFrame(progress);
+        },
+        // Special handling for Safari to keep video visible longer
+        onLeave: () => {
+          if (isSafari.current) {
+            // For Safari, delay hiding the video on leaving the trigger area
+            setTimeout(() => {
+              // Check if we're really outside the trigger area
+              if (scrollTriggerRef.current && 
+                  scrollTriggerRef.current.progress >= 1) {
+                console.log("ScrollTrigger onLeave - video should hide now");
+              }
+            }, 500); // Longer delay for Safari (500ms)
+          }
         }
       });
       
