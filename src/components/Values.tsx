@@ -17,13 +17,13 @@ const Values: React.FC<ValuesProps> = ({
   const content = () => {
     if (isLoading) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto bg-transparent">
-          <div className="hidden xs:block sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
+          <div className="hidden xs:block sm:block md:block col-span-3 bg-transparent">
+            <h2 className="title-sm bg-transparent" style={{
             color: colors.roseWhite
           }}>{title}</h2>
           </div>
-          <div className="col-span-12 md:col-span-9">
-            <div className="mb-24 animate-pulse">
+          <div className="col-span-12 md:col-span-9 bg-transparent">
+            <div className="mb-24 animate-pulse bg-transparent">
               <div className="h-16 bg-gray-800/50 rounded mb-6 w-1/2"></div>
               <div className="h-4 bg-gray-800/50 rounded mb-2 w-full"></div>
               <div className="h-4 bg-gray-800/50 rounded mb-2 w-full"></div>
@@ -35,13 +35,13 @@ const Values: React.FC<ValuesProps> = ({
     if (error) {
       console.error("Error loading values:", error);
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto bg-transparent">
-          <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
+          <div className="hidden sm:block md:block col-span-3 bg-transparent">
+            <h2 className="title-sm bg-transparent" style={{
             color: colors.roseWhite
           }}>{title}</h2>
           </div>
-          <div className="col-span-12 md:col-span-9">
-            <p className="body-text" style={{
+          <div className="col-span-12 md:col-span-9 bg-transparent">
+            <p className="body-text bg-transparent" style={{
             color: colors.coral
           }}>Failed to load values</p>
           </div>
@@ -49,13 +49,13 @@ const Values: React.FC<ValuesProps> = ({
     }
     if (!values || values.length === 0) {
       return <div className="grid grid-cols-12 max-w-[90%] mx-auto bg-transparent">
-          <div className="hidden sm:block md:block col-span-3">
-            <h2 className="title-sm" style={{
+          <div className="hidden sm:block md:block col-span-3 bg-transparent">
+            <h2 className="title-sm bg-transparent" style={{
             color: colors.roseWhite
           }}>{title}</h2>
           </div>
-          <div className="col-span-12 md:col-span-9">
-            <p className="body-text" style={{
+          <div className="col-span-12 md:col-span-9 bg-transparent">
+            <p className="body-text bg-transparent" style={{
             color: colors.coral
           }}>No values available</p>
           </div>
@@ -68,7 +68,7 @@ const Values: React.FC<ValuesProps> = ({
   return (
     <div className="w-full py-24 mb-48 bg-transparent">
       <div className="max-w-[90%] mx-auto mb-16 text-left bg-transparent">
-        <h2 className="title-sm" style={{
+        <h2 className="title-sm bg-transparent" style={{
           color: colors.roseWhite
         }}>{title}</h2>
       </div>
