@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -22,12 +23,36 @@ const ScrollVideo: React.FC<{
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoVisible, setVideoVisible] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isInViewport, setIsInViewport] = useState(true);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
+  // Add intersection observer to detect when video exits viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      { 
+        threshold: 0.01,  // Trigger when just 1% of element is visible
+        rootMargin: "0px" // No additional margin
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
@@ -180,7 +205,7 @@ const ScrollVideo: React.FC<{
           className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
           style={{
             minHeight: "100vh",
-            opacity: videoVisible ? 1 : 0,
+            opacity: videoVisible && isInViewport ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             display: "block",
             visibility: "visible"
