@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 interface ChladniPatternProps {
@@ -56,6 +57,11 @@ const ExportableChladniPattern: React.FC<ChladniPatternProps> = ({ children }) =
       void main(void) {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
+        
+        // Scale factor to make the pattern tile more frequently
+        // Increasing this value makes the pattern smaller and repeat more often
+        float scaleFactor = 2.5; 
+        p = p * scaleFactor;
 
         // Using the user-specified vector values
         vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
