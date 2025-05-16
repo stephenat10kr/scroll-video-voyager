@@ -34,11 +34,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
           setVisible(false);
           const completeTimeout = setTimeout(() => {
             onComplete();
-          }, 500); // Allow time for fade out animation
+          }, 1500); // Increased from 500ms to 1500ms to allow more time for fade out
           return () => clearTimeout(completeTimeout);
-        }, 500); 
+        }, 1000); // Increased from 500ms to 1000ms for a longer delay before starting fade
         return () => clearTimeout(fadeOutTimeout);
-      }, 1000); // Wait a moment at 100% before fading
+      }, 1000); // Keep the 1000ms delay at 100% before starting the fade sequence
       return () => clearTimeout(timeout);
     }
   }, [progress, onComplete]);
@@ -56,7 +56,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 bg-[#203435] ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-1500 bg-[#203435] ${
         visible ? "opacity-100" : "opacity-0"
       }`}
     >
