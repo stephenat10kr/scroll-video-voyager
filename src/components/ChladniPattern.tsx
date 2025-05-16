@@ -64,24 +64,31 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         const float PI = 3.14159265;
         vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
-        // New start and end values for a different visual effect
-        vec4 s1 = vec4(3.5, 2.0, 3.0, 1.5);    // Start values
+        // Pattern parameters
+        vec4 s1 = vec4(3.5, 2.0, 3.0, 1.5);    // Base values
         vec4 s2 = vec4(-2.0, 5.0, 4.5, 2.8);   // End values
         
-        float tx = sin(u_time)*0.1; 
-        float ty = cos(u_time)*0.1; 
+        // Time affects frequency parameters
+        float timeInfluence = sin(u_time * 0.5) * 0.2;
+        float n = mix(s1.z, s2.z, 0.5 + timeInfluence);
+        float m = mix(s1.w, s2.w, 0.5 - timeInfluence);
         
-        float a = mix(s1.x, s2.x, u_xy.x+tx);
-        float b = mix(s1.y, s2.y, u_xy.x+tx);
-        float n = mix(s1.z, s2.z, u_xy.y+ty);
-        float m = mix(s1.w, s2.w, u_xy.y+ty);
+        // Scroll affects phase of the pattern
+        float scrollPhaseX = u_xy.y * PI * 2.0; // Scroll controls phase shift
+        float scrollPhaseY = u_xy.y * PI * 1.5;
         
+        // Amplitude coefficients
+        float a = s1.x;
+        float b = s1.y;
+        
+        // Pattern calculation with phase shift controlled by scrolling
         float max_amp = abs(a) + abs(b);
-        float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
+        float amp = a * sin(PI*n*p.x + scrollPhaseX) * sin(PI*m*p.y) + 
+                   b * sin(PI*m*p.x) * sin(PI*n*p.y + scrollPhaseY);
+        
         float pattern = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
         
         // Use pure white with carefully controlled alpha
-        // Premultiply the alpha to prevent color bleeding
         float alpha = pattern * 0.5;
         vec3 color = vec3(1.0, 1.0, 1.0);
         gl_FragColor = vec4(color * alpha, alpha); // Premultiplied alpha
