@@ -12,7 +12,7 @@ const Index = () => {
   return (
     <div className="min-h-screen w-full relative">
       <Video />
-      <div className="relative" style={{ zIndex: 2 }}>
+      <div className="content-overlay relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
