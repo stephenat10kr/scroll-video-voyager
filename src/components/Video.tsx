@@ -14,7 +14,6 @@ const Video = () => {
   
   const [loadProgress, setLoadProgress] = useState(0);
   const [showPreloader, setShowPreloader] = useState(true);
-  const [videoVisible, setVideoVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoAttemptsRef = useRef(0);
@@ -200,14 +199,8 @@ const Video = () => {
   }, [showPreloader]);
 
   const handlePreloaderComplete = () => {
-    // Instead of immediately hiding the preloader, make the video visible first
-    setVideoVisible(true);
-    
-    // Then after a short delay, remove the preloader from the DOM
-    setTimeout(() => {
-      setShowPreloader(false);
-      document.body.style.overflow = 'auto'; // Re-enable scrolling
-    }, 500); // Small delay to ensure smooth transition
+    setShowPreloader(false);
+    document.body.style.overflow = 'auto'; // Re-enable scrolling
   };
 
   // Log for debugging
@@ -218,21 +211,15 @@ const Video = () => {
   console.log('Video component - progress:', loadProgress);
 
   return (
-    <div className="relative">
-      <div 
-        className={`transition-opacity duration-2000 ease-in-out ${videoVisible ? 'opacity-100' : 'opacity-0'}`}
-        style={{ transitionDelay: '500ms' }} // Delay the video fade-in slightly
-      >
-        <ScrollVideo src={videoSrc} />
-      </div>
-      
+    <>
       {showPreloader && (
         <Preloader 
           progress={loadProgress} 
           onComplete={handlePreloaderComplete} 
         />
       )}
-    </div>
+      <ScrollVideo src={videoSrc} />
+    </>
   );
 };
 
