@@ -1,11 +1,11 @@
 
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
-import colors from "@/lib/theme";
+import { colors } from "@/lib/theme";
 
 const Footer = () => {
   return (
-    <footer className="h-[128px] w-full flex justify-between items-center px-8 bg-transparent">
+    <footer className="h-[128px] w-full flex justify-between items-center px-8" style={{ backgroundColor: colors.darkGreen }}>
       <div className="w-auto h-14">
         <Logo />
       </div>

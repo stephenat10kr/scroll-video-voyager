@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
+import { colors } from "@/lib/theme";
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -109,7 +110,7 @@ const RevealText = () => {
   }, [revealTextContent]);
 
   if (isLoading) {
-    return <div className="w-full py-24 bg-transparent">
+    return <div className="w-full py-24" style={{ backgroundColor: colors.darkGreen }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div className="col-span-12 md:col-span-9 h-32 animate-pulse bg-gray-800/50 rounded" />
         </div>
@@ -122,7 +123,7 @@ const RevealText = () => {
 
   return (
     <>
-      <div className="w-full py-24 bg-transparent">
+      <div className="w-full py-24" style={{ backgroundColor: colors.darkGreen }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8" style={{
             background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
