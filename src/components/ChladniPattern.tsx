@@ -55,30 +55,51 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       uniform vec2 u_resolution;
       uniform float u_time;
       uniform vec2 u_xy;
+      uniform bool u_isMobile;
       
       void main(void) {
         const float PI = 3.14159265;
-        // Scale factor - higher values = more zoomed out pattern
-        float scale = 0.35; // Zoomed out significantly (was possibly around 1.0)
-        vec2 p = scale * (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
+        vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
 
-        vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
-        vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
+        // Scale factor for mobile - increased from 2.0 to 3.5
+        float scaleFactor = u_isMobile ? 3.5 : 2.0; // Changed from 1.0 to 2.0 for desktop
+        p = p * scaleFactor; // Scale the coordinates to make the pattern larger (effectively makes it appear smaller)
 
-        float tx = sin(u_time)*0.1; 
-        float ty = cos(u_time)*0.1; 
+        // Using the user-specified vector values
+        vec4 s1 = vec4(4.0, 4.0, 1.0, 4.0);
+        vec4 s2 = vec4(-3.0, 2.0, 4.0, 2.6);
 
-        float a = mix(s1.x, s2.x, u_xy.x+tx);
-        float b = mix(s1.y, s2.y, u_xy.x+tx);
-        float n = mix(s1.z, s2.z, u_xy.y+ty);
-        float m = mix(s1.w, s2.w, u_xy.y+ty);
-
-        float max_amp = abs(a) + abs(b);
-        float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
-        float col = 1.0 - smoothstep(abs(amp), 0.0, 0.1);
+        // Reduce scroll effect by lowering the amplification factor
+        float scrollFactor = u_xy.y; // Linear response instead of squared
         
-        // Output white pattern on transparent background
-        gl_FragColor = vec4(vec3(1.0), col * 0.7);
+        // Create less dramatic time variation
+        float tx = sin(u_time * 0.2) * 0.1; 
+        float ty = cos(u_time * 0.3) * 0.1;
+
+        // Reduce parameter variation based on scroll
+        float a = mix(s1.x, s2.x, clamp(u_xy.x + tx + scrollFactor * 0.5, 0.0, 1.0));
+        float b = mix(s1.y, s2.y, clamp(u_xy.x + tx + scrollFactor * 0.4, 0.0, 1.0));
+        float n = mix(s1.z, s2.z, clamp(u_xy.y + ty + scrollFactor * 0.6, 0.0, 1.0));
+        float m = mix(s1.w, s2.w, clamp(u_xy.y + ty + scrollFactor * 0.5, 0.0, 1.0));
+
+        // Create a secondary pattern with different parameters that becomes more visible with scrolling
+        float amp1 = a * sin(PI * n * p.x) * sin(PI * m * p.y) +
+                     b * sin(PI * m * p.x) * sin(PI * n * p.y);
+        
+        float amp2 = b * sin(PI * (n+1.0) * p.y) * sin(PI * (m-0.5) * p.x) + 
+                     a * sin(PI * (m+1.0) * p.y) * sin(PI * (n-0.5) * p.x);
+        
+        // Blend between patterns based on scroll position with reduced effect
+        float amp = mix(amp1, amp2, scrollFactor * 0.5);
+                
+        // Create defined pattern edges with milder threshold
+        // Increased from 0.08 to 0.12 for mobile
+        float threshold = u_isMobile ? 0.12 : 0.05; // Higher threshold on mobile for larger gaps between lines
+        threshold += 0.03 * sin(scrollFactor * PI);
+        float col = 1.0 - smoothstep(abs(amp), 0.0, threshold);
+        
+        // Set 50% opacity (0.5) while keeping white color (1.0, 1.0, 1.0)
+        gl_FragColor = vec4(1.0, 1.0, 1.0, col * 0.5);
       }
     `;
     
@@ -136,21 +157,21 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     // Animation
     let startTime = Date.now();
     
-    // Function to update based on scroll position
+    // Function to update scroll-based XY values with reduced effect
     const updateScrollXY = () => {
       if (!gl || !program) return;
       
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       
-      // Normalize scroll position to a value between 0 and 1
+      // Simple linear scroll normalization - less dramatic changes as you scroll
       let yNorm = scrollHeight > 0 ? scrollY / scrollHeight : 0;
       
       const currentTime = Date.now();
       const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
       
       // Clear and set viewport
-      gl.clearColor(0, 0, 0, 0); // Transparent background
+      gl.clearColor(0.125, 0.204, 0.208, 1.0); // #203435 converted to RGB values
       gl.clear(gl.COLOR_BUFFER_BIT);
       
       // Use the program
@@ -161,11 +182,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
       const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
       const xyUniformLocation = gl.getUniformLocation(program, 'u_xy');
+      const isMobileUniformLocation = gl.getUniformLocation(program, 'u_isMobile');
       
       // Set uniforms
       gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
       gl.uniform1f(timeUniformLocation, elapsedTime);
-      gl.uniform2f(xyUniformLocation, 0.5, yNorm); // Use scroll position for Y value
+      gl.uniform2f(xyUniformLocation, 0.5, yNorm);
+      gl.uniform1i(isMobileUniformLocation, isMobile ? 1 : 0);
       
       // Set up attributes
       gl.enableVertexAttribArray(positionAttributeLocation);
@@ -179,7 +202,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     };
     
     // Start rendering
-    console.log('Starting render loop with scroll-based pattern');
+    console.log('Starting render loop with scroll-based morphing');
     updateScrollXY();
     return true;
   };
@@ -234,9 +257,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     // Listen for window resize as well for good measure
     window.addEventListener('resize', resizeCanvas);
     
-    // Also update on scroll to handle responsive changes
-    window.addEventListener('scroll', resizeCanvas);
-    
     // Cleanup function
     return () => {
       clearTimeout(initialSetupTimeout);
@@ -246,7 +266,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       }
       
       window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('scroll', resizeCanvas);
       
       if (frameIdRef.current !== null) {
         cancelAnimationFrame(frameIdRef.current);
@@ -275,8 +294,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full bg-black"
-      style={{ position: 'relative', overflow: 'hidden' }}
+      className="relative w-full h-full bg-[#203435]"
+      style={{ position: 'relative', overflow: 'hidden', backgroundColor: colors.darkGreen }}
     >
       <canvas 
         ref={canvasRef}
@@ -288,7 +307,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
           width: '100%',
           height: '100%',
           zIndex: 0,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          opacity: isMobile ? 0.3 : 0.5 // Further reduced opacity on mobile from 0.35 to 0.3
         }}
       />
       <div className="relative z-10">
