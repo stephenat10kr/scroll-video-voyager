@@ -62,9 +62,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       
       void main(void) {
         const float PI = 3.14159265;
-        
-        // Scale down coordinates to zoom out (reduced from 2.0 to 0.8 for zooming out)
-        vec2 p = (0.8 * gl_FragCoord.xy - u_resolution.xy * 0.4) / u_resolution.y;
+        vec2 p = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
         
         vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
         vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
