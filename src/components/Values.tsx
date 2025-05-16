@@ -24,7 +24,7 @@ const Values: React.FC<ValuesProps> = ({
   useEffect(() => {
     const observerOptions = {
       root: null, // viewport
-      rootMargin: "200px 0px 0px 0px", // Increased top margin to trigger earlier
+      rootMargin: "200px 0px -33vh 0px", // Added negative bottom margin to make background stay longer
       threshold: 0.01 // Lower threshold so it triggers with minimal visibility
     };
     
