@@ -24,8 +24,8 @@ const Values: React.FC<ValuesProps> = ({
   useEffect(() => {
     const observerOptions = {
       root: null, // viewport
-      rootMargin: "0px",
-      threshold: 0.1 // trigger when 10% of section is visible
+      rootMargin: "200px 0px 0px 0px", // Increased top margin to trigger earlier
+      threshold: 0.01 // Lower threshold so it triggers with minimal visibility
     };
     
     const observer = new IntersectionObserver((entries) => {
