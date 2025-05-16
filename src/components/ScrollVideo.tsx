@@ -157,7 +157,7 @@ const ScrollVideo: React.FC<{
     <div 
       ref={containerRef} 
       className="relative w-full min-h-screen overflow-hidden bg-black" 
-      style={{ zIndex: 10 }} // Increased z-index for the container
+      style={{ zIndex: 5 }} // Video section has z-index 5
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -178,14 +178,14 @@ const ScrollVideo: React.FC<{
           loop={false} 
           muted 
           tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
+          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
           style={{
             minHeight: "100vh",
             opacity: videoVisible ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             display: "block",
             visibility: "visible",
-            zIndex: 10 // Added explicit z-index to ensure video is above background
+            zIndex: 1 // Lower z-index for the video within its container
           }} 
         />
       </ScrollVideoPlayer>

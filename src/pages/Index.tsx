@@ -11,7 +11,7 @@ import Footer from "../components/Footer";
 const Index = () => {
   return (
     <div className="bg-[#203435] min-h-screen w-full relative">
-      {/* Fixed blue background - moved from Values component */}
+      {/* Fixed blue background - at the lowest z-index */}
       <div className="fixed top-0 left-0 w-full h-full" style={{ zIndex: -1 }}>
         {/* Main blue background with pattern */}
         <div 
@@ -36,13 +36,13 @@ const Index = () => {
         ></div>
       </div>
       
-      {/* Video section with high z-index to ensure it's above background */}
-      <div className="relative" style={{ zIndex: 5 }}>
+      {/* Video section - z-index of container is set in the ScrollVideo component */}
+      <div className="relative">
         <Video />
       </div>
       
-      {/* Content sections with proper z-index */}
-      <div className="relative" style={{ zIndex: 2 }}>
+      {/* Content sections with higher z-index to appear above video */}
+      <div className="relative" style={{ zIndex: 6 }}>
         <RevealText />
         <Values title="VALUES" />
         <Rituals title="RITUALS" />
