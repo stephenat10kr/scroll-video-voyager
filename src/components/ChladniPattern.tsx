@@ -57,7 +57,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     gl.shaderSource(fragmentShader, `
       precision mediump float;
       uniform vec2 u_resolution;
-      uniform float u_time;
       uniform vec2 u_xy;
       
       void main(void) {
@@ -67,13 +66,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         vec4 s1 = vec4(1.0, 1.0, 1.0, 2.0);
         vec4 s2 = vec4(-4.0, 4.0, 4.0, 4.6);
         
-        float tx = sin(u_time)*0.1; 
-        float ty = cos(u_time)*0.1; 
-        
-        float a = mix(s1.x, s2.x, u_xy.x+tx);
-        float b = mix(s1.y, s2.y, u_xy.x+tx);
-        float n = mix(s1.z, s2.z, u_xy.y+ty);
-        float m = mix(s1.w, s2.w, u_xy.y+ty);
+        float a = mix(s1.x, s2.x, u_xy.x);
+        float b = mix(s1.y, s2.y, u_xy.x);
+        float n = mix(s1.z, s2.z, u_xy.y);
+        float m = mix(s1.w, s2.w, u_xy.y);
         
         float max_amp = abs(a) + abs(b);
         float amp = a * sin(PI*n*p.x) * sin(PI*m*p.y) + b * sin(PI*m*p.x) * sin(PI*n*p.y);
@@ -123,7 +119,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     // Get attribute and uniform locations
     const positionLocation = gl.getAttribLocation(program, 'a_position');
     const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
-    const timeLocation = gl.getUniformLocation(program, 'u_time');
     const xyLocation = gl.getUniformLocation(program, 'u_xy');
     
     gl.enableVertexAttribArray(positionLocation);
@@ -131,9 +126,6 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     // Set resolution uniform
     gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-    
-    // Start time tracking
-    const startTime = Date.now();
     
     // Enable proper blending for premultiplied alpha
     gl.enable(gl.BLEND);
@@ -144,16 +136,13 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
     
     // Animation and scroll interaction
     const render = () => {
-      // Update time uniform (in seconds)
-      const currentTime = (Date.now() - startTime) / 1000;
-      gl.uniform1f(timeLocation, currentTime);
-      
       // Update xy uniform based on scroll position
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
       
-      gl.uniform2f(xyLocation, 0.5, scrollProgress);
+      // Use scrollProgress for both x and y components to create more variation
+      gl.uniform2f(xyLocation, scrollProgress * 0.5, scrollProgress);
       
       // Draw
       gl.clear(gl.COLOR_BUFFER_BIT);
