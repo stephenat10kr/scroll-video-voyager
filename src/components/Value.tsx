@@ -2,7 +2,6 @@
 import React, { useEffect, useRef } from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
-import FlipText from "./FlipText";
 
 interface ValueProps {
   valueTitle: string;
@@ -33,7 +32,7 @@ const Value: React.FC<ValueProps> = ({
     );
 
     if (titleRef.current) {
-      observer.unobserve(titleRef.current);
+      observer.observe(titleRef.current);
     }
 
     return () => {
@@ -47,10 +46,10 @@ const Value: React.FC<ValueProps> = ({
     <div className={`w-full h-screen flex flex-col justify-center bg-transparent ${isLast ? '' : 'mb-6'}`}>
       <h2 
         ref={titleRef}
-        className="title-xl mb-6 text-center py-[56px] bg-transparent" 
+        className="title-xl mb-6 text-center py-[56px] bg-transparent opacity-0 transform translate-y-10 transition-all duration-700 ease-out" 
         style={{ color: colors.coral }}
       >
-        <FlipText text={valueTitle} />
+        {valueTitle}
       </h2>
       
       {/* Spinner component placed between title and text */}
