@@ -55,7 +55,8 @@ const FlipText: React.FC<FlipTextProps> = ({ text, className = "", style = {} })
         className={`flip-text ${isVisible ? 'flip-visible' : ''}`}
         data-text={text}
       >
-        {text}
+        {/* Empty space instead of text */}
+        {!isVisible ? '\u00A0' : text}
       </span>
     </span>
   );
