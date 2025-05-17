@@ -6,8 +6,10 @@ import { colors } from "@/lib/theme";
 const Footer = () => {
   return (
     <footer className="h-[128px] w-full flex justify-between items-center px-8" style={{ backgroundColor: colors.darkGreen }}>
-      <div className="w-auto h-14">
-        <Logo />
+      <div className="flex-1 flex justify-start">
+        <div className="w-auto h-14">
+          <Logo />
+        </div>
       </div>
       <div className="flex flex-col items-end gap-4">
         <div className="flex gap-6">
