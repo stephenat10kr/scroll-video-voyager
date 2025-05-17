@@ -67,7 +67,8 @@ const FlipText: React.FC<FlipTextProps> = ({
           transformStyle: 'preserve-3d'
         }}
       >
-        {text}
+        {/* Render an empty space with same width but opacity 0 */}
+        <span style={{ opacity: 0 }}>{text}</span>
       </span>
     </span>
   );

@@ -1,3 +1,4 @@
+
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -31,6 +32,7 @@ html, body {
 /* Flip text animation */
 .flip-text {
   backface-visibility: hidden;
+  min-height: 1em; /* Ensure container has height even when empty */
 }
 
 .flip-text::before {
