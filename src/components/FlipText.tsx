@@ -16,25 +16,21 @@ const FlipText: React.FC<FlipTextProps> = ({
 }) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const hasAnimated = useRef(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Element is entering the viewport
             setIsVisible(true);
-            hasAnimated.current = true;
-          } else if (entry.intersectionRatio === 0) {
-            // Only reset when completely out of view
-            hasAnimated.current = false;
+          } else {
+            // Reset animation when it's out of view
             setIsVisible(false);
           }
         });
       },
       {
-        threshold: [0, 0.5], // Observe at 0% and 50% visibility 
+        threshold: 0.5, // Trigger when 50% of element is visible
         rootMargin: '-5% 0px' // Slightly offset to trigger closer to middle
       }
     );
@@ -71,8 +67,7 @@ const FlipText: React.FC<FlipTextProps> = ({
           transformStyle: 'preserve-3d'
         }}
       >
-        {/* Render an empty space with same width but opacity 0 */}
-        <span style={{ opacity: 0 }}>{text}</span>
+        {text}
       </span>
     </span>
   );
