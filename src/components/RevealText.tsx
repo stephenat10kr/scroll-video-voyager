@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -89,7 +88,7 @@ const RevealText = () => {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
-        start: "top bottom-=100",
+        start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
         end: "bottom center",
         scrub: 0.5,
         markers: false
