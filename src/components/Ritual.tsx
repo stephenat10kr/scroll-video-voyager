@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { AspectRatio } from "./ui/aspect-ratio";
 import colors from "@/lib/theme";
@@ -91,8 +90,8 @@ const Ritual: React.FC<RitualProps> = ({
       
       {/* Gap at columns 6-7 is created by the grid and gap-8 */}
       
-      {/* Text Section - Always on right (cols 8-12) */}
-      <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center relative" style={{
+      {/* Text Section - Updated to end at column 11 */}
+      <div className="col-span-12 md:col-span-5 md:col-start-8 md:col-end-11 flex flex-col justify-center relative" style={{
       zIndex: 15
     }}>
         <h2 className="title-md mb-6 text-center md:text-left" style={{
