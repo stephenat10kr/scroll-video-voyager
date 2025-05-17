@@ -109,14 +109,14 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
         
         {/* Text Section - Below image on mobile (cols 1-12) */}
         <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center relative" style={{ zIndex: 15 }}>
-          <h2 className="title-md mb-6" style={{
+          <h2 className="title-md mb-6 text-center md:text-left" style={{
             color: colors.darkGreen
           }}>
             {title}
           </h2>
           <div className="space-y-4">
             {description.map((paragraph, idx) => (
-              <p key={idx} className="body md:body-mobile" style={{
+              <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
                 color: colors.darkGreen
               }}>
                 {paragraph}
@@ -133,14 +133,14 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
     <div className="grid grid-cols-12 gap-8 mb-16 last:mb-0 relative" style={{ zIndex: 10 }}>
       {/* Text Section - Always on left (cols 1-5) */}
       <div className="col-span-12 md:col-span-5 md:col-start-1 flex flex-col justify-center relative" style={{ zIndex: 15 }}>
-        <h2 className="title-md mb-6" style={{
+        <h2 className="title-md mb-6 text-center md:text-left" style={{
           color: colors.darkGreen
         }}>
           {title}
         </h2>
         <div className="space-y-4">
           {description.map((paragraph, idx) => (
-            <p key={idx} className="body md:body-mobile" style={{
+            <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
               color: colors.darkGreen
             }}>
               {paragraph}

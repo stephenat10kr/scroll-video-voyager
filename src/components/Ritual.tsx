@@ -95,13 +95,13 @@ const Ritual: React.FC<RitualProps> = ({
       <div className="col-span-12 md:col-span-5 md:col-start-8 flex flex-col justify-center relative" style={{
       zIndex: 15
     }}>
-        <h2 className="title-md mb-6" style={{
+        <h2 className="title-md mb-6 text-center md:text-left" style={{
         color: colors.darkGreen
       }}>
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile" style={{
+          {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
           color: colors.darkGreen
         }}>
               {paragraph}
