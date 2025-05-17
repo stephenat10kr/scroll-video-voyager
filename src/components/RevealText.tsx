@@ -79,7 +79,10 @@ const RevealText = () => {
 
     // Create HTML structure with words and characters wrapped in spans
     const formattedHTML = words.map(word => {
-      const charSpans = word.split("").map(char => `<span class="char">${char}</span>`).join("");
+      // Update the character spans to have display: inline-block and padding-bottom
+      const charSpans = word.split("").map(char => 
+        `<span class="char" style="display: inline-block; padding-bottom: 0.2em;">${char}</span>`
+      ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
     text.innerHTML = formattedHTML;
