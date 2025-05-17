@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Form from "./Form";
+import { colors } from "@/lib/theme";
 
 // HubSpot Portal ID and Form ID extracted from the share link
 const HUBSPOT_PORTAL_ID = "242761887";
@@ -13,7 +14,7 @@ const Navigation = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full h-[80px] bg-transparent z-50 flex items-center justify-between px-8">
+      <nav className="fixed top-0 left-0 w-full h-[80px] z-50 flex items-center justify-between px-8" style={{ backgroundColor: colors.darkGreen }}>
         <div></div> {/* Empty div to maintain flexbox spacing */}
         <Button 
           variant="default" 
