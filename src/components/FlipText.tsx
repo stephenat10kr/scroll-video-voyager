@@ -22,15 +22,16 @@ const FlipText: React.FC<FlipTextProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            // Element is entering the viewport
             setIsVisible(true);
-          } else {
-            // Reset animation when it's out of view
+          } else if (entry.intersectionRatio === 0) {
+            // Element is completely out of the viewport (0% visible)
             setIsVisible(false);
           }
         });
       },
       {
-        threshold: 0.5, // Trigger when 50% of element is visible
+        threshold: [0, 0.5], // Observe at 0% and 50% visibility 
         rootMargin: '-5% 0px' // Slightly offset to trigger closer to middle
       }
     );
