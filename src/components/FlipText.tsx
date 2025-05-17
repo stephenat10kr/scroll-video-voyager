@@ -16,6 +16,7 @@ const FlipText: React.FC<FlipTextProps> = ({
 }) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -24,9 +25,10 @@ const FlipText: React.FC<FlipTextProps> = ({
           if (entry.isIntersecting) {
             // Element is entering the viewport
             setIsVisible(true);
+            hasAnimated.current = true;
           } else if (entry.intersectionRatio === 0) {
-            // Element is completely out of the viewport (0% visible)
-            // Reset the animation state when completely out of view
+            // Only reset when completely out of view
+            hasAnimated.current = false;
             setIsVisible(false);
           }
         });

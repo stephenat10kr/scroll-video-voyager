@@ -51,6 +51,7 @@ html, body {
 
 .flip-text.flip-visible {
   transform: rotateX(90deg) translateY(-50%);
+  transition: transform 0.6s;
 }
 
 .flip-text.flip-visible::before {
