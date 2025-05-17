@@ -15,13 +15,17 @@ const Value: React.FC<ValueProps> = ({
   isLast = false
 }) => {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const titleContentRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('animate-title');
+            // When element is in viewport, add the flipped class to apply the animation
+            if (titleContentRef.current) {
+              titleContentRef.current.classList.add('flipped');
+            }
           }
         });
       },
@@ -46,10 +50,16 @@ const Value: React.FC<ValueProps> = ({
     <div className={`w-full h-screen flex flex-col justify-center bg-transparent ${isLast ? '' : 'mb-6'}`}>
       <h2 
         ref={titleRef}
-        className="title-xl mb-6 text-center py-[56px] bg-transparent opacity-0 transform translate-y-10 transition-all duration-700 ease-out" 
-        style={{ color: colors.coral }}
+        className="flip-text title-xl mb-6 text-center py-[56px] bg-transparent" 
       >
-        {valueTitle}
+        <span 
+          ref={titleContentRef}
+          className="flip-text-content"
+          data-text={valueTitle}
+          style={{ color: colors.coral }}
+        >
+          {valueTitle}
+        </span>
       </h2>
       
       {/* Spinner component placed between title and text */}
