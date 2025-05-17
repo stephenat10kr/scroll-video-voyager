@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -26,25 +27,25 @@ export default {
 				'sans': ['Cabin', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', "Noto Sans", 'sans-serif'],
 			},
 			fontSize: {
-				// Title-XL (new)
+				// Title-XL (updated)
 				'title-xl': ['112px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
 					fontWeight: 'normal',
 				}],
-				'title-xl-mobile': ['56px', {
+				'title-xl-mobile': ['72px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
 					fontWeight: 'normal',
 				}],
 				
-				// Title-Lg
+				// Title-Lg (updated)
 				'title-lg': ['96px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
 					fontWeight: 'normal',
 				}],
-				'title-lg-mobile': ['48px', {
+				'title-lg-mobile': ['56px', {
 					lineHeight: '1.1',
 					letterSpacing: '-0.02em',
 					fontWeight: 'normal',
