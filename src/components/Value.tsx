@@ -2,7 +2,6 @@
 import React, { useEffect, useRef } from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
-import FlipText from "./FlipText";
 
 interface ValueProps {
   valueTitle: string;
@@ -15,7 +14,7 @@ const Value: React.FC<ValueProps> = ({
   valueText,
   isLast = false
 }) => {
-  const titleRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -45,17 +44,13 @@ const Value: React.FC<ValueProps> = ({
 
   return (
     <div className={`w-full h-screen flex flex-col justify-center bg-transparent ${isLast ? '' : 'mb-6'}`}>
-      <div 
+      <h2 
         ref={titleRef}
-        className="py-[56px] bg-transparent opacity-0 transform translate-y-10 transition-all duration-700 ease-out text-center"
+        className="title-xl mb-6 text-center py-[56px] bg-transparent opacity-0 transform translate-y-10 transition-all duration-700 ease-out" 
+        style={{ color: colors.coral }}
       >
-        <h2 
-          className="title-xl bg-transparent" 
-          style={{ color: colors.coral }}
-        >
-          <FlipText text={valueTitle} color={colors.coral} />
-        </h2>
-      </div>
+        {valueTitle}
+      </h2>
       
       {/* Spinner component placed between title and text */}
       <div className="flex justify-center bg-transparent">
