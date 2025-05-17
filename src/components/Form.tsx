@@ -118,7 +118,7 @@ export default function Form({
   };
 
   return <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:w-[540px] border-none">
+      <SheetContent className="w-full sm:w-[540px] border-none bg-darkGreen">
         <div className="relative">
           <Button 
             variant="default" 
