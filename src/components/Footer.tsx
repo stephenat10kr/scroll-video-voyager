@@ -6,12 +6,12 @@ import { colors } from "@/lib/theme";
 const Footer = () => {
   return (
     <footer className="h-[128px] w-full flex justify-between items-center px-8" style={{ backgroundColor: colors.darkGreen }}>
-      <div className="flex-1 flex justify-start">
+      <div className="w-auto">
         <div className="w-auto h-14">
           <Logo />
         </div>
       </div>
-      <div className="flex flex-col items-end gap-4">
+      <div className="flex-1 flex flex-col items-end gap-4">
         <div className="flex gap-6">
           <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="hover:opacity-80 transition-opacity">
