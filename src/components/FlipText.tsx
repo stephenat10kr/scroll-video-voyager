@@ -26,6 +26,7 @@ const FlipText: React.FC<FlipTextProps> = ({
             setIsVisible(true);
           } else if (entry.intersectionRatio === 0) {
             // Element is completely out of the viewport (0% visible)
+            // Reset the animation state when completely out of view
             setIsVisible(false);
           }
         });
