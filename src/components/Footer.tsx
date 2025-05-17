@@ -41,7 +41,7 @@ const Footer = () => {
             </svg>
           </Link>
         </div>
-        <span className="text-body-sm-mobile md:text-body-sm text-[#FFF4F1]">
+        <span className="text-body-sm-mobile md:text-body-sm text-[#FFF4F1] text-right w-full">
           © Lightning Society 2025
         </span>
       </div>
