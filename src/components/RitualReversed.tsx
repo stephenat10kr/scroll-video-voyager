@@ -77,16 +77,15 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
                 clipPath: "url(#starMaskMobile)",
                 WebkitClipPath: "url(#starMaskMobile)"
               }}>
-                  <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full" />
-                </div>
-                
-                {/* Standalone border SVG that sits on top */}
-                <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M89.7 36.3L78.4 31.8C73.4 30.5 69.0 27.2 66.7 23.2C66.2 22.3 65.7 21.4 65.4 20.4L62.6 9.4C61.3 4.0 55.3 0.3 50.0 0.3C44.6 0.3 38.6 4.0 37.3 9.4L34.4 20.4C34.1 21.4 33.7 22.3 33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3.0 39.0 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29.0 70.2 31.1 72.6C32.4 74.0 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96.0 44.6 99.7 50.0 99.7C55.3 99.7 61.3 96.0 62.6 90.6L66.0 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39.0 89.7 36.3Z" fill="none" stroke="url(#strokeGradientMobile)" strokeWidth="2" vectorEffect="non-scaling-stroke" transform="scale(0.998)" style={{
+                <img src={imageSrc} alt={imageAlt} className="object-cover w-full h-full" />
+              </div>
+              
+              {/* Standalone border SVG that sits on top */}
+              <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M89.7 36.3L78.4 31.8C73.4 30.5 69.0 27.2 66.7 23.2C66.2 22.3 65.7 21.4 65.4 20.4L62.6 9.4C61.3 4.0 55.3 0.3 50.0 0.3C44.6 0.3 38.6 4.0 37.3 9.4L34.4 20.4C34.1 21.4 33.7 22.3 33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3.0 39.0 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29.0 70.2 31.1 72.6C32.4 74.0 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96.0 44.6 99.7 50.0 99.7C55.3 99.7 61.3 96.0 62.6 90.6L66.0 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39.0 89.7 36.3Z" fill="none" stroke="url(#strokeGradientMobile)" strokeWidth="2" vectorEffect="non-scaling-stroke" transform="scale(0.998)" style={{
                   transformOrigin: 'center'
                 }} />
-                </svg>
-              </div>
+              </svg>
             </AspectRatio>
           </div>
         </div>
@@ -101,7 +100,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
             {title}
           </h2>
           <div className="space-y-4">
-            {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
+            {description.map((paragraph, idx) => <p key={idx} className="body-text text-center md:text-left" style={{
             color: colors.darkGreen
           }}>
                 {paragraph}
@@ -125,7 +124,7 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
+          {description.map((paragraph, idx) => <p key={idx} className="body-text text-center md:text-left" style={{
           color: colors.darkGreen
         }}>
               {paragraph}
@@ -170,8 +169,8 @@ const RitualReversed: React.FC<RitualReversedProps> = ({
               {/* Standalone border SVG that sits on top - fixed alignment */}
               <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M89.7 36.3L78.4 31.8C73.4 30.5 69.0 27.2 66.7 23.2C66.2 22.3 65.7 21.4 65.4 20.4L62.6 9.4C61.3 4.0 55.3 0.3 50.0 0.3C44.6 0.3 38.6 4.0 37.3 9.4L34.4 20.4C34.1 21.4 33.7 22.3 33.2 23.2C30.9 27.2 26.5 30.5 21.5 31.8L10.2 36.3C3.0 39.0 0.1 44.1 0.1 49.7C0.1 56.3 3.2 60.4 10.1 63.5L22.5 67.7C25.8 68.5 29.0 70.2 31.1 72.6C32.4 74.0 33.4 75.7 33.9 77.6L37.3 90.6C38.6 96.0 44.6 99.7 50.0 99.7C55.3 99.7 61.3 96.0 62.6 90.6L66.0 77.6C66.4 76.3 66.9 75.1 67.6 74.1C69.7 70.9 73.4 68.6 77.4 67.7L89.8 63.5C96.7 60.4 99.8 56.3 99.8 49.7C99.8 44.1 96.9 39.0 89.7 36.3Z" fill="none" stroke="url(#strokeGradientReversed)" strokeWidth="2" vectorEffect="non-scaling-stroke" transform="scale(0.998)" style={{
-                transformOrigin: 'center'
-              }} />
+                  transformOrigin: 'center'
+                }} />
               </svg>
             </div>
           </AspectRatio>

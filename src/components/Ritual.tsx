@@ -100,7 +100,7 @@ const Ritual: React.FC<RitualProps> = ({
           {title}
         </h2>
         <div className="space-y-4">
-          {description.map((paragraph, idx) => <p key={idx} className="body md:body-mobile text-center md:text-left" style={{
+          {description.map((paragraph, idx) => <p key={idx} className="body-text text-center md:text-left" style={{
           color: colors.darkGreen
         }}>
               {paragraph}
