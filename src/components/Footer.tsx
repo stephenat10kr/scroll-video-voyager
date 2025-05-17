@@ -5,7 +5,7 @@ import { colors } from "@/lib/theme";
 
 const Footer = () => {
   return (
-    <footer className="h-[128px] w-full flex justify-between items-center px-8" style={{ backgroundColor: colors.darkGreen }}>
+    <footer className="h-[128px] w-full flex justify-between items-center pl-0 pr-8" style={{ backgroundColor: colors.darkGreen }}>
       <div className="w-auto h-14 flex items-center pl-0">
         <Logo />
       </div>
