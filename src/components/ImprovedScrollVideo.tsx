@@ -1,8 +1,10 @@
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroText from "./HeroText";
+import { useQuery } from "@tanstack/react-query";
+import { contentfulClient } from "@/lib/contentfulClient";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,14 +12,49 @@ interface ImprovedScrollVideoProps {
   src?: string;
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const heroTextRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+
+  // Fetch Hero Video from Contentful
+  const { data: heroVideo } = useQuery({
+    queryKey: ['heroVideo'],
+    queryFn: async () => {
+      try {
+        // Fetch the asset with ID 5LzoveNWfrc4blO79Fr80U
+        const response = await contentfulClient.getAsset('5LzoveNWfrc4blO79Fr80U');
+        console.log("Hero video from Contentful:", response);
+        
+        if (response && response.fields && response.fields.file) {
+          // Get the URL and ensure it starts with https://
+          let url = response.fields.file.url;
+          if (url.startsWith('//')) {
+            url = 'https:' + url;
+          } else if (!url.startsWith('http')) {
+            url = 'https://' + url;
+          }
+          return url;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching hero video:', error);
+        return null;
+      }
+    }
+  });
+
+  // Update videoSrc when hero video data is available
+  useEffect(() => {
+    if (heroVideo) {
+      setVideoSrc(heroVideo);
+    }
+  }, [heroVideo]);
 
   // Use a more direct approach for scroll video
   useEffect(() => {
-    if (!src || !videoRef.current) return;
+    if (!videoSrc || !videoRef.current) return;
 
     const video = videoRef.current;
     
@@ -87,13 +124,22 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
         timelineRef.current.kill();
       }
     };
-  }, [src]);
+  }, [videoSrc]);
+
+  // Display a loading state while the video is being fetched
+  if (!videoSrc) {
+    return (
+      <div className="fixed top-0 left-0 w-full h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading video...</div>
+      </div>
+    );
+  }
 
   return (
     <>
       <video 
         ref={videoRef}
-        src={src}
+        src={videoSrc}
         className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black"
         playsInline 
         preload="auto" 

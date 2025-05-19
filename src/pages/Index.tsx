@@ -16,8 +16,8 @@ const Index = () => {
   return (
     <div className="min-h-screen w-full relative">
       <ChladniPattern />
-      {/* Use ImprovedScrollVideo instead of Video component */}
-      <ImprovedScrollVideo src="/videos/HeroTest_1-720.mp4" />
+      {/* Using ImprovedScrollVideo without src prop now - it fetches from Contentful */}
+      <ImprovedScrollVideo />
       <div className="content-overlay relative" style={{ zIndex: 2 }}>
         <RevealText />
         <Values title="VALUES" />
