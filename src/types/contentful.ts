@@ -43,13 +43,8 @@ export interface ContentfulAsset {
       url: string;
       contentType: string;
     };
-    title?: string;
-    description?: string;
   };
 }
-
-// Define the hero video asset ID for reference
-export const HERO_VIDEO_ASSET_ID = '5LzoveNWfrc4blO79Fr80U';
 
 // Define the structure of a gallery entry from Contentful
 export interface ContentfulGalleryEntry {
