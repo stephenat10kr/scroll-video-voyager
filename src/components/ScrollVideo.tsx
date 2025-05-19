@@ -7,13 +7,13 @@ import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 2000 to 4000
+// Increase scroll distance for smoother scrubbing on Android
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
-  onReady?: () => void; // Add onReady callback prop
+  onReady?: () => void;
 }> = ({
   src,
   onReady
@@ -31,11 +31,16 @@ const ScrollVideo: React.FC<{
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
+  // Detect Android browser
+  const isAndroid = typeof navigator !== 'undefined' && 
+    navigator.userAgent.toLowerCase().indexOf('android') > -1;
+    
   // Detect Firefox browser
-  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  const isFirefox = typeof navigator !== 'undefined' && 
+    navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
-  // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
-  const segmentCount = 5;
+  // Calculate segment count - use more segments on Android for smoother scrubbing
+  const segmentCount = isAndroid ? 8 : 5;
   
   // Add intersection observer to detect when video exits viewport
   useEffect(() => {
@@ -70,11 +75,13 @@ const ScrollVideo: React.FC<{
     } else {
       // Scrolling up - set smooth transition
       if (videoRef.current) {
-        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+        // Use slightly faster transition for Android
+        const transitionDuration = isAndroid ? "0.2s" : "0.3s";
+        videoRef.current.style.transition = `opacity ${transitionDuration} ease-in-out`;
       }
     }
     setLastProgress(progress);
-  }, [progress]);
+  }, [progress, isAndroid]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -87,6 +94,23 @@ const ScrollVideo: React.FC<{
         
         // Force loading of the first frame
         video.currentTime = 0.001;
+        video.load();
+      }
+      
+      // Android-specific optimizations
+      if (isAndroid) {
+        console.log("Android detected: Applying Android-specific optimizations");
+        
+        // Apply Android-specific hardware acceleration hints
+        video.style.transform = "translate3d(0,0,0) translateZ(0)";
+        video.style.webkitBackfaceVisibility = "hidden";
+        video.style.webkitPerspective = "1000";
+        
+        // Try to improve Android performance by optimizing for video playback
+        video.style.willChange = "transform, opacity";
+        
+        // Force preloading for Android
+        video.preload = "auto";
         video.load();
       }
       
@@ -148,6 +172,16 @@ const ScrollVideo: React.FC<{
         if (isMobile) {
           video.currentTime = 0.001;
         }
+        
+        // Android sometimes needs an extra push to load the first frame
+        if (isAndroid) {
+          // Force currentTime to ensure frame display
+          setTimeout(() => {
+            if (video.readyState >= 1) {
+              video.currentTime = 0.001;
+            }
+          }, 50);
+        }
       };
       
       // Add error handling
@@ -197,7 +231,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox, onReady, videoLoaded]);
+  }, [secureVideoSrc, isMobile, isAndroid, isFirefox, onReady, videoLoaded]);
 
   // Add document-level interaction detection
   useEffect(() => {
@@ -259,7 +293,13 @@ const ScrollVideo: React.FC<{
             // Transition is now managed dynamically based on scroll direction
             display: "block",
             visibility: "visible",
-            backgroundColor: "black" // Ensure background is black, not white
+            backgroundColor: "black", // Ensure background is black, not white
+            // Add Android-specific optimizations if needed
+            ...(isAndroid && {
+              WebkitPerspective: "1000",
+              WebkitBackfaceVisibility: "hidden",
+              transform: "translate3d(0,0,0) translateZ(0)"
+            })
           }} 
         />
       </ScrollVideoPlayer>
