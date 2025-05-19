@@ -148,10 +148,10 @@ const RevealText = () => {
       WebkitBackgroundClip: "text",
       backgroundClip: "text",
       lineHeight: "1.2",
-      whiteSpace: "pre-wrap",
-      wordBreak: "normal",
+      whiteSpace: "pre-wrap" as const,
+      wordBreak: "normal" as const,
       WebkitFontSmoothing: "antialiased",
-      textRendering: "optimizeLegibility"
+      textRendering: "optimizeLegibility" as React.CSSProperties["textRendering"]
     };
 
     // Add iOS-specific styles
