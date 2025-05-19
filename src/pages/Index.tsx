@@ -1,3 +1,4 @@
+
 import React from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -14,12 +15,13 @@ import Logo from "../components/Logo";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
-  const isIOS = useIsIOS(); // Add iOS detection
+  const isIOS = useIsIOS();
   
-  // For debugging
+  // Enhanced debugging
   React.useEffect(() => {
     if (isIOS) {
       console.log("iOS device detected in Index component");
+      console.log("User Agent:", navigator.userAgent);
     }
   }, [isIOS]);
   

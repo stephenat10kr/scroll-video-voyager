@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -16,9 +17,17 @@ interface ImprovedScrollVideoProps {
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoVisible, setIsVideoVisible] = useState(true);
+  const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
+  
+  // For debugging
+  useEffect(() => {
+    if (isIOS) {
+      console.log("iOS device detected in ImprovedScrollVideo component");
+    }
+  }, [isIOS]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -30,10 +39,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     : "https://www.dropbox.com/scl/fi/qejf5dgqiv6m77d71r2ec/abstract-background-ink-water.mp4?rlkey=cf5xf73grwr5olszcyjghc5pt&st=ycgfiqec&raw=1");
 
   const handleVideoLoaded = () => {
+    console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
     
     // For iOS, we need to manually initialize the video when it's loaded
-    if (isIOS && videoRef.current) {
+    if (isIOS && videoRef.current && !isVideoInitialized) {
       initializeVideoForIOS();
     }
   };
@@ -43,7 +53,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const video = videoRef.current;
     if (!video) return;
     
-    console.log("iOS device detected, initializing video");
+    console.log("iOS device detected, initializing video with special handling");
     
     // Set playsinline attribute directly on the element for iOS
     video.setAttribute('playsinline', 'true');
@@ -56,22 +66,36 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // Try to preload the video
     video.load();
     
+    // Set current time to 0 first to ensure we're at the beginning
+    video.currentTime = 0;
+    
     // Try to play and immediately pause to initialize the video
     // This helps with iOS's strict autoplay policies
-    video.play().then(() => {
-      video.pause();
-      video.currentTime = 0; // Reset to beginning
-      console.log("Successfully initialized video for iOS");
-    }).catch(err => {
-      console.error("Error initializing video for iOS:", err);
-    });
+    const playPromise = video.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        // Successfully played, now pause
+        video.pause();
+        console.log("Successfully initialized video for iOS");
+        setIsVideoInitialized(true);
+      }).catch(err => {
+        console.error("Error initializing video for iOS:", err);
+        // Try a different approach - set the currentTime which sometimes forces a frame to load
+        video.currentTime = 0.1;
+        setIsVideoInitialized(true);
+      });
+    } else {
+      // Play didn't return a promise, try setting currentTime
+      video.currentTime = 0.1;
+      setIsVideoInitialized(true);
+    }
   };
   
   // Detect touch devices
   const isTouchDevice = () => {
     return (
       "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0 ||
       navigator.maxTouchPoints > 0
     );
   };
@@ -80,8 +104,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const video = videoRef.current;
     if (!video || !isVideoLoaded) return;
     
+    // For iOS devices, we need special handling
+    if (isIOS && !isVideoInitialized) {
+      initializeVideoForIOS();
+    }
     // For touch devices, we need to initialize the video first
-    if (isTouchDevice() && !isIOS) { // Only run this for non-iOS touch devices
+    else if (isTouchDevice() && !isIOS) { // Only run this for non-iOS touch devices
       video.play().then(() => {
         video.pause();
       }).catch(err => {
@@ -166,14 +194,19 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
     // Run only once when component mounts and if iOS is detected
-    if (isIOS && videoRef.current && !isVideoLoaded) {
+    if (isIOS && videoRef.current) {
       // Set up iOS-specific event listeners
       const video = videoRef.current;
+      
+      // Try to load a frame immediately
+      if (video.readyState >= 1) {
+        video.currentTime = 0.1;
+      }
       
       const handleIOSVisibilityChange = () => {
         if (!document.hidden && video) {
@@ -186,11 +219,19 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       // iOS sometimes unloads video when page visibility changes
       document.addEventListener('visibilitychange', handleIOSVisibilityChange);
       
+      // For iOS, try initializing right away
+      setTimeout(() => {
+        if (!isVideoInitialized) {
+          console.log("Delayed initialization for iOS");
+          initializeVideoForIOS();
+        }
+      }, 500);
+      
       return () => {
         document.removeEventListener('visibilitychange', handleIOSVisibilityChange);
       };
     }
-  }, [isIOS]);
+  }, [isIOS, isVideoInitialized]);
 
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
@@ -213,6 +254,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           webkit-playsinline="true" 
           preload="auto"
           muted={true}
+          autoPlay={isIOS ? true : false}
           controls={false}
           onLoadedData={handleVideoLoaded}
         >
