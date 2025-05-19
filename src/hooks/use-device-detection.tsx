@@ -25,8 +25,8 @@ export function useDeviceDetection(): DeviceInfo {
     // Android detection
     const isAndroid = /android/i.test(userAgent) || /android/i.test(navigator.platform);
     
-    // iOS detection
-    const isIOS = /iphone|ipad|ipod/i.test(userAgent) && !window.MSStream;
+    // iOS detection - modified to avoid MSStream reference
+    const isIOS = /iphone|ipad|ipod/i.test(userAgent) && !(window as any).MSStream;
     
     // Firefox detection
     const isFirefox = userAgent.indexOf('firefox') > -1;
