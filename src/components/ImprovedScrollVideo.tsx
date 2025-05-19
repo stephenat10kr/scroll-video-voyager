@@ -83,18 +83,29 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
     
     // Create a separate ScrollTrigger for video visibility
+    // Using a different approach for visibility control
     const visibilityTrigger = ScrollTrigger.create({
       trigger: document.body,
       start: "top top",
       end: "600% bottom", // Hide when scrolled 600%
       onUpdate: (self) => {
-        // Hide video when scrolled to the end point
-        if (self.progress >= 1) {
-          setIsVideoVisible(false);
+        // Improved visibility handling
+        // Using a threshold to make the transition more definitive
+        const threshold = 0.98; // Adjusted threshold for better visibility control
+        
+        if (self.progress >= threshold) {
+          // Only set if changing to prevent unnecessary re-renders
+          if (isVideoVisible) setIsVideoVisible(false);
         } else {
-          setIsVideoVisible(true);
+          if (!isVideoVisible) setIsVideoVisible(true);
         }
-      }
+        
+        // Debug log
+        if (self.progress > 0.9) {
+          console.log("Visibility trigger progress:", self.progress, "Video visible:", isVideoVisible);
+        }
+      },
+      markers: false, // Set to true for debugging
     });
     
     // Clean up
@@ -106,7 +117,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       visibilityTrigger.kill();
     };
-  }, [isVideoLoaded]);
+  }, [isVideoLoaded, isVideoVisible]);
 
   return (
     <div 
@@ -115,6 +126,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       style={{
         opacity: isVideoVisible ? 1 : 0,
         transition: "opacity 1s ease-out",
+        // Force hardware acceleration and improve performance
+        transform: "translateZ(0)",
+        visibility: isVideoVisible ? "visible" : "hidden", // Add visibility for better performance
+        pointerEvents: "none", // Make sure it doesn't interfere with user interaction
       }}
     >
       {/* Show loading state if video is still loading */}
