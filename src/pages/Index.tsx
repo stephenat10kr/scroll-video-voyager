@@ -1,4 +1,3 @@
-
 import React from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -11,12 +10,9 @@ import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import Logo from "../components/Logo";
-
 const Index = () => {
   const isAndroid = useIsAndroid();
-  
-  return (
-    <div className="min-h-screen w-full relative">
+  return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
@@ -60,12 +56,7 @@ const Index = () => {
         </section>
         
         <section>
-          <Gallery 
-            title="SPACE"
-            description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge."
-            address="45 Howard St, New York, NY 10013"
-            mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013"
-          />
+          <Gallery title="SPACE" description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge." address="45 Howard St, New York, NY 10013" mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013" />
         </section>
         
         <section>
@@ -76,8 +67,6 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
