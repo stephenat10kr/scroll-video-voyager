@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -44,6 +45,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  
+  // Use the Android hook for detection
+  const isAndroid = useIsAndroid();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -51,6 +55,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -80,6 +85,37 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Force the first frame to display immediately
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
+      }
+      
+      // Android-specific optimizations
+      if (isAndroid) {
+        console.log("Applying Android-specific optimizations");
+        
+        // Enhanced hardware acceleration for Android
+        video.style.transform = "translate3d(0,0,0) translateZ(0)";
+        
+        // Improve Android rendering performance
+        video.style.backfaceVisibility = "hidden";
+        video.style.perspective = "1000px";
+        
+        // Android texture size optimization
+        video.style.maxWidth = "100%";
+        video.style.maxHeight = "100%";
+        
+        // Android sometimes benefits from webkitTransform
+        // @ts-ignore
+        video.style.webkitTransform = "translate3d(0,0,0)";
+        
+        // Force hardware acceleration using additional properties
+        video.style.willChange = "transform, opacity";
+        
+        // Attempt to improve initial frame rendering on Android
+        if (video.readyState >= 1) {
+          setTimeout(() => {
+            video.currentTime = 0.001;
+            console.log("Forced initial frame on Android");
+          }, 50);
+        }
       }
     } else {
       // Chrome-specific optimizations still apply
@@ -163,7 +199,26 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        video.currentTime = newTime;
+        // For Android, use a smoother interpolation approach
+        if (isAndroid) {
+          // Eased interpolation for smoother Android scrubbing
+          const currentTime = video.currentTime;
+          const timeDiff = newTime - currentTime;
+          
+          // Use a smaller step for smoother transitions on Android
+          // This creates a micro-animation between frames
+          const smoothingFactor = 0.4; // Lower = smoother but more delay
+          const newSmoothTime = currentTime + (timeDiff * smoothingFactor);
+          video.currentTime = newSmoothTime;
+          
+          // Log Android-specific smoothing when near the end
+          if (progress > 0.95) {
+            console.log(`Android smoothing: ${currentTime.toFixed(3)} → ${newSmoothTime.toFixed(3)} (target: ${newTime.toFixed(3)})`);
+          }
+        } else {
+          // Standard approach for non-Android devices
+          video.currentTime = newTime;
+        }
         onAfterVideoChange(progress >= 1);
       });
     };
@@ -187,17 +242,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser
+      // Determine the appropriate scrub value based on browser and device
       // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      // Android-specific scrub value optimization
+      if (isAndroid) {
+        // Android devices benefit from a higher scrub value for smoother performance
+        // 2.0 is smoother than the standard mobile 1.0
+        scrubValue = 2.0;
+        console.log("Using Android-optimized scrub value:", scrubValue);
+      }
+      
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the browser-specific scrub value
+        scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -270,7 +333,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       clearTimeout(timeoutId);
       setupCompleted.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
   return <>{children}</>;
 };
