@@ -69,10 +69,14 @@ const RevealText = () => {
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
-    if (!text) return;
+    if (!text || !revealTextContent) return;
+
+    // Clear any existing content first
+    text.innerHTML = '';
 
     // Get the text content
-    const originalText = text.textContent || "";
+    const originalText = revealTextContent.fields.text || "";
+    console.log("Setting up animation for text:", originalText);
 
     // Split text into words
     const words = originalText.split(" ");
@@ -81,33 +85,52 @@ const RevealText = () => {
     const formattedHTML = words.map(word => {
       // Update the character spans to have display: inline-block and padding-bottom
       const charSpans = word.split("").map(char => 
-        `<span class="char" style="display: inline-block; padding-bottom: 0.2em;">${char}</span>`
+        `<span class="char" style="display: inline-block; padding-bottom: 0.2em; opacity: 1;">${char}</span>`
       ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
+    
     text.innerHTML = formattedHTML;
+    
+    console.log("Created formatted HTML with spans");
+    
+    // Create the GSAP animation timeline
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
-        start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
+        start: "top bottom-=66.7vh", // Starts when element is 2/3rds up the viewport
         end: "bottom center",
         scrub: 0.5,
-        markers: false
+        markers: true, // Enable markers for debugging
+        onEnter: () => console.log("ScrollTrigger entered"),
+        onLeave: () => console.log("ScrollTrigger left"),
+        onEnterBack: () => console.log("ScrollTrigger entered back"),
+        onLeaveBack: () => console.log("ScrollTrigger left back")
       }
     });
+    
+    // Get all character spans
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
+    
+    // Animate each character span with opacity instead of color
     spans.forEach((span, i) => {
       tl.to(span, {
-        color: "transparent",
+        opacity: 0, // Change to animate opacity instead of color
         ease: "power1.inOut",
         duration: 0.1
-      }, i * 0.01);
+      }, i * 0.01); // Stagger the animations
     });
+    
+    // Return cleanup function
     return () => {
-      tl.kill();
+      if (tl) {
+        tl.kill();
+        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      }
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -117,9 +140,11 @@ const RevealText = () => {
         </div>
       </div>;
   }
+  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+  
   return <>
       <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
