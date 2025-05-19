@@ -101,7 +101,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   return (
     <div 
       ref={containerRef}
-      className="video-container fixed top-0 left-0 w-full h-screen z-0"
+      className="fixed top-0 left-0 w-full h-screen z-0"
     >
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
@@ -111,16 +111,17 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       )}
       
       {videoSrc && (
-        <video 
-          ref={videoRef}
-          src={videoSrc}
-          className="w-full h-full object-cover"
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-          playsInline 
-          preload="auto"
-          muted 
-          onLoadedData={handleVideoLoaded}
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <video 
+            ref={videoRef}
+            src={videoSrc}
+            className="absolute w-full h-full object-contain"
+            playsInline 
+            preload="auto"
+            muted 
+            onLoadedData={handleVideoLoaded}
+          />
+        </div>
       )}
     </div>
   );
