@@ -35,7 +35,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div className="w-full bg-transparent">
+    <div className="w-full bg-transparent h-[500vh]">
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && (
         <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
@@ -55,7 +55,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       )}
 
       {/* Second section - First hero text */}
-      <div className="min-h-screen h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText.fields.heroTextEyebrow}</h2>
@@ -71,7 +71,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       </div>
 
       {/* Third section - Second hero text */}
-      <div className="min-h-screen h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
@@ -85,6 +85,9 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
           </div>
         </div>
       </div>
+
+      {/* Additional spacing to fill the 500vh height */}
+      <div className="h-[300vh]"></div>
     </div>
   );
 };
