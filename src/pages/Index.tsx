@@ -45,7 +45,7 @@ const Index = () => {
           <HeroText skipLogoSection={true} />
         </section>
         
-        <section>
+        <section id="revealText-section">
           <RevealText />
         </section>
         

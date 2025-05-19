@@ -15,6 +15,7 @@ interface ImprovedScrollVideoProps {
 
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isVideoVisible, setIsVideoVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -80,6 +81,26 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     } else {
       video.addEventListener('loadedmetadata', handleMetadataLoaded);
     }
+
+    // Add ScrollTrigger to control visibility based on RevealText component position
+    const revealTextElement = document.querySelector('section > div[style*="backgroundColor: rgb(2, 72, 67)"]');
+    if (revealTextElement) {
+      ScrollTrigger.create({
+        trigger: revealTextElement,
+        start: "top top",
+        onEnter: () => {
+          setIsVideoVisible(false);
+          console.log("Hiding video (scrolling down)");
+        },
+        onLeaveBack: () => {
+          setIsVideoVisible(true);
+          console.log("Showing video (scrolling up)");
+        },
+        markers: false
+      });
+    } else {
+      console.warn("RevealText element not found for video visibility trigger");
+    }
     
     // Clean up
     return () => {
@@ -88,6 +109,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         timeline.scrollTrigger.kill();
       }
       timeline.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, [isVideoLoaded]);
 
@@ -104,7 +126,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         <video 
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-cover pointer-events-none transition-opacity duration-300"
+          style={{ opacity: isVideoVisible ? 1 : 0 }}
           playsInline 
           preload="auto"
           muted 
