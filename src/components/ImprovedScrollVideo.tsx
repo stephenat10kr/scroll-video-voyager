@@ -111,11 +111,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       )}
       
       {videoSrc && (
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden bg-black">
           <video 
             ref={videoRef}
             src={videoSrc}
-            className="absolute w-full h-full object-fill" 
+            className="absolute w-full h-full object-contain" 
             playsInline 
             preload="auto"
             muted 
