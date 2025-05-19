@@ -47,7 +47,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: "bottom+=200% bottom", // Maintaining this setting to keep scroll behavior consistent
+          end: "bottom+=200% bottom",
           scrub: true,
           markers: false, // set to true for debugging
           onUpdate: (self) => {
@@ -93,7 +93,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
     <div 
       ref={containerRef}
       className="relative w-full bg-black overflow-hidden"
-      style={{ height: "500vh" }}  // Changed from 300vh to 500vh for longer scroll
+      style={{ height: "300vh" }}  // Fixed height for scrolling (3x viewport height)
     >
       <video 
         ref={videoRef}
