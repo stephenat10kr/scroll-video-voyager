@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,6 +28,7 @@ const ScrollVideo: React.FC<{
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
+  const isAndroid = useIsAndroid();
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -34,8 +36,8 @@ const ScrollVideo: React.FC<{
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
-  // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
-  const segmentCount = 5;
+  // Calculate segment count - increase for Android for smoother transitions
+  const segmentCount = isAndroid ? 8 : 5;
   
   // Add intersection observer to detect when video exits viewport
   useEffect(() => {
