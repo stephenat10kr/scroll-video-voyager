@@ -1,3 +1,4 @@
+
 import React from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -17,7 +18,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Logo section at the top (highest z-index) */}
-      <div className="relative z-20 w-full h-screen flex flex-col bg-transparent">
+      <div className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="flex flex-col items-center">
             <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
