@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import colors from "@/lib/theme";
 import Spinner from "./Spinner";
+import { useIsIOS } from "@/hooks/useIsIOS";
 
 interface ValueProps {
   valueTitle: string;
@@ -16,6 +17,7 @@ const Value: React.FC<ValueProps> = ({
 }) => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const titleContentRef = useRef<HTMLSpanElement>(null);
+  const isIOS = useIsIOS();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -46,17 +48,35 @@ const Value: React.FC<ValueProps> = ({
     };
   }, []);
 
+  // Get title styles with iOS-specific properties if needed
+  const getTitleStyles = () => {
+    const baseStyle = { color: colors.coral };
+    
+    if (isIOS) {
+      return {
+        ...baseStyle,
+        WebkitTextFillColor: "transparent",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        background: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`
+      };
+    }
+    
+    return baseStyle;
+  };
+
   return (
     <div className={`w-full h-screen flex flex-col justify-center bg-transparent ${isLast ? '' : 'mb-6'}`}>
       <h2 
         ref={titleRef}
         className="flip-text title-xl mb-6 text-center py-[56px] bg-transparent" 
+        data-ios={isIOS ? "true" : "false"}
       >
         <span 
           ref={titleContentRef}
           className="flip-text-content"
           data-text={valueTitle}
-          style={{ color: colors.coral }}
+          style={getTitleStyles()}
         >
           {valueTitle}
         </span>
