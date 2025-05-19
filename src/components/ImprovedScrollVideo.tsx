@@ -4,15 +4,21 @@ import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import Spinner from "./Spinner";
 
-const ImprovedScrollVideo: React.FC = () => {
+interface ImprovedScrollVideoProps {
+  src?: string; // Make the src prop optional
+}
+
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
-  const videoSrc = heroVideoAsset?.fields?.file?.url 
+  
+  // Use external src if provided, otherwise use the one from Contentful
+  const videoSrc = externalSrc || (heroVideoAsset?.fields?.file?.url 
     ? (heroVideoAsset.fields.file.url.startsWith('//') 
         ? 'https:' + heroVideoAsset.fields.file.url 
         : heroVideoAsset.fields.file.url)
-    : null;
+    : null);
 
   const handleVideoLoaded = () => {
     setIsVideoLoaded(true);
