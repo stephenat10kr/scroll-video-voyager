@@ -32,6 +32,16 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     if (progress > displayedProgress) {
       setDisplayedProgress(progress);
     }
+    
+    // Force complete after a maximum time
+    const forceCompleteTimer = setTimeout(() => {
+      if (displayedProgress >= 95 && displayedProgress < 100) {
+        console.log("Preloader - Force completing from 95% to 100%");
+        setDisplayedProgress(100);
+      }
+    }, 5000); // If stuck at 95% for 5 seconds, force to 100%
+    
+    return () => clearTimeout(forceCompleteTimer);
   }, [progress, displayedProgress]);
 
   // Change text every 3 seconds

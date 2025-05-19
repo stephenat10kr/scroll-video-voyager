@@ -22,6 +22,19 @@ const Index = () => {
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   
+  // Force complete preloader after maximum time
+  useEffect(() => {
+    const maxLoadingTime = 12000; // 12 seconds max loading time
+    const forceCompleteTimeout = setTimeout(() => {
+      if (loadProgress < 100) {
+        console.log("Force completing preloader after timeout");
+        setLoadProgress(100);
+      }
+    }, maxLoadingTime);
+    
+    return () => clearTimeout(forceCompleteTimeout);
+  }, [loadProgress]);
+  
   // Simulate loading progress for testing
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
@@ -30,10 +43,9 @@ const Index = () => {
     setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // Only go to 100% if video is ready, otherwise cap at 95%
+          // If video is ready or we're close to timeout, allow reaching 100%
           const newProgress = prev + Math.random() * 5;
-          const maxProgress = videoReady ? 100 : 95;
-          return newProgress >= maxProgress ? maxProgress : newProgress;
+          return videoReady ? Math.min(100, newProgress) : Math.min(95, newProgress);
         });
       }, 200);
     }, 500);
@@ -67,6 +79,11 @@ const Index = () => {
   const handleVideoReady = () => {
     console.log("Video is ready to display");
     setVideoReady(true);
+    
+    // Ensure progress reaches 100% when video is ready
+    setTimeout(() => {
+      setLoadProgress(100);
+    }, 500); // Short delay to ensure smooth transition
   };
   
   // Skip content rendering until preloader is done
