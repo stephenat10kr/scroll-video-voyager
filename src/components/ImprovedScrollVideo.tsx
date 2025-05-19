@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -58,8 +59,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "bottom+=200% bottom",
-        scrub: true,
+        // Increase the end value to extend the scrolling length
+        // This makes the scrubbing effect less sensitive
+        end: "bottom+=300% bottom", // Changed from 200% to 300%
+        scrub: 1.5, // Changed from true to 1.5 to add a smoother delay effect
         markers: false, // Set to true for debugging
       }
     });

@@ -21,8 +21,8 @@ html, body {
 .content-container {
   position: relative;
   /* Remove padding-top: 100vh */
-  /* Add extra height to allow enough scrolling for the video scrubbing */
-  min-height: 300vh; 
+  /* Increased from 300vh to 400vh to allow more space for scrolling */
+  min-height: 400vh; 
 }
 
 /* Add section spacing */
