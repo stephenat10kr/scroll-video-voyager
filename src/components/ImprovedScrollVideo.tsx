@@ -5,6 +5,7 @@ import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import Spinner from "./Spinner";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsIOS } from "@/hooks/useIsIOS";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -18,6 +19,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const [isVideoVisible, setIsVideoVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isIOS = useIsIOS();
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -32,22 +34,40 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     setIsVideoLoaded(true);
   };
   
-  // Detect touch devices - fixed the TypeScript error
+  // Detect touch devices
   const isTouchDevice = () => {
     return (
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
-      // Removed msMaxTouchPoints which was causing the TypeScript error
       navigator.maxTouchPoints > 0
     );
   };
+  
+  // Initialize video for iOS devices
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideoLoaded) return;
+    
+    if (isIOS) {
+      console.log("iOS device detected, applying special video handling");
+      
+      // For iOS, we need to play and immediately pause to initialize the video
+      // This helps with iOS's strict autoplay policies
+      video.play().then(() => {
+        video.pause();
+        console.log("Successfully initialized video for iOS");
+      }).catch(err => {
+        console.error("Error initializing video for iOS:", err);
+      });
+    }
+  }, [isVideoLoaded, isIOS]);
   
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isVideoLoaded) return;
     
     // For touch devices, we need to initialize the video first
-    if (isTouchDevice()) {
+    if (isTouchDevice() && !isIOS) { // Only run this for non-iOS touch devices
       video.play().then(() => {
         video.pause();
       }).catch(err => {
@@ -133,7 +153,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded]);
+  }, [isVideoLoaded, isIOS]);
 
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
@@ -147,19 +167,23 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       {videoSrc && (
         <video 
           ref={videoRef}
-          src={videoSrc}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
             opacity: isVideoVisible ? 1 : 0,
             visibility: isVideoVisible ? 'visible' : 'hidden'
           }}
-          playsInline 
+          playsInline={true}
           webkit-playsinline="true"
           preload="auto"
-          muted 
+          muted={true}
           controls={false}
           onLoadedData={handleVideoLoaded}
-        />
+        >
+          {/* Provide multiple source formats for better compatibility */}
+          <source src={videoSrc} type="video/mp4" />
+          {/* If we have WebM version available, we could add it here */}
+          {/* <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" /> */}
+        </video>
       )}
     </div>
   );
