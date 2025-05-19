@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -27,8 +26,15 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   
   // Smoothly update the displayed progress to avoid jumps
   useEffect(() => {
-    // Only update displayed progress if actual progress is greater
-    // This prevents progress from going backwards in Safari
+    // If actual progress is 100%, immediately update displayed progress to 100%
+    if (progress >= 100) {
+      console.log("Preloader - Received 100% progress, updating immediately");
+      setDisplayedProgress(100);
+      return;
+    }
+    
+    // Otherwise only update if progress is greater
+    // This prevents progress from going backwards
     if (progress > displayedProgress) {
       setDisplayedProgress(progress);
     }
@@ -39,7 +45,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         console.log("Preloader - Force completing from 95% to 100%");
         setDisplayedProgress(100);
       }
-    }, 5000); // If stuck at 95% for 5 seconds, force to 100%
+    }, 3000); // Reduced from 5000ms to 3000ms - if stuck at 95% for 3 seconds, force to 100%
     
     return () => clearTimeout(forceCompleteTimer);
   }, [progress, displayedProgress]);
@@ -65,22 +71,17 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
-        // Second delay - start fade out
-        const fadeOutTimeout = setTimeout(() => {
-          console.log("Preloader - Fade out animation starting");
-          setVisible(false);
-          
-          // Third delay - after fade out, call onComplete
-          const completeTimeout = setTimeout(() => {
-            console.log("Preloader - Calling onComplete");
-            onComplete();
-          }, 1500); // Longer time for fade out animation (1.5s)
-          
-          return () => clearTimeout(completeTimeout);
-        }, 1000); // Wait 1 second at 100% before fading
+        // Start fade out sooner
+        setVisible(false);
         
-        return () => clearTimeout(fadeOutTimeout);
-      }, 500); // Show "Come in." for 0.5 seconds
+        // Call onComplete after fade out animation
+        const completeTimeout = setTimeout(() => {
+          console.log("Preloader - Calling onComplete");
+          onComplete();
+        }, 800); // Reduced from 1500ms to 800ms for faster transition
+        
+        return () => clearTimeout(completeTimeout);
+      }, 500); // Keep 500ms for "Come in." message
       
       return () => clearTimeout(welcomeTimeout);
     }
@@ -99,10 +100,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-1500 bg-darkGreen ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-800 bg-darkGreen ${
         visible ? "opacity-100" : "opacity-0"
       }`}
-      style={{ backgroundColor: colors.darkGreen }}
+      style={{ backgroundColor: colors.darkGreen, transition: "opacity 0.8s ease-out" }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Loading percentage and text */}

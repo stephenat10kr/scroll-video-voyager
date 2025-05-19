@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -35,7 +34,7 @@ const Index = () => {
     return () => clearTimeout(forceCompleteTimeout);
   }, [loadProgress]);
   
-  // Simulate loading progress for testing
+  // Simulate loading progress for testing - improved to reach 100% when video is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -43,9 +42,13 @@ const Index = () => {
     setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // If video is ready or we're close to timeout, allow reaching 100%
+          // If video is ready, jump directly to 100%
+          if (videoReady) {
+            return 100;
+          }
+          // Otherwise continue normal progress, but cap at 95%
           const newProgress = prev + Math.random() * 5;
-          return videoReady ? Math.min(100, newProgress) : Math.min(95, newProgress);
+          return Math.min(95, newProgress);
         });
       }, 200);
     }, 500);
@@ -55,13 +58,13 @@ const Index = () => {
     };
   }, [videoReady]);
   
-  // When video is ready, allow progress to reach 100%
+  // When video is ready, immediately set progress to 100%
   useEffect(() => {
-    if (videoReady && loadProgress < 100) {
-      console.log("Video is ready, completing progress to 100%");
+    if (videoReady) {
+      console.log("Video is ready, immediately setting progress to 100%");
       setLoadProgress(100);
     }
-  }, [videoReady, loadProgress]);
+  }, [videoReady]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -79,11 +82,6 @@ const Index = () => {
   const handleVideoReady = () => {
     console.log("Video is ready to display");
     setVideoReady(true);
-    
-    // Ensure progress reaches 100% when video is ready
-    setTimeout(() => {
-      setLoadProgress(100);
-    }, 500); // Short delay to ensure smooth transition
   };
   
   // Skip content rendering until preloader is done
