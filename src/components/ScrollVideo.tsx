@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
-import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 import { useIsMobile } from "../hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -243,10 +242,6 @@ const ScrollVideo: React.FC<{
           }} 
         />
       </ScrollVideoPlayer>
-
-      <ScrollVideoTextOverlay 
-        containerRef={containerRef}
-      />
     </div>
   );
 };
