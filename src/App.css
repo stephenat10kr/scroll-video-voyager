@@ -17,10 +17,16 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Add a semi-transparent overlay for video and content */
-.content-overlay {
+/* Add content container styles for proper spacing with fixed video */
+.content-container {
   position: relative;
-  z-index: 2;
+  padding-top: 100vh; /* Start content after the fixed video */
+}
+
+/* Add section spacing */
+.content-container section {
+  position: relative;
+  z-index: 10;
 }
 
 /* Text flip animation styles */
