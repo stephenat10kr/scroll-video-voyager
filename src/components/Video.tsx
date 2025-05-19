@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
+import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
+import { useIsAndroid } from "../hooks/use-android";
 import Preloader from "./Preloader";
+import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
-  // Update the Contentful asset ID to use the Hero Video
-  const { data: videoAsset, isLoading, error } = useContentfulAsset("5LzoveNWfrc4blO79Fr80U");
+  // Use the Hero Video Asset ID constant
+  const { data: videoAsset, isLoading, error } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
-  // Use undefined as fallback instead of local video reference
+  // Only use Contentful video source, no fallback URLs
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
@@ -19,6 +22,9 @@ const Video = () => {
   const videoAttemptsRef = useRef(0);
   const maxVideoAttempts = 3;
   const progressValuesRef = useRef<number[]>([]);
+  
+  // Detect if the device is Android
+  const isAndroid = useIsAndroid();
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
@@ -262,6 +268,7 @@ const Video = () => {
   console.log('Video component - loading:', isLoading);
   console.log('Video component - error:', error);
   console.log('Video component - progress:', loadProgress);
+  console.log('Video component - isAndroid:', isAndroid);
 
   return (
     <>
@@ -271,7 +278,11 @@ const Video = () => {
           onComplete={handlePreloaderComplete} 
         />
       )}
-      <ScrollVideo src={videoSrc} />
+      {isAndroid ? (
+        <ImprovedScrollVideo src={videoSrc} />
+      ) : (
+        <ScrollVideo src={videoSrc} />
+      )}
     </>
   );
 };
