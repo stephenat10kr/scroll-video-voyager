@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -5,6 +6,7 @@ import { TextPlugin } from "gsap/TextPlugin";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
+import { useIsAndroid } from "@/hooks/use-android"; 
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
@@ -16,6 +18,8 @@ const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const isAndroid = useIsAndroid();
+  
   const {
     data: revealTextContent,
     isLoading,
@@ -120,6 +124,9 @@ const RevealText = () => {
     console.error("Error loading reveal text:", error);
   }
   return <>
+      {/* Add extra spacing for Android devices */}
+      {isAndroid && <div className="w-full" style={{ height: "100vh" }} />}
+      
       <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
     }}>

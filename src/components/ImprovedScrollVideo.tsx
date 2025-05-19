@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsAndroid } from "../hooks/use-android";
 import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -14,6 +15,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const isAndroid = useIsAndroid();
 
   // Use a more direct approach for scroll video
   useEffect(() => {

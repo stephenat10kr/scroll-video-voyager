@@ -10,7 +10,7 @@ const ScrollVideoTextOverlay: React.FC<ScrollVideoTextOverlayProps> = ({
   containerRef
 }) => {
   return (
-    <div id="scroll-video-title">
+    <div id="scroll-video-title" className="relative w-full h-full">
       <HeroText />
     </div>
   );
