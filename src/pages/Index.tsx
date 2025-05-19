@@ -8,6 +8,7 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
+import VideoDebug from "../components/VideoDebug";
 
 const Index = () => {
   return (
@@ -27,6 +28,7 @@ const Index = () => {
         <Questions title="QUESTIONS" />
         <Footer />
       </div>
+      <VideoDebug />
     </div>
   );
 };
