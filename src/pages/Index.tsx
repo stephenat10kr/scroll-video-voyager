@@ -12,6 +12,7 @@ import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
+import Video from "../components/Video";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -30,7 +31,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      <Video />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">

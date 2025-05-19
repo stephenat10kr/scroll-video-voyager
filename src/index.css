@@ -170,4 +170,18 @@
   .animate-fade-in {
     animation: fade-in 0.5s ease-in-out forwards;
   }
+  
+  .fade-in {
+    opacity: 0;
+    animation: fade-in 1.5s ease-in-out forwards;
+  }
+  
+  .video-fade-in {
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+  }
+  
+  .video-fade-in.loaded {
+    opacity: 1;
+  }
 }
