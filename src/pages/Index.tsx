@@ -13,6 +13,7 @@ import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
+import ScrollVideo from "../components/ScrollVideo";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
