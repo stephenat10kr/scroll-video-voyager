@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -48,6 +47,59 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   
   // Use the Android hook for detection
   const isAndroid = useIsAndroid();
+
+  // Create a ref to store the current interpolation target time
+  const targetTimeRef = useRef<number>(0);
+  // Create a ref to store the current animation frame ID for interpolation
+  const interpolationFrameRef = useRef<number | null>(null);
+  // Create a ref to track if interpolation is in progress
+  const isInterpolatingRef = useRef<boolean>(false);
+  // Interpolation speed factor (higher means faster transition)
+  const interpolationSpeed = 0.15;
+
+  // Function to smoothly interpolate video time for Android
+  const smoothlyUpdateVideoTime = (video: HTMLVideoElement, targetTime: number) => {
+    // Store the target time for reference
+    targetTimeRef.current = targetTime;
+    
+    // If we're already interpolating, no need to start another loop
+    if (isInterpolatingRef.current) return;
+    
+    isInterpolatingRef.current = true;
+    
+    // Function for the interpolation loop
+    const interpolateTime = () => {
+      if (!video) {
+        isInterpolatingRef.current = false;
+        return;
+      }
+      
+      const currentTime = video.currentTime;
+      const timeDiff = targetTimeRef.current - currentTime;
+      
+      // If we're close enough to the target, set the time directly and stop
+      if (Math.abs(timeDiff) < 0.01) {
+        video.currentTime = targetTimeRef.current;
+        isInterpolatingRef.current = false;
+        return;
+      }
+      
+      // Calculate the next time value with easing
+      const newTime = currentTime + (timeDiff * interpolationSpeed);
+      
+      // Update the video time
+      video.currentTime = newTime;
+      
+      // Continue the interpolation in the next frame
+      interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
+    };
+    
+    // Start the interpolation loop
+    if (interpolationFrameRef.current) {
+      cancelAnimationFrame(interpolationFrameRef.current);
+    }
+    interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -199,21 +251,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // For Android, use a smoother interpolation approach
+        // Enhanced Android-specific smooth interpolation
         if (isAndroid) {
-          // Eased interpolation for smoother Android scrubbing
-          const currentTime = video.currentTime;
-          const timeDiff = newTime - currentTime;
-          
-          // Use a smaller step for smoother transitions on Android
-          // This creates a micro-animation between frames
-          const smoothingFactor = 0.4; // Lower = smoother but more delay
-          const newSmoothTime = currentTime + (timeDiff * smoothingFactor);
-          video.currentTime = newSmoothTime;
+          // Use our new smooth interpolation function for Android
+          smoothlyUpdateVideoTime(video, newTime);
           
           // Log Android-specific smoothing when near the end
           if (progress > 0.95) {
-            console.log(`Android smoothing: ${currentTime.toFixed(3)} → ${newSmoothTime.toFixed(3)} (target: ${newTime.toFixed(3)})`);
+            console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
           // Standard approach for non-Android devices
@@ -327,11 +372,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
+      if (interpolationFrameRef.current) {
+        cancelAnimationFrame(interpolationFrameRef.current);
+      }
       setupEvents.forEach(event => {
         video.removeEventListener(event, handleVideoReady);
       });
       clearTimeout(timeoutId);
       setupCompleted.current = false;
+      isInterpolatingRef.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
