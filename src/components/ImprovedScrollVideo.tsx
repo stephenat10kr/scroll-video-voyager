@@ -83,11 +83,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
 
     // Add ScrollTrigger to control visibility based on RevealText component position
-    const revealTextElement = document.querySelector('section > div[style*="backgroundColor: rgb(2, 72, 67)"]');
-    if (revealTextElement) {
+    // Using a more reliable selector targeting the section ID
+    const revealTextSection = document.getElementById('revealText-section');
+    if (revealTextSection) {
+      console.log("RevealText section found for video visibility trigger");
       ScrollTrigger.create({
-        trigger: revealTextElement,
-        start: "top top",
+        trigger: revealTextSection,
+        start: "top top", // This fires when the top of RevealText reaches the top of viewport
         onEnter: () => {
           setIsVideoVisible(false);
           console.log("Hiding video (scrolling down)");
@@ -99,7 +101,27 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         markers: false
       });
     } else {
-      console.warn("RevealText element not found for video visibility trigger");
+      console.warn("RevealText section not found for video visibility trigger");
+      // Fallback to another selector if the ID approach fails
+      const revealTextElement = document.querySelector('.w-full.py-24');
+      if (revealTextElement) {
+        console.log("Found RevealText using class selector");
+        ScrollTrigger.create({
+          trigger: revealTextElement,
+          start: "top top",
+          onEnter: () => {
+            setIsVideoVisible(false);
+            console.log("Hiding video (scrolling down) - using fallback selector");
+          },
+          onLeaveBack: () => {
+            setIsVideoVisible(true);
+            console.log("Showing video (scrolling up) - using fallback selector");
+          },
+          markers: false
+        });
+      } else {
+        console.error("Could not find RevealText component with any selector");
+      }
     }
     
     // Clean up
