@@ -33,8 +33,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Setting the progressThreshold to 0.002 as requested
-  const progressThreshold = 0.002; 
+  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
+  const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
