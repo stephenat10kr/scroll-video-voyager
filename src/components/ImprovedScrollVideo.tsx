@@ -15,6 +15,7 @@ interface ImprovedScrollVideoProps {
 
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isVideoVisible, setIsVideoVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -81,6 +82,22 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       video.addEventListener('loadedmetadata', handleMetadataLoaded);
     }
     
+    // Create a separate ScrollTrigger to hide the video after 600vh of scrolling
+    const hideVideoTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: "top top",
+      end: "top+=600vh top",
+      onLeave: () => {
+        setIsVideoVisible(false);
+        console.log("Video hidden after 600vh scroll");
+      },
+      onEnterBack: () => {
+        setIsVideoVisible(true);
+        console.log("Video visible again when scrolling back up");
+      },
+      markers: false, // Set to true for debugging
+    });
+    
     // Clean up
     return () => {
       video.removeEventListener('loadedmetadata', handleMetadataLoaded);
@@ -88,11 +105,17 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         timeline.scrollTrigger.kill();
       }
       timeline.kill();
+      hideVideoTrigger.kill();
     };
   }, [isVideoLoaded]);
 
   return (
-    <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
+    <div 
+      ref={containerRef} 
+      className={`video-container fixed top-0 left-0 w-full h-screen z-0 transition-opacity duration-500 ${
+        isVideoVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
