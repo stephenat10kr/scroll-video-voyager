@@ -149,10 +149,15 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           ref={videoRef}
           src={videoSrc}
           className="w-full h-full object-cover pointer-events-none"
-          style={{ display: isVideoVisible ? 'block' : 'none' }}
+          style={{ 
+            opacity: isVideoVisible ? 1 : 0,
+            visibility: isVideoVisible ? 'visible' : 'hidden'
+          }}
           playsInline 
+          webkit-playsinline="true"
           preload="auto"
           muted 
+          controls={false}
           onLoadedData={handleVideoLoaded}
         />
       )}
