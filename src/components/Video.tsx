@@ -3,7 +3,7 @@ import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
-import SimplePreloader from "./SimplePreloader";
+import Preloader from "./Preloader";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
@@ -28,10 +28,10 @@ const Video = () => {
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
-  // Minimum loading time in milliseconds (4 seconds - reduced from 6)
-  const MIN_LOADING_TIME = 4000;
+  // Minimum loading time in milliseconds (6 seconds)
+  const MIN_LOADING_TIME = 6000;
   // Maximum loading time before forcing completion
-  const MAX_LOADING_TIME = 12000; // Reduced from 15000
+  const MAX_LOADING_TIME = 15000;
   
   // Function to calculate actual video loading progress
   const calculateVideoProgress = (video: HTMLVideoElement): number => {
@@ -264,12 +264,16 @@ const Video = () => {
 
   // Log for debugging
   console.log('Video component - videoSrc:', videoSrc);
+  console.log('Video component - asset data:', videoAsset);
+  console.log('Video component - loading:', isLoading);
+  console.log('Video component - error:', error);
   console.log('Video component - progress:', loadProgress);
+  console.log('Video component - isAndroid:', isAndroid);
 
   return (
     <>
       {showPreloader && (
-        <SimplePreloader 
+        <Preloader 
           progress={loadProgress} 
           onComplete={handlePreloaderComplete} 
         />

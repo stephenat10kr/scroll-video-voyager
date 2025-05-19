@@ -17,7 +17,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoVisible, setIsVideoVisible] = useState(true);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
-  const [fadeInComplete, setFadeInComplete] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
@@ -46,20 +45,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // For iOS, we need to manually initialize the video when it's loaded
     if (isIOS && videoRef.current && !isVideoInitialized) {
       initializeVideoForIOS();
-    }
-    
-    // Add fade-in animation for the video
-    if (videoRef.current) {
-      // Set initial opacity to 0
-      gsap.set(videoRef.current, { opacity: 0 });
-      
-      // Animate to full opacity
-      gsap.to(videoRef.current, {
-        opacity: 1,
-        duration: 1.5,
-        delay: 0.2,
-        onComplete: () => setFadeInComplete(true)
-      });
     }
   };
   
@@ -252,7 +237,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <Spinner />
         </div>
       )}
@@ -262,9 +247,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           ref={videoRef}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
-            opacity: isVideoVisible ? (fadeInComplete ? 1 : 0) : 0,
-            visibility: isVideoVisible ? 'visible' : 'hidden',
-            transition: 'opacity 1.5s ease-in-out'
+            opacity: isVideoVisible ? 1 : 0,
+            visibility: isVideoVisible ? 'visible' : 'hidden'
           }}
           playsInline={true}
           webkit-playsinline="true" 
