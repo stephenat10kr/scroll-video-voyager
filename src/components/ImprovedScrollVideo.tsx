@@ -58,7 +58,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         start: "top top",
         end: "bottom bottom",
         scrub: 0.5, // Smoother scrubbing
-        markers: true, // Enable markers for debugging
+        markers: false, // Disable markers for production
         onUpdate: (self) => {
           if (video && video.duration) {
             // Ensure we have a valid duration before setting currentTime
