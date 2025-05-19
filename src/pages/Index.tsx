@@ -15,11 +15,11 @@ import Logo from "../components/Logo";
 const Index = () => {
   const isAndroid = useIsAndroid();
   return <div className="min-h-screen w-full relative">
+      {/* Background pattern (lowest z-index) */}
+      <ChladniPattern />
+      
       {/* Video fixed at the top (mid z-index) */}
       <ImprovedScrollVideo />
-      
-      {/* Chladni pattern positioned 600% down the page with sticky position */}
-      <ChladniPattern />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
