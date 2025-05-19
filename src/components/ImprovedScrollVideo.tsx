@@ -36,51 +36,67 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const video = videoRef.current;
     const container = containerRef.current;
     
-    if (!video || !videoSrc || !container) return;
+    if (!video || !videoSrc || !container || !isVideoLoaded) return;
     
-    // Wait until video metadata is loaded to get the duration
-    const handleMetadata = () => {
-      // Ensure video is initially paused
-      video.pause();
-      
-      // Adjust container height to allow for enough scrolling
-      container.style.height = `${window.innerHeight + window.innerHeight * 2}px`;
-      
-      // Create the GSAP timeline with ScrollTrigger
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: true,
+    // Clean up any existing ScrollTrigger instances to prevent conflicts
+    ScrollTrigger.getAll().forEach(st => st.kill());
+    
+    // Set video to initial state
+    video.currentTime = 0;
+    video.pause();
+    
+    console.log("Setting up scroll animation with video duration:", video.duration);
+    
+    // Adjust container height to allow for enough scrolling
+    // Increase this value to make the scrubbing effect last longer
+    container.style.height = `${window.innerHeight * 3}px`;
+    
+    // Create the GSAP timeline with ScrollTrigger
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: container,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.5, // Smoother scrubbing
+        markers: true, // Enable markers for debugging
+        onUpdate: (self) => {
+          console.log("ScrollTrigger progress:", self.progress);
         }
-      });
-      
-      // Animation to scrub through the video based on scroll position
-      tl.to(video, { currentTime: video.duration });
-      
-      // Handle touch devices
-      const isTouchDevice = () => {
-        return (
-          "ontouchstart" in window ||
-          navigator.maxTouchPoints > 0
-        );
-      };
-      
-      if (isTouchDevice()) {
-        // Ensure a frame is displayed on touch devices by briefly playing then pausing
-        video.play().then(() => video.pause()).catch(err => console.log("Video play error:", err));
       }
+    });
+    
+    // Animation to scrub through the video based on scroll position
+    tl.to(video, { 
+      currentTime: video.duration,
+      ease: "none", // Linear animation
+      duration: 1 // This is relative to the timeline, not seconds
+    });
+    
+    // Handle touch devices
+    const isTouchDevice = () => {
+      return (
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0
+      );
     };
     
-    video.addEventListener('loadedmetadata', handleMetadata);
+    if (isTouchDevice()) {
+      // Ensure a frame is displayed on touch devices by briefly playing then pausing
+      video.play()
+        .then(() => {
+          // Set to the first frame
+          video.currentTime = 0;
+          video.pause();
+        })
+        .catch(err => console.log("Video play error:", err));
+    }
     
+    // Return cleanup function
     return () => {
-      video.removeEventListener('loadedmetadata', handleMetadata);
       // Clean up ScrollTrigger
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
-  }, [videoSrc, isVideoLoaded]);
+  }, [videoSrc, isVideoLoaded]); // Dependencies include isVideoLoaded to ensure video is fully loaded
 
   return (
     <div 
