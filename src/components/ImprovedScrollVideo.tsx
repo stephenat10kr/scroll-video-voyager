@@ -11,9 +11,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
+  onReady?: () => void; // Add onReady callback
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoVisible, setIsVideoVisible] = useState(true);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
@@ -41,6 +42,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
+    
+    // Notify parent component that video is ready
+    if (onReady) {
+      onReady();
+    }
     
     // For iOS, we need to manually initialize the video when it's loaded
     if (isIOS && videoRef.current && !isVideoInitialized) {
@@ -248,7 +254,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
             opacity: isVideoVisible ? 1 : 0,
-            visibility: isVideoVisible ? 'visible' : 'hidden'
+            visibility: isVideoVisible ? 'visible' : 'hidden',
+            backgroundColor: 'black' // Add background color to prevent white flashing
           }}
           playsInline={true}
           webkit-playsinline="true" 

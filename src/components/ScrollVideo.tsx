@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -12,8 +13,10 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
+  onReady?: () => void; // Add onReady callback prop
 }> = ({
-  src
+  src,
+  onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -104,6 +107,11 @@ const ScrollVideo: React.FC<{
         setVideoLoaded(true);
         setVideoVisible(true);
         
+        // Notify parent that video is ready
+        if (onReady) {
+          onReady();
+        }
+        
         // Always pause the video when it can play
         video.pause();
         console.log("Video paused on load");
@@ -119,6 +127,11 @@ const ScrollVideo: React.FC<{
       const handleLoadedData = () => {
         console.log("Video data loaded");
         setVideoVisible(true);
+        
+        // Also notify ready on loadeddata in case canplay doesn't fire
+        if (onReady) {
+          onReady();
+        }
         
         // Set the currentTime to show the first frame for mobile
         if (isMobile) {
@@ -168,6 +181,11 @@ const ScrollVideo: React.FC<{
           video.load();
           video.currentTime = 0.001;
         }
+        
+        // Also notify ready after timeout as a last resort
+        if (onReady && !videoLoaded) {
+          onReady();
+        }
       }, 300);
       
       return () => {
@@ -179,7 +197,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox]);
+  }, [secureVideoSrc, isMobile, isFirefox, onReady, videoLoaded]);
 
   // Add document-level interaction detection
   useEffect(() => {
@@ -240,7 +258,8 @@ const ScrollVideo: React.FC<{
             opacity: videoVisible && isInViewport ? 1 : 0,
             // Transition is now managed dynamically based on scroll direction
             display: "block",
-            visibility: "visible"
+            visibility: "visible",
+            backgroundColor: "black" // Ensure background is black, not white
           }} 
         />
       </ScrollVideoPlayer>

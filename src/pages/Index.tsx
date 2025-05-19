@@ -19,6 +19,7 @@ const Index = () => {
   const isIOS = useIsIOS();
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
   
   // Simulate loading progress for testing
   useEffect(() => {
@@ -28,8 +29,10 @@ const Index = () => {
     setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
+          // Only go to 100% if video is ready, otherwise cap at 95%
           const newProgress = prev + Math.random() * 5;
-          return newProgress >= 100 ? 100 : newProgress;
+          const maxProgress = videoReady ? 100 : 95;
+          return newProgress >= maxProgress ? maxProgress : newProgress;
         });
       }, 200);
     }, 500);
@@ -37,7 +40,15 @@ const Index = () => {
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, []);
+  }, [videoReady]);
+  
+  // When video is ready, allow progress to reach 100%
+  useEffect(() => {
+    if (videoReady && loadProgress < 100) {
+      console.log("Video is ready, completing progress to 100%");
+      setLoadProgress(100);
+    }
+  }, [videoReady, loadProgress]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -52,9 +63,26 @@ const Index = () => {
     setLoading(false);
   };
   
+  const handleVideoReady = () => {
+    console.log("Video is ready to display");
+    setVideoReady(true);
+  };
+  
   // Skip content rendering until preloader is done
   if (loading) {
-    return <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />;
+    return (
+      <>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
+        <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
+        <div style={{ visibility: 'hidden', position: 'absolute' }}>
+          {isAndroid ? (
+            <ImprovedScrollVideo onReady={handleVideoReady} />
+          ) : (
+            <ScrollVideo onReady={handleVideoReady} />
+          )}
+        </div>
+      </>
+    );
   }
   
   return <div className="min-h-screen w-full relative">
