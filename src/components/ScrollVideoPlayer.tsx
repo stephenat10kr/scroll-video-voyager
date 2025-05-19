@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -33,7 +34,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
+  // Reducing the threshold for more responsive scrubbing
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
@@ -41,6 +42,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
+  
+  // For Android's requestAnimationFrame implementation
+  const androidScrollRef = useRef<{
+    ticking: boolean;
+    enabled: boolean;
+    cleanup: (() => void) | null;
+  }>({
+    ticking: false,
+    enabled: false,
+    cleanup: null,
+  });
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -99,6 +111,79 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       cancelAnimationFrame(interpolationFrameRef.current);
     }
     interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
+  };
+
+  // Implementation of requestAnimationFrame for Android scroll handling
+  const setupAndroidRAFScrollHandler = (video: HTMLVideoElement, container: HTMLDivElement) => {
+    if (!isAndroid || !video.duration) return null;
+    
+    console.log("Setting up Android-specific requestAnimationFrame scroll handler");
+    
+    let ticking = false;
+    const scrollHeight = SCROLL_EXTRA_PX;
+    const containerTop = container.offsetTop;
+    
+    const updateVideoTimeFromScroll = () => {
+      const scrollTop = window.scrollY - containerTop;
+      // Calculate how far we've scrolled through the designated scroll area
+      const maxScroll = scrollHeight;
+      
+      // Ensure scrollTop is within bounds (0 to maxScroll)
+      const boundedScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
+      
+      // Calculate scroll percentage (0 to 1)
+      const scrollPercent = boundedScrollTop / maxScroll;
+      
+      // Calculate video time based on scroll percentage
+      const targetTime = video.duration * scrollPercent;
+      
+      // Calculate time to stop before the end of the video
+      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
+      const maxTime = video.duration - stopTimeBeforeEnd;
+      
+      // Ensure we don't exceed the maximum time
+      const boundedTime = Math.min(targetTime, maxTime);
+      
+      // Only update if progress has changed significantly
+      const newProgress = boundedTime / video.duration;
+      if (Math.abs(newProgress - lastProgressRef.current) >= progressThreshold) {
+        lastProgressRef.current = newProgress;
+        
+        // Update video time using smooth interpolation
+        smoothlyUpdateVideoTime(video, boundedTime);
+        
+        // Call the progress change callback
+        if (onProgressChange) {
+          onProgressChange(newProgress);
+        }
+        
+        // Update after video state
+        onAfterVideoChange(newProgress >= 1);
+        
+        // Debug logs for scroll near the end
+        if (newProgress > 0.95) {
+          console.log(`Android RAF scroll: ${scrollPercent.toFixed(3)}, video progress: ${newProgress.toFixed(3)}, time: ${boundedTime.toFixed(2)}/${video.duration.toFixed(2)}`);
+        }
+      }
+      
+      ticking = false;
+    };
+    
+    const scrollHandler = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateVideoTimeFromScroll);
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    console.log("Android requestAnimationFrame scroll handler activated");
+    
+    // Return cleanup function
+    return () => {
+      window.removeEventListener('scroll', scrollHandler);
+      console.log("Android requestAnimationFrame scroll handler removed");
+    };
   };
 
   useEffect(() => {
@@ -210,11 +295,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     resizeSection();
     window.addEventListener("resize", resizeSection);
 
-    // Calculate segment length based on the dynamic segmentCount
-    const calculateSegmentLength = (segments: number) => {
-      return 1 / (segments + 1);
-    };
-    
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
@@ -252,15 +332,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       frameRef.current = requestAnimationFrame(() => {
         // Enhanced Android-specific smooth interpolation
-        if (isAndroid) {
-          // Use our new smooth interpolation function for Android
+        if (isAndroid && !androidScrollRef.current.enabled) {
+          // Use our smooth interpolation function for Android
           smoothlyUpdateVideoTime(video, newTime);
           
           // Log Android-specific smoothing when near the end
           if (progress > 0.95) {
             console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
-        } else {
+        } else if (!isAndroid) {
           // Standard approach for non-Android devices
           video.currentTime = newTime;
         }
@@ -287,39 +367,50 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser and device
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
-      
-      // Android-specific scrub value optimization
-      if (isAndroid) {
-        // Android devices benefit from a higher scrub value for smoother performance
-        // Changed from 2.0 to 1.8 for smoother scrubbing
-        scrubValue = 1.8;
-        console.log("Using Android-optimized scrub value:", scrubValue);
-      }
-      
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
-      
-      scrollTriggerRef.current = ScrollTrigger.create({
-        trigger: container,
-        start: "top top",
-        end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the device/browser-specific scrub value
-        anticipatePin: 1,
-        fastScrollEnd: true,
-        preventOverlaps: true,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          if (isNaN(progress)) return;
-          updateVideoFrame(progress);
+      // For Android, we'll use our custom requestAnimationFrame approach
+      if (isAndroid && video.duration) {
+        console.log("Using requestAnimationFrame approach for Android");
+        
+        // Clean up any existing scroll handler
+        if (androidScrollRef.current.cleanup) {
+          androidScrollRef.current.cleanup();
         }
-      });
-      
-      setIsLoaded(true);
-      setupCompleted.current = true;
-      
-      console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
+        
+        // Set up the new handler
+        const cleanup = setupAndroidRAFScrollHandler(video, container);
+        androidScrollRef.current.enabled = true;
+        androidScrollRef.current.cleanup = cleanup;
+        
+        setIsLoaded(true);
+        setupCompleted.current = true;
+        console.log("Android RAF scroll handler setup completed");
+      } else {
+        // For other platforms, continue using GSAP's ScrollTrigger
+        // Determine the appropriate scrub value based on browser and device
+        let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+        
+        console.log(`Using GSAP ScrollTrigger with scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+        
+        scrollTriggerRef.current = ScrollTrigger.create({
+          trigger: container,
+          start: "top top",
+          end: `+=${SCROLL_EXTRA_PX}`,
+          scrub: scrubValue,
+          anticipatePin: 1,
+          fastScrollEnd: true,
+          preventOverlaps: true,
+          onUpdate: (self) => {
+            const progress = self.progress;
+            if (isNaN(progress)) return;
+            updateVideoFrame(progress);
+          }
+        });
+        
+        setIsLoaded(true);
+        setupCompleted.current = true;
+        
+        console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
+      }
     };
 
     // Request high priority loading for the video
@@ -375,12 +466,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (interpolationFrameRef.current) {
         cancelAnimationFrame(interpolationFrameRef.current);
       }
+      // Clean up Android RAF handler if it exists
+      if (androidScrollRef.current.cleanup) {
+        androidScrollRef.current.cleanup();
+      }
       setupEvents.forEach(event => {
         video.removeEventListener(event, handleVideoReady);
       });
       clearTimeout(timeoutId);
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
+      androidScrollRef.current.enabled = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
