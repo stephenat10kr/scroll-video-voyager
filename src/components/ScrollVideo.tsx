@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -90,7 +91,20 @@ const ScrollVideo: React.FC<{
         console.log("Mobile detected: Forcing initial video visibility");
         
         // Force loading of the first frame
-        video.currentTime = 0.001;
+        if (isAndroid) {
+          // For Android, start at frame 3% into video to avoid first frame issue
+          if (video.duration) {
+            const initialPos = Math.min(0.03 * video.duration, 1);
+            console.log(`Android: Setting initial position to ${initialPos.toFixed(2)}s on load`);
+            video.currentTime = initialPos;
+          } else {
+            // If duration isn't available yet, move away from frame 0
+            video.currentTime = 0.5; // Try a half-second in
+            console.log("Android: Setting initial position to 0.5s as fallback");
+          }
+        } else {
+          video.currentTime = 0.001;
+        }
         video.load();
       }
       
@@ -111,22 +125,19 @@ const ScrollVideo: React.FC<{
         console.log("Android detected: Applying Android-specific optimizations");
         
         // For Android, start at a frame slightly in from the beginning to avoid frame 1 issue
-        if (video.duration) {
-          // Set to 3% into the video to avoid first frame issue
-          const initialPos = Math.min(0.03 * video.duration, 1);
-          console.log(`Android: Setting initial position to ${initialPos.toFixed(2)}s`);
-          video.currentTime = initialPos;
-        } else {
-          // If duration isn't available yet, at least nudge away from frame 0
-          video.currentTime = 0.5; // Try a half-second in
-        }
+        const trySetAndroidPosition = () => {
+          if (video.readyState >= 1 && video.duration) {
+            // Set to 3% into the video to avoid first frame issue
+            const initialPos = Math.min(0.03 * video.duration, 1);
+            console.log(`Android: Setting initial position to ${initialPos.toFixed(2)}s in trySet function`);
+            video.currentTime = initialPos;
+          }
+        };
         
-        // Apply Android-specific hardware acceleration hints - lighter than before
-        video.style.transform = "translateZ(0)";
-        video.style.backfaceVisibility = "hidden";
+        trySetAndroidPosition();
         
-        // Simpler hardware acceleration approach
-        video.style.willChange = "transform";
+        // Simpler hardware acceleration for Android
+        video.style.transform = "translate3d(0,0,0)";
       }
       
       const handleCanPlay = () => {
