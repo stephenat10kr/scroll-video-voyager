@@ -55,7 +55,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       )}
 
       {/* Second section - First hero text */}
-      <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      <div className="min-h-screen h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText.fields.heroTextEyebrow}</h2>
@@ -71,7 +71,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       </div>
 
       {/* Third section - Second hero text */}
-      <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      <div className="min-h-screen h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
