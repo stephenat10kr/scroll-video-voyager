@@ -1,3 +1,4 @@
+
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -16,10 +17,10 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Add content container styles for proper spacing with fixed video */
+/* Updated content container styles without the 100vh padding */
 .content-container {
   position: relative;
-  padding-top: 100vh; /* Start content after the fixed video */
+  /* Remove padding-top: 100vh */
   /* Add extra height to allow enough scrolling for the video scrubbing */
   min-height: 300vh; 
 }

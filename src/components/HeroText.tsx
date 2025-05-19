@@ -6,7 +6,11 @@ import { useHeroText } from "../hooks/useHeroText";
 import Spinner from "./Spinner";
 import { AspectRatio } from "./ui/aspect-ratio";
 
-const HeroText: React.FC = () => {
+interface HeroTextProps {
+  skipLogoSection?: boolean;
+}
+
+const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
   const {
     data: heroTextItems,
@@ -32,21 +36,23 @@ const HeroText: React.FC = () => {
   
   return (
     <div className="w-full bg-transparent">
-      {/* First section - Logo section */}
-      <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
-        <div className="w-full max-w-[90%] mx-auto">
-          <div className="flex flex-col items-center">
-            <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-            <div className="flex justify-center items-center mt-12 w-full">
-              <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                <AspectRatio ratio={444/213} className="w-full">
-                  <Logo />
-                </AspectRatio>
+      {/* First section - Logo section (only show if not skipped) */}
+      {!skipLogoSection && (
+        <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
+          <div className="w-full max-w-[90%] mx-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <AspectRatio ratio={444/213} className="w-full">
+                    <Logo />
+                  </AspectRatio>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Second section - First hero text */}
       <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">

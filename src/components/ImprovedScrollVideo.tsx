@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -31,12 +30,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     setIsVideoLoaded(true);
   };
   
-  // Detect touch devices
+  // Detect touch devices - fixed the TypeScript error
   const isTouchDevice = () => {
     return (
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
-      navigator.msMaxTouchPoints > 0
+      // Removed msMaxTouchPoints which was causing the TypeScript error
+      navigator.maxTouchPoints > 0
     );
   };
   
