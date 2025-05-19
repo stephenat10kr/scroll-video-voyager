@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -40,6 +41,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
+  
+  // Detect Firefox browser
+  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -47,6 +51,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
     // Optimize video element
@@ -81,6 +86,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.style.willChange = "contents";
       if (navigator.userAgent.indexOf("Chrome") > -1) {
         video.style.transform = "translate3d(0,0,0)";
+      }
+      
+      // Firefox-specific optimizations
+      if (isFirefox) {
+        // Add Firefox-specific hardware acceleration hints
+        video.style.transform = "translateZ(0)";
+        // Additional Firefox optimization to improve rendering
+        video.style.backfaceVisibility = "hidden";
       }
     }
 
@@ -174,12 +187,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
+      // Determine the appropriate scrub value based on browser
+      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
+      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        // Increased scrub values for slower, smoother scrolling
-        scrub: isMobile ? 1.0 : 0.8, 
+        scrub: scrubValue, // Use the browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -193,7 +211,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
       setupCompleted.current = true;
       
-      console.log("ScrollTrigger setup completed");
+      console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
     };
 
     // Request high priority loading for the video

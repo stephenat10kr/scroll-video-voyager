@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -27,6 +26,9 @@ const ScrollVideo: React.FC<{
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+  
+  // Detect Firefox browser
+  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
@@ -82,6 +84,18 @@ const ScrollVideo: React.FC<{
         // Force loading of the first frame
         video.currentTime = 0.001;
         video.load();
+      }
+      
+      // Firefox-specific optimizations
+      if (isFirefox) {
+        console.log("Firefox detected: Applying Firefox-specific optimizations");
+        
+        // Apply Firefox-specific hardware acceleration hints
+        video.style.transform = "translateZ(0)";
+        video.style.backfaceVisibility = "hidden";
+        
+        // Try to improve Firefox performance by reducing motion complexity
+        video.style.willChange = "transform, opacity";
       }
       
       const handleCanPlay = () => {
@@ -164,7 +178,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile]);
+  }, [secureVideoSrc, isMobile, isFirefox]);
 
   // Add document-level interaction detection
   useEffect(() => {
