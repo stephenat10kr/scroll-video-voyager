@@ -37,10 +37,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const frameSkipCountRef = useRef(0);
   
   // Setting different progressThreshold values based on device
-  // Higher values for Android to reduce updates frequency
-  const progressThreshold = isAndroid ? 0.005 : (isFirefox ? 0.003 : 0.002);
+  const progressThreshold = isAndroid ? 0.01 : (isFirefox ? 0.003 : 0.002);
   
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
@@ -48,6 +49,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
+  
+  // New initial position offset for Android to avoid frame 1 issue
+  const ANDROID_INITIAL_OFFSET = 0.03; // 3% into the video
 
   useEffect(() => {
     const video = videoRef.current;
@@ -85,7 +89,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Force the first frame to display immediately
       if (video.readyState >= 1) {
-        video.currentTime = 0.001;
+        // For Android, set initial position slightly ahead to avoid frame 1 issue
+        if (isAndroid && video.duration) {
+          const initialPos = Math.min(ANDROID_INITIAL_OFFSET * video.duration, 1);
+          console.log(`Android: Setting initial frame position to ${initialPos.toFixed(2)}s`);
+          video.currentTime = initialPos;
+        } else {
+          video.currentTime = 0.001;
+        }
       }
     } else {
       // Chrome-specific optimizations still apply
@@ -113,7 +124,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.style.perspective = "1000px"; // Help with 3D acceleration
       
       // More aggressive hardware acceleration
-      video.style.willChange = "transform, opacity, contents";
+      video.style.willChange = "transform";
       
       // Force hardware acceleration using vendor prefixes
       video.style.webkitBackfaceVisibility = "hidden";
@@ -183,18 +194,42 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // For a standard 30fps video, 5 frames = 5/30 = 0.167 seconds before the end
       const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
       
-      // Adjust progress to stop 5 frames before the end
+      // For Android, apply a minimum offset to avoid getting stuck at frame 1
       let adjustedProgress = progress;
+      
+      // Only adjust near the beginning for Android (first 5%)
+      if (isAndroid && progress < 0.05) {
+        // Ensure we're always at least 3% in for Android
+        adjustedProgress = Math.max(progress, ANDROID_INITIAL_OFFSET);
+        console.log(`Android beginning: Using adjusted progress ${adjustedProgress.toFixed(3)} (raw: ${progress.toFixed(3)})`);
+      }
+      
+      // Adjust progress to stop 5 frames before the end
       if (progress > 0.98) {  // Only adjust near the end
         // Scale progress to end at (duration - stopTimeBeforeEnd)
         const maxTime = video.duration - stopTimeBeforeEnd;
-        adjustedProgress = Math.min(progress, maxTime / video.duration);
+        adjustedProgress = Math.min(adjustedProgress, maxTime / video.duration);
       }
       
       const newTime = adjustedProgress * video.duration;
       
-      // Log when we're approaching the end
-      if (progress > 0.95) {
+      // For Android, limit frame updates to avoid stuttering
+      if (isAndroid) {
+        // Skip every other frame update within the same scroll session to reduce processing
+        frameSkipCountRef.current += 1;
+        if (frameSkipCountRef.current % 2 !== 0) {
+          // Skip this update to reduce load
+          return;
+        }
+        
+        // If time hasn't changed significantly, don't update
+        if (Math.abs(newTime - lastTimeRef.current) < 0.1 && lastTimeRef.current > 0) {
+          return;
+        }
+      }
+      
+      // Log when we're approaching the end or beginning
+      if (progress > 0.95 || progress < 0.05) {
         console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
       }
       
@@ -202,17 +237,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
       
-      // For Android, use a less frequent update approach 
-      if (isAndroid) {
-        // Skip some frames on Android for better performance
-        if (Math.random() > 0.7 && progress < 0.9 && progress > 0.1) {
-          console.log("Android: Skipping frame update for performance");
-          return;
-        }
-      }
-      
       frameRef.current = requestAnimationFrame(() => {
-        video.currentTime = newTime;
+        // Only update the video if the time has changed significantly
+        if (Math.abs(video.currentTime - newTime) > 0.05) {
+          video.currentTime = newTime;
+          lastTimeRef.current = newTime;
+        }
         onAfterVideoChange(progress >= 1);
       });
     };
@@ -220,8 +250,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      // For mobile, try to render a frame immediately without waiting for duration
-      if (isMobile) {
+      // For Android or mobile, try to render a frame immediately beyond initial frame
+      if (isAndroid && video.duration) {
+        // Set to 3% into video for Android to avoid first frame issue
+        const initialPos = Math.min(ANDROID_INITIAL_OFFSET * video.duration, 1);
+        video.currentTime = initialPos;
+        console.log(`Android: Setting initial position to ${initialPos}s`);
+      } else if (isMobile) {
         video.currentTime = 0.001;
       }
       
@@ -237,8 +272,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.pause();
       
       // Determine the appropriate scrub value based on browser/device
-      // Higher values for Android (3.5) and Firefox (2.5) than for other browsers
-      const scrubValue = isAndroid ? 3.5 : (isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8));
+      // Much higher value for Android (4.0) for smoother but less responsive scrubbing
+      const scrubValue = isAndroid ? 4.0 : (isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8));
       
       console.log(`Using scrub value: ${scrubValue} for ${
         isAndroid ? 'Android' : (isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop'))
@@ -287,6 +322,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         setupScrollTrigger();
       }
       
+      // For Android, ensure we're not at frame 1 after video is ready
+      if (isAndroid && video.duration && !setupCompleted.current) {
+        const initialPos = Math.min(ANDROID_INITIAL_OFFSET * video.duration, 1);
+        video.currentTime = initialPos;
+        console.log(`Android: Setting position to ${initialPos}s after video ready`);
+      }
+      
       // Clean up event listeners after setup
       if (setupCompleted.current) {
         setupEvents.forEach(event => {
@@ -298,6 +340,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     setupEvents.forEach(event => {
       video.addEventListener(event, handleVideoReady);
     });
+    
+    // Special handler for Android to ensure we're not stuck at frame 1
+    if (isAndroid) {
+      video.addEventListener('seeked', () => {
+        // After any seek operation is complete, verify we're not at the beginning
+        if (video.currentTime < 0.02 && video.duration) {
+          // If we somehow ended up at the beginning, move to the offset position
+          const initialPos = Math.min(ANDROID_INITIAL_OFFSET * video.duration, 1);
+          video.currentTime = initialPos;
+          console.log(`Android: Correcting position to ${initialPos}s after seek`);
+        }
+      });
+    }
     
     // Safety timeout to ensure ScrollTrigger gets set up
     const timeoutId = setTimeout(() => {
@@ -328,3 +383,4 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 };
 
 export default ScrollVideoPlayer;
+

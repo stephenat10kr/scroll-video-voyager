@@ -30,8 +30,10 @@ const ScrollVideo: React.FC<{
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
-  // Detect Android device
-  const isAndroid = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('android') > -1;
+  // Detect Android device with improved detection
+  const isAndroid = typeof navigator !== 'undefined' && 
+    (navigator.userAgent.toLowerCase().indexOf('android') > -1 || 
+     (navigator.platform && /android/i.test(navigator.platform)));
   
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
@@ -78,6 +80,9 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
+      // Log device detection
+      console.log("Device detection - Mobile:", isMobile, "Firefox:", isFirefox, "Android:", isAndroid);
+      
       // Force initial visibility for mobile devices
       if (isMobile) {
         // Immediately make video element visible
@@ -105,20 +110,23 @@ const ScrollVideo: React.FC<{
       if (isAndroid) {
         console.log("Android detected: Applying Android-specific optimizations");
         
-        // Apply Android-specific hardware acceleration hints
+        // For Android, start at a frame slightly in from the beginning to avoid frame 1 issue
+        if (video.duration) {
+          // Set to 3% into the video to avoid first frame issue
+          const initialPos = Math.min(0.03 * video.duration, 1);
+          console.log(`Android: Setting initial position to ${initialPos.toFixed(2)}s`);
+          video.currentTime = initialPos;
+        } else {
+          // If duration isn't available yet, at least nudge away from frame 0
+          video.currentTime = 0.5; // Try a half-second in
+        }
+        
+        // Apply Android-specific hardware acceleration hints - lighter than before
         video.style.transform = "translateZ(0)";
         video.style.backfaceVisibility = "hidden";
         
-        // More aggressive hardware acceleration for Android
-        video.style.willChange = "transform, opacity, contents";
-        
-        // Force hardware acceleration more aggressively
-        video.style.webkitTransform = "translate3d(0,0,0)";
-        
-        // Try to reduce the quality/complexity for smoother playback
-        if (video.canPlayType('video/webm') === 'probably') {
-          console.log("Android: WebM format preferred for smoother playback");
-        }
+        // Simpler hardware acceleration approach
+        video.style.willChange = "transform";
       }
       
       const handleCanPlay = () => {
@@ -130,8 +138,14 @@ const ScrollVideo: React.FC<{
         video.pause();
         console.log("Video paused on load");
         
-        // For mobile, we need to ensure a frame is displayed
-        if (isMobile) {
+        // For Android, ensure we're not at the first frame
+        if (isAndroid && video.duration) {
+          const initialPos = Math.min(0.03 * video.duration, 1);
+          console.log(`Android: Setting position to ${initialPos}s on canplay`);
+          video.currentTime = initialPos;
+        }
+        // For other mobile devices, we need to ensure a frame is displayed
+        else if (isMobile) {
           // Set the currentTime to show the first frame
           video.currentTime = 0.001;
         }
@@ -142,8 +156,14 @@ const ScrollVideo: React.FC<{
         console.log("Video data loaded");
         setVideoVisible(true);
         
-        // Set the currentTime to show the first frame for mobile
-        if (isMobile) {
+        // For Android, ensure we're not at the first frame
+        if (isAndroid && video.duration) {
+          const initialPos = Math.min(0.03 * video.duration, 1);
+          console.log(`Android: Setting position to ${initialPos}s on loadeddata`);
+          video.currentTime = initialPos;
+        }
+        // Set the currentTime to show the first frame for other mobile
+        else if (isMobile) {
           video.currentTime = 0.001;
         }
       };
@@ -153,8 +173,14 @@ const ScrollVideo: React.FC<{
         console.log("Video metadata loaded");
         setVideoVisible(true);
         
-        // Set the currentTime to show the first frame for mobile
-        if (isMobile) {
+        // For Android, ensure we're not at the first frame
+        if (isAndroid && video.duration) {
+          const initialPos = Math.min(0.03 * video.duration, 1);
+          console.log(`Android: Setting position to ${initialPos}s on loadedmetadata`);
+          video.currentTime = initialPos;
+        }
+        // Set the currentTime to show the first frame for other mobile
+        else if (isMobile) {
           video.currentTime = 0.001;
         }
       };
@@ -171,12 +197,42 @@ const ScrollVideo: React.FC<{
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
       video.addEventListener("error", handleError);
       
+      // Special handler for Android to consistently avoid frame 1
+      if (isAndroid) {
+        const handleSeeked = () => {
+          // After any seek operation, verify we're not at the beginning
+          if (video.currentTime < 0.02 && video.duration) {
+            // If we ended up at the beginning, move to the offset position
+            const initialPos = Math.min(0.03 * video.duration, 1);
+            video.currentTime = initialPos;
+            console.log(`Android: Correcting position to ${initialPos}s after seek in component`);
+          }
+        };
+        video.addEventListener("seeked", handleSeeked);
+        
+        // Clean up the extra event listener
+        return () => {
+          video.removeEventListener("seeked", handleSeeked);
+          video.removeEventListener("canplay", handleCanPlay);
+          video.removeEventListener("loadeddata", handleLoadedData);
+          video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+          video.removeEventListener("error", handleError);
+        };
+      }
+      
       // Add a safety timeout to ensure visibility regardless of events
       const shortTimeoutId = setTimeout(() => {
         // Force visibility after a very short delay
         if (isMobile) {
           setVideoVisible(true);
           console.log("Mobile video visibility forced by short timeout");
+          
+          // For Android, ensure we're not at frame 1
+          if (isAndroid && video.readyState >= 1 && video.duration) {
+            const initialPos = Math.min(0.03 * video.duration, 1);
+            video.currentTime = initialPos;
+            console.log(`Android: Setting position to ${initialPos}s in short timeout`);
+          }
         }
       }, 100);
       
@@ -188,7 +244,15 @@ const ScrollVideo: React.FC<{
         // If video still hasn't loaded its first frame, try to force it
         if (isMobile && video.readyState < 2) {
           video.load();
-          video.currentTime = 0.001;
+          
+          // For Android, ensure we're not at frame 1
+          if (isAndroid && video.duration) {
+            const initialPos = Math.min(0.03 * video.duration, 1);
+            video.currentTime = initialPos;
+            console.log(`Android: Setting position to ${initialPos}s in fallback timeout`);
+          } else {
+            video.currentTime = 0.001;
+          }
         }
       }, 300);
       
@@ -215,7 +279,14 @@ const ScrollVideo: React.FC<{
         if (video) {
           // Try to display the first frame
           if (video.readyState >= 1) {
-            video.currentTime = 0.001;
+            // For Android, ensure we're not at frame 1
+            if (isAndroid && video.duration) {
+              const initialPos = Math.min(0.03 * video.duration, 1);
+              video.currentTime = initialPos;
+              console.log(`Android: Setting position to ${initialPos}s after user interaction`);
+            } else {
+              video.currentTime = 0.001;
+            }
           }
         }
       };
@@ -229,7 +300,7 @@ const ScrollVideo: React.FC<{
         document.removeEventListener('click', handleInteraction);
       };
     }
-  }, [isMobile]);
+  }, [isMobile, isAndroid]);
 
   return (
     <div 
