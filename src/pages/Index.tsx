@@ -13,6 +13,8 @@ import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
+import { useContentfulAsset } from "@/hooks/useContentfulAsset";
+import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -20,6 +22,15 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  
+  // Use appropriate video asset ID based on device
+  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  const { data: videoAsset } = useContentfulAsset(videoAssetId);
+  
+  // Get video source from Contentful
+  const videoSrc = videoAsset?.fields?.file?.url 
+    ? `https:${videoAsset.fields.file.url}`
+    : undefined;
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -72,7 +83,12 @@ const Index = () => {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
     }
-  }, [isIOS]);
+    
+    if (isAndroid) {
+      console.log("Android device detected in Index component");
+      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+    }
+  }, [isIOS, isAndroid]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
@@ -92,9 +108,9 @@ const Index = () => {
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
         <div style={{ visibility: 'hidden', position: 'absolute' }}>
           {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} />
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
-            <ScrollVideo onReady={handleVideoReady} />
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
       </>
@@ -106,7 +122,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      <ImprovedScrollVideo src={videoSrc} />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
