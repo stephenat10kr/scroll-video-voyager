@@ -114,7 +114,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         <video 
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-cover absolute inset-0"
           playsInline 
           preload="auto"
           muted 
