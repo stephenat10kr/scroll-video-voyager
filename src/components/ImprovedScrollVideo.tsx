@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -32,6 +31,40 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
 
   const handleVideoLoaded = () => {
     setIsVideoLoaded(true);
+    
+    // For iOS, we need to manually initialize the video when it's loaded
+    if (isIOS && videoRef.current) {
+      initializeVideoForIOS();
+    }
+  };
+  
+  // Initialize video specifically for iOS
+  const initializeVideoForIOS = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    console.log("iOS device detected, initializing video");
+    
+    // Set playsinline attribute directly on the element for iOS
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('webkit-playsinline', 'true');
+    
+    // iOS requires user interaction to play video
+    // Muting allows autoplay in some cases
+    video.muted = true;
+    
+    // Try to preload the video
+    video.load();
+    
+    // Try to play and immediately pause to initialize the video
+    // This helps with iOS's strict autoplay policies
+    video.play().then(() => {
+      video.pause();
+      video.currentTime = 0; // Reset to beginning
+      console.log("Successfully initialized video for iOS");
+    }).catch(err => {
+      console.error("Error initializing video for iOS:", err);
+    });
   };
   
   // Detect touch devices
@@ -42,25 +75,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       navigator.maxTouchPoints > 0
     );
   };
-  
-  // Initialize video for iOS devices
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !isVideoLoaded) return;
-    
-    if (isIOS) {
-      console.log("iOS device detected, applying special video handling");
-      
-      // For iOS, we need to play and immediately pause to initialize the video
-      // This helps with iOS's strict autoplay policies
-      video.play().then(() => {
-        video.pause();
-        console.log("Successfully initialized video for iOS");
-      }).catch(err => {
-        console.error("Error initializing video for iOS:", err);
-      });
-    }
-  }, [isVideoLoaded, isIOS]);
   
   useEffect(() => {
     const video = videoRef.current;
@@ -103,7 +117,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
 
     // Add ScrollTrigger to control visibility based on RevealText component position
-    // Using a more reliable selector targeting the section ID
     const revealTextSection = document.getElementById('revealText-section');
     if (revealTextSection) {
       console.log("RevealText section found for video visibility trigger");
@@ -155,6 +168,30 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     };
   }, [isVideoLoaded, isIOS]);
 
+  // Add a useEffect specifically for iOS video handling
+  useEffect(() => {
+    // Run only once when component mounts and if iOS is detected
+    if (isIOS && videoRef.current && !isVideoLoaded) {
+      // Set up iOS-specific event listeners
+      const video = videoRef.current;
+      
+      const handleIOSVisibilityChange = () => {
+        if (!document.hidden && video) {
+          // If page becomes visible again on iOS, try to re-initialize
+          console.log("Page visibility changed on iOS, reinitializing video");
+          initializeVideoForIOS();
+        }
+      };
+      
+      // iOS sometimes unloads video when page visibility changes
+      document.addEventListener('visibilitychange', handleIOSVisibilityChange);
+      
+      return () => {
+        document.removeEventListener('visibilitychange', handleIOSVisibilityChange);
+      };
+    }
+  }, [isIOS]);
+
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
       {/* Show loading state if video is still loading */}
@@ -173,7 +210,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             visibility: isVideoVisible ? 'visible' : 'hidden'
           }}
           playsInline={true}
-          webkit-playsinline="true"
+          webkit-playsinline="true" 
           preload="auto"
           muted={true}
           controls={false}
@@ -181,8 +218,18 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         >
           {/* Provide multiple source formats for better compatibility */}
           <source src={videoSrc} type="video/mp4" />
-          {/* If we have WebM version available, we could add it here */}
-          {/* <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" /> */}
+          
+          {/* Add WebM source for better compatibility */}
+          {videoSrc.includes('.mp4') && (
+            <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
+          )}
+          
+          {/* Add MOV source for better iOS compatibility */}
+          {videoSrc.includes('.mp4') && (
+            <source src={videoSrc.replace('.mp4', '.mov')} type="video/quicktime" />
+          )}
+          
+          Your browser does not support HTML5 video.
         </video>
       )}
     </div>

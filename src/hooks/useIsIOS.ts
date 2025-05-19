@@ -6,8 +6,8 @@ export const useIsIOS = (): boolean => {
   if (typeof navigator === 'undefined') return false;
   
   // Check for iOS devices by looking for common iOS platform identifiers
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-                !window.MSStream;
+  // Removed MSStream check which was causing TypeScript error
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   
   return isIOS;
 };
