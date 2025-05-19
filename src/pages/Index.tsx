@@ -9,15 +9,13 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
-import useIsAndroid from "../hooks/useIsAndroid";
+import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
-import AndroidScrollVideo from "../components/AndroidScrollVideo";
 
 const Index = () => {
-  // Updated: use direct import of useIsAndroid from the new file
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
   const [loading, setLoading] = useState(true);
@@ -67,12 +65,11 @@ const Index = () => {
   
   // Enhanced debugging
   useEffect(() => {
-    // Log device information
-    console.log("Device detection:");
-    console.log("- iOS:", isIOS);
-    console.log("- Android:", isAndroid);
-    console.log("User Agent:", navigator.userAgent);
-  }, [isIOS, isAndroid]);
+    if (isIOS) {
+      console.log("iOS device detected in Index component");
+      console.log("User Agent:", navigator.userAgent);
+    }
+  }, [isIOS]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
@@ -97,8 +94,6 @@ const Index = () => {
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
         <div style={{ visibility: 'hidden', position: 'absolute' }}>
           {isAndroid ? (
-            <AndroidScrollVideo onReady={handleVideoReady} />
-          ) : isIOS ? (
             <ImprovedScrollVideo onReady={handleVideoReady} />
           ) : (
             <ScrollVideo onReady={handleVideoReady} />
@@ -108,27 +103,12 @@ const Index = () => {
     );
   }
   
-  // Choose the right video component based on device detection
-  const VideoComponent = () => {
-    if (isAndroid) {
-      console.log("Using AndroidScrollVideo component");
-      return <AndroidScrollVideo />;
-    } else if (isIOS) {
-      console.log("Using ImprovedScrollVideo component");
-      return <ImprovedScrollVideo />;
-    } else {
-      console.log("Using standard ScrollVideo component");
-      return <ScrollVideo />;
-    }
-  };
-  
-  return (
-    <div className="min-h-screen w-full relative">
+  return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      <VideoComponent />
+      <ImprovedScrollVideo />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
@@ -178,8 +158,7 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>
-  );
+    </div>;
 };
 
 export default Index;
