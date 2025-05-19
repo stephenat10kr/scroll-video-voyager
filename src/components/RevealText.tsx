@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -128,11 +129,12 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
+          WebkitTextFillColor: "transparent", // Added this property for iOS Safari
           lineHeight: "1.2",
           whiteSpace: "pre-wrap",
           wordBreak: "normal",
           WebkitFontSmoothing: "antialiased",
-          textRendering: "optimizeLegibility"
+          textRendering: "optimizeLegibility" as const
         }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
