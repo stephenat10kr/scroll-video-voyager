@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -12,18 +12,50 @@ import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
+import Preloader from "../components/Preloader";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
+  const [loading, setLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
+  
+  // Simulate loading progress for testing
+  useEffect(() => {
+    let progressInterval: NodeJS.Timeout;
+    
+    // Start with a small delay
+    setTimeout(() => {
+      progressInterval = setInterval(() => {
+        setLoadProgress(prev => {
+          const newProgress = prev + Math.random() * 5;
+          return newProgress >= 100 ? 100 : newProgress;
+        });
+      }, 200);
+    }, 500);
+    
+    return () => {
+      if (progressInterval) clearInterval(progressInterval);
+    };
+  }, []);
   
   // Enhanced debugging
-  React.useEffect(() => {
+  useEffect(() => {
     if (isIOS) {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
     }
   }, [isIOS]);
+  
+  const handlePreloaderComplete = () => {
+    console.log("Preloader complete, showing content");
+    setLoading(false);
+  };
+  
+  // Skip content rendering until preloader is done
+  if (loading) {
+    return <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />;
+  }
   
   return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}

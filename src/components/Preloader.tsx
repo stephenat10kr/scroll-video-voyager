@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import colors from "@/lib/theme";
 
 interface PreloaderProps {
   progress: number;
@@ -50,7 +51,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       // Show "Come in." text briefly before fading out
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Come in." state for 0.5 seconds (changed from 1.5s)
+      // First delay - stay at 100% "Come in." state for 0.5 seconds
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
@@ -69,7 +70,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         }, 1000); // Wait 1 second at 100% before fading
         
         return () => clearTimeout(fadeOutTimeout);
-      }, 500); // Show "Come in." for 0.5 seconds (changed from 1.5s)
+      }, 500); // Show "Come in." for 0.5 seconds
       
       return () => clearTimeout(welcomeTimeout);
     }
@@ -88,22 +89,23 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-1500 bg-[#203435] ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-1500 bg-darkGreen ${
         visible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ backgroundColor: colors.darkGreen }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Loading percentage and text */}
         <div className="flex flex-col items-center justify-center gap-4 w-full">
           {showWelcome && displayedProgress >= 100 ? (
-            <span className="title-lg text-coral">Come in.</span>
+            <span className="title-xl text-coral" style={{ color: colors.coral }}>Come in.</span>
           ) : (
-            <span className="title-lg text-coral">
+            <span className="title-xl text-coral" style={{ color: colors.coral }}>
               {Math.round(displayedProgress)}%
             </span>
           )}
           {!showWelcome && (
-            <p className="text-coral text-lg">{loadingTexts[currentTextIndex]}</p>
+            <p className="text-coral text-lg" style={{ color: colors.coral }}>{loadingTexts[currentTextIndex]}</p>
           )}
         </div>
       </div>
