@@ -60,16 +60,16 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         scrub: 0.5, // Smoother scrubbing
         markers: true, // Enable markers for debugging
         onUpdate: (self) => {
-          console.log("ScrollTrigger progress:", self.progress);
+          if (video && video.duration) {
+            // Ensure we have a valid duration before setting currentTime
+            const targetTime = self.progress * video.duration;
+            // Check if the calculated time is a valid number
+            if (isFinite(targetTime)) {
+              video.currentTime = targetTime;
+            }
+          }
         }
       }
-    });
-    
-    // Animation to scrub through the video based on scroll position
-    tl.to(video, { 
-      currentTime: video.duration,
-      ease: "none", // Linear animation
-      duration: 1 // This is relative to the timeline, not seconds
     });
     
     // Handle touch devices
@@ -115,7 +115,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           <video 
             ref={videoRef}
             src={videoSrc}
-            className="absolute w-full h-full object-contain"
+            className="absolute w-full h-full object-cover"
             playsInline 
             preload="auto"
             muted 
