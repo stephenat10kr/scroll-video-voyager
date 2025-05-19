@@ -58,18 +58,18 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         start: "top top",
         end: "bottom bottom",
         scrub: 0.5, // Smoother scrubbing
-        markers: false, // Disable markers for production
+        markers: true, // Enable markers for debugging
         onUpdate: (self) => {
-          if (video && video.duration) {
-            // Ensure we have a valid duration before setting currentTime
-            const targetTime = self.progress * video.duration;
-            // Check if the calculated time is a valid number
-            if (isFinite(targetTime)) {
-              video.currentTime = targetTime;
-            }
-          }
+          console.log("ScrollTrigger progress:", self.progress);
         }
       }
+    });
+    
+    // Animation to scrub through the video based on scroll position
+    tl.to(video, { 
+      currentTime: video.duration,
+      ease: "none", // Linear animation
+      duration: 1 // This is relative to the timeline, not seconds
     });
     
     // Handle touch devices
@@ -101,7 +101,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   return (
     <div 
       ref={containerRef}
-      className="fixed top-0 left-0 w-full h-screen z-0"
+      className="video-container fixed top-0 left-0 w-full h-screen z-0"
     >
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
@@ -111,17 +111,15 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       )}
       
       {videoSrc && (
-        <div className="absolute inset-0 overflow-hidden bg-black">
-          <video 
-            ref={videoRef}
-            src={videoSrc}
-            className="absolute w-full h-full object-contain" 
-            playsInline 
-            preload="auto"
-            muted 
-            onLoadedData={handleVideoLoaded}
-          />
-        </div>
+        <video 
+          ref={videoRef}
+          src={videoSrc}
+          className="w-full h-full object-cover pointer-events-none"
+          playsInline 
+          preload="auto"
+          muted 
+          onLoadedData={handleVideoLoaded}
+        />
       )}
     </div>
   );
