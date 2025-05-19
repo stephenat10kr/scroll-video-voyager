@@ -30,6 +30,9 @@ const ScrollVideo: React.FC<{
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
+  // Detect Android device
+  const isAndroid = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('android') > -1;
+  
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
@@ -96,6 +99,26 @@ const ScrollVideo: React.FC<{
         
         // Try to improve Firefox performance by reducing motion complexity
         video.style.willChange = "transform, opacity";
+      }
+      
+      // Android-specific optimizations
+      if (isAndroid) {
+        console.log("Android detected: Applying Android-specific optimizations");
+        
+        // Apply Android-specific hardware acceleration hints
+        video.style.transform = "translateZ(0)";
+        video.style.backfaceVisibility = "hidden";
+        
+        // More aggressive hardware acceleration for Android
+        video.style.willChange = "transform, opacity, contents";
+        
+        // Force hardware acceleration more aggressively
+        video.style.webkitTransform = "translate3d(0,0,0)";
+        
+        // Try to reduce the quality/complexity for smoother playback
+        if (video.canPlayType('video/webm') === 'probably') {
+          console.log("Android: WebM format preferred for smoother playback");
+        }
       }
       
       const handleCanPlay = () => {
@@ -178,7 +201,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox]);
+  }, [secureVideoSrc, isMobile, isFirefox, isAndroid]);
 
   // Add document-level interaction detection
   useEffect(() => {
@@ -224,6 +247,8 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
+        isAndroid={isAndroid}
+        isFirefox={isFirefox}
       >
         <video 
           ref={videoRef} 

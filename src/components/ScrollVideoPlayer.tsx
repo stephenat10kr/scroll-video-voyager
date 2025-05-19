@@ -16,6 +16,8 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
+  isAndroid?: boolean;
+  isFirefox?: boolean;
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -29,21 +31,23 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
+  isAndroid = false,
+  isFirefox = false,
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Setting the progressThreshold to 0.002 as requested
-  const progressThreshold = 0.002; 
+  
+  // Setting different progressThreshold values based on device
+  // Higher values for Android to reduce updates frequency
+  const progressThreshold = isAndroid ? 0.005 : (isFirefox ? 0.003 : 0.002);
+  
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
   const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
-  
-  // Detect Firefox browser
-  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -52,6 +56,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     console.log("Mobile detection:", isMobile);
     console.log("Firefox detection:", isFirefox);
+    console.log("Android detection:", isAndroid);
+    console.log("Progress threshold:", progressThreshold);
     console.log("Segment count:", segmentCount);
 
     // Optimize video element
@@ -96,6 +102,38 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         video.style.backfaceVisibility = "hidden";
       }
     }
+    
+    // Android-specific optimizations
+    if (isAndroid) {
+      console.log("Applying Android-specific optimizations in ScrollVideoPlayer");
+      
+      // More aggressive rendering optimizations for Android
+      video.style.transform = "translateZ(0) scale(1.0)"; // Force GPU layer
+      video.style.backfaceVisibility = "hidden";
+      video.style.perspective = "1000px"; // Help with 3D acceleration
+      
+      // More aggressive hardware acceleration
+      video.style.willChange = "transform, opacity, contents";
+      
+      // Force hardware acceleration using vendor prefixes
+      video.style.webkitBackfaceVisibility = "hidden";
+      video.style.webkitPerspective = "1000px";
+      
+      // Reduce rendering quality for better performance on Android
+      if ("mozImageSmoothingEnabled" in video.style) {
+        // @ts-ignore - Property may not exist in all browsers
+        video.style.mozImageSmoothingEnabled = false;
+      }
+      if ("webkitImageSmoothingEnabled" in video.style) {
+        // @ts-ignore - Property may not exist in all browsers
+        video.style.webkitImageSmoothingEnabled = false;
+      }
+      
+      // Try reducing playback quality
+      if (typeof video.getVideoPlaybackQuality === 'function') {
+        console.log("Android: VideoPlaybackQuality API available");
+      }
+    }
 
     // --- Begin: Video source selection and logging ---
     let srcAssigned = false;
@@ -129,6 +167,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // Use device-specific progressThreshold to control update frequency
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -162,6 +202,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         cancelAnimationFrame(frameRef.current);
       }
       
+      // For Android, use a less frequent update approach 
+      if (isAndroid) {
+        // Skip some frames on Android for better performance
+        if (Math.random() > 0.7 && progress < 0.9 && progress > 0.1) {
+          console.log("Android: Skipping frame update for performance");
+          return;
+        }
+      }
+      
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
         onAfterVideoChange(progress >= 1);
@@ -187,17 +236,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      // Determine the appropriate scrub value based on browser/device
+      // Higher values for Android (3.5) and Firefox (2.5) than for other browsers
+      const scrubValue = isAndroid ? 3.5 : (isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8));
       
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      console.log(`Using scrub value: ${scrubValue} for ${
+        isAndroid ? 'Android' : (isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop'))
+      }`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the browser-specific scrub value
+        scrub: scrubValue, // Use the device-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -270,7 +321,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       clearTimeout(timeoutId);
       setupCompleted.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, 
+      onProgressChange, src, isLoaded, isMobile, isFirefox, isAndroid, progressThreshold]);
 
   return <>{children}</>;
 };
