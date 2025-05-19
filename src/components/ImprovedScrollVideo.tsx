@@ -61,8 +61,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         start: "top top",
         // Increase the end value to extend the scrolling length
         // This makes the scrubbing effect less sensitive
-        end: "bottom+=300% bottom", // Changed from 200% to 300%
-        scrub: 1.5, // Changed from true to 1.5 to add a smoother delay effect
+        end: "bottom+=400% bottom", // Changed from 300% to 400% to make scrubbing even less sensitive
+        scrub: 2.5, // Changed from 1.5 to 2.5 to add an even smoother delay effect
         markers: false, // Set to true for debugging
       }
     });
