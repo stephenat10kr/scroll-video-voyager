@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ScrollVideoTextOverlay from "./ScrollVideoTextOverlay";
+import HeroText from "./HeroText";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,7 +12,7 @@ interface ImprovedScrollVideoProps {
 
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const heroTextRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
   // Use a more direct approach for scroll video
@@ -45,9 +45,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
 
       timelineRef.current = gsap.timeline({
         scrollTrigger: {
-          trigger: containerRef.current,
+          trigger: heroTextRef.current,
           start: "top top",
-          end: "bottom+=200% bottom",
+          end: "bottom bottom",
           scrub: true,
           markers: false, // set to true for debugging
           onUpdate: (self) => {
@@ -90,11 +90,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
   }, [src]);
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative w-full bg-black overflow-hidden"
-      style={{ height: "300vh" }}  // Fixed height for scrolling (3x viewport height)
-    >
+    <>
       <video 
         ref={videoRef}
         src={src}
@@ -108,8 +104,14 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src }) => {
         }} 
       />
       
-      <ScrollVideoTextOverlay containerRef={containerRef} />
-    </div>
+      <div 
+        ref={heroTextRef}
+        className="relative w-full"
+        style={{ height: "500vh" }} // Set HeroText container to 500vh
+      >
+        <HeroText />
+      </div>
+    </>
   );
 };
 
