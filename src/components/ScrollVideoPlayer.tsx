@@ -33,8 +33,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reduce the threshold for smoother Android scrubbing
-  const progressThreshold = isMobile ? 0.001 : 0.002;
+  // Setting the progressThreshold to 0.002 as requested
+  const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
@@ -42,13 +42,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
   
-  // Detect Android browser
-  const isAndroid = typeof navigator !== 'undefined' && 
-    navigator.userAgent.toLowerCase().indexOf('android') > -1;
-  
   // Detect Firefox browser
-  const isFirefox = typeof navigator !== 'undefined' && 
-    navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -56,7 +51,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
-    console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -76,24 +70,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
       
-      // Force hardware acceleration - enhanced for Android
+      // Force hardware acceleration
       video.style.transform = "translate3d(0,0,0)";
-      video.style.willChange = "contents, transform";
-      
-      // Android-specific optimizations
-      if (isAndroid) {
-        // Apply additional Android-specific optimizations
-        video.style.webkitBackfaceVisibility = "hidden";
-        video.style.webkitPerspective = "1000";
-        video.style.webkitTransformStyle = "preserve-3d";
-        
-        // Add buffer prefetch hint for Android
-        video.preload = "auto";
-        if (video.readyState < 3) {
-          // Try to preload more aggressively
-          video.load();
-        }
-      }
+      video.style.willChange = "contents";
       
       // Ensure muted state for autoplay capability
       video.muted = true;
@@ -148,17 +127,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       return 1 / (segments + 1);
     };
     
-    // Enhanced video frame updater with smoother Android handling
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
-      
-      // Use different threshold for Android for smoother scrubbing
-      const threshold = isAndroid ? 0.0005 : progressThreshold;
-      
-      if (Math.abs(progress - lastProgressRef.current) < threshold) {
+      if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
-      
       lastProgressRef.current = progress;
       
       // Call the progress change callback
@@ -178,40 +151,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         adjustedProgress = Math.min(progress, maxTime / video.duration);
       }
       
-      // For Android, add slight easing to the progress value for smoother scrubbing
-      if (isAndroid) {
-        // Apply slight interpolation for smoother Android playback
-        const easeFactor = 0.85;
-        const currentTime = video.currentTime;
-        const targetTime = adjustedProgress * video.duration;
-        const newTime = currentTime + (targetTime - currentTime) * easeFactor;
-        
-        if (frameRef.current) {
-          cancelAnimationFrame(frameRef.current);
-        }
-        
-        frameRef.current = requestAnimationFrame(() => {
-          video.currentTime = newTime;
-          onAfterVideoChange(progress >= 1);
-        });
-      } else {
-        // Standard handling for non-Android devices
-        const newTime = adjustedProgress * video.duration;
-        
-        if (frameRef.current) {
-          cancelAnimationFrame(frameRef.current);
-        }
-        
-        frameRef.current = requestAnimationFrame(() => {
-          video.currentTime = newTime;
-          onAfterVideoChange(progress >= 1);
-        });
-      }
+      const newTime = adjustedProgress * video.duration;
       
       // Log when we're approaching the end
       if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${video.currentTime.toFixed(2)}/${video.duration.toFixed(2)}`);
+        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
       }
+      
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+      
+      frameRef.current = requestAnimationFrame(() => {
+        video.currentTime = newTime;
+        onAfterVideoChange(progress >= 1);
+      });
     };
 
     const setupScrollTrigger = () => {
@@ -233,24 +187,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on device
-      let scrubValue = 0.8;  // Default for desktop
+      // Determine the appropriate scrub value based on browser
+      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
+      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      if (isFirefox) {
-        scrubValue = 2.5;  // Higher values for Firefox
-      } else if (isAndroid) {
-        scrubValue = 1.8;  // Optimized for Android - higher for smoother scrubbing
-      } else if (isMobile) {
-        scrubValue = 1.0;  // Standard for other mobile devices
-      }
-      
-      console.log(`Using scrub value: ${scrubValue} for ${isAndroid ? 'Android' : isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the device-specific scrub value
+        scrub: scrubValue, // Use the browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -273,23 +220,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.fetchPriority = 'high';
     }
 
-    // For Android devices, we need more aggressive loading
-    if (isAndroid) {
-      // Try to pre-decode frames for Android
-      if (video.readyState >= 1) {
-        video.currentTime = 0.001;
-        
-        // Force load and then setup
-        video.load();
-        setTimeout(() => {
-          if (!setupCompleted.current) {
-            console.log("Setting up ScrollTrigger for Android after forced load");
-            setupScrollTrigger();
-          }
-        }, 50);
-      }
-    }
-    
     // For mobile devices, we'll set up ScrollTrigger even without duration
     if (isMobile) {
       setupScrollTrigger();

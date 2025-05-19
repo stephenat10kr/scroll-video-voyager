@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
-import ScrollVideo from "../components/ScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
@@ -14,6 +13,7 @@ import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
+import ScrollVideo from "../components/ScrollVideo";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -69,12 +69,7 @@ const Index = () => {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
     }
-    
-    if (isAndroid) {
-      console.log("Android device detected in Index component");
-      console.log("User Agent:", navigator.userAgent);
-    }
-  }, [isIOS, isAndroid]);
+  }, [isIOS]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
@@ -99,7 +94,7 @@ const Index = () => {
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
         <div style={{ visibility: 'hidden', position: 'absolute' }}>
           {isAndroid ? (
-            <ScrollVideo onReady={handleVideoReady} />
+            <ImprovedScrollVideo onReady={handleVideoReady} />
           ) : (
             <ScrollVideo onReady={handleVideoReady} />
           )}
@@ -113,11 +108,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      {isAndroid ? (
-        <ScrollVideo />
-      ) : (
-        <ImprovedScrollVideo />
-      )}
+      <ImprovedScrollVideo />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
