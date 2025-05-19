@@ -3,13 +3,11 @@ import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
-import { useIsAndroid } from "../hooks/use-android";
 import Spinner from "./Spinner";
 import { AspectRatio } from "./ui/aspect-ratio";
 
 const HeroText: React.FC = () => {
   const isMobile = useIsMobile();
-  const isAndroid = useIsAndroid();
   const {
     data: heroTextItems,
     isLoading,
@@ -49,8 +47,8 @@ const HeroText: React.FC = () => {
         <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
       </div>;
   }
-  return <div className="relative w-full z-10 bg-transparent overflow-x-hidden" style={{ height: "300vh" }}>
-      <div className="w-full max-w-none" style={{ position: "sticky", top: 0, height: "100vh" }}>
+  return <div className="relative w-full z-10 bg-transparent overflow-x-hidden">
+      <div className="w-full max-w-none">
         {/* Section 1 - Logo section with hardcoded "WELCOME TO" */}
         <div className="min-h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
