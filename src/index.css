@@ -131,6 +131,18 @@
   }
 }
 
+/* iOS specific text masking */
+@supports (-webkit-touch-callout: none) {
+  .title-md[data-ios="true"] {
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+  
+  .title-md[data-ios="true"] .char {
+    transition: opacity 0.5s ease !important;
+  }
+}
+
 /* Typography utility classes */
 @layer components {
   .title-xl {
