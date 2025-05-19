@@ -294,8 +294,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Android-specific scrub value optimization
       if (isAndroid) {
         // Android devices benefit from a higher scrub value for smoother performance
-        // 2.0 is smoother than the standard mobile 1.0
-        scrubValue = 2.0;
+        // Changed from 2.0 to 1.8 for smoother scrubbing
+        scrubValue = 1.8;
         console.log("Using Android-optimized scrub value:", scrubValue);
       }
       
