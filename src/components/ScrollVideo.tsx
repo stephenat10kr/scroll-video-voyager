@@ -24,6 +24,8 @@ const ScrollVideo: React.FC<{
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
+  
+  // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Detect Firefox browser

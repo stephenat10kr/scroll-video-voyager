@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -32,11 +31,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
   // Use external src if provided, otherwise use the one from Contentful
+  // Remove all fallback URLs and only use Contentful
   const videoSrc = externalSrc || (heroVideoAsset?.fields?.file?.url 
     ? (heroVideoAsset.fields.file.url.startsWith('//') 
         ? 'https:' + heroVideoAsset.fields.file.url 
         : heroVideoAsset.fields.file.url)
-    : "https://www.dropbox.com/scl/fi/qejf5dgqiv6m77d71r2ec/abstract-background-ink-water.mp4?rlkey=cf5xf73grwr5olszcyjghc5pt&st=ycgfiqec&raw=1");
+    : undefined);
 
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
@@ -258,19 +258,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           controls={false}
           onLoadedData={handleVideoLoaded}
         >
-          {/* Provide multiple source formats for better compatibility */}
           <source src={videoSrc} type="video/mp4" />
-          
-          {/* Add WebM source for better compatibility */}
-          {videoSrc.includes('.mp4') && (
-            <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
-          )}
-          
-          {/* Add MOV source for better iOS compatibility */}
-          {videoSrc.includes('.mp4') && (
-            <source src={videoSrc.replace('.mp4', '.mov')} type="video/quicktime" />
-          )}
-          
           Your browser does not support HTML5 video.
         </video>
       )}
