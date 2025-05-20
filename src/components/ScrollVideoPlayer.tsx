@@ -1,7 +1,7 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,8 +33,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Setting the progressThreshold to 0.002 as requested
-  const progressThreshold = 0.002; 
+  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
+  const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
@@ -44,6 +44,62 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  
+  // Use the Android hook for detection
+  const isAndroid = useIsAndroid();
+
+  // Create a ref to store the current interpolation target time
+  const targetTimeRef = useRef<number>(0);
+  // Create a ref to store the current animation frame ID for interpolation
+  const interpolationFrameRef = useRef<number | null>(null);
+  // Create a ref to track if interpolation is in progress
+  const isInterpolatingRef = useRef<boolean>(false);
+  // Interpolation speed factor (higher means faster transition)
+  const interpolationSpeed = 0.15;
+
+  // Function to smoothly interpolate video time for Android
+  const smoothlyUpdateVideoTime = (video: HTMLVideoElement, targetTime: number) => {
+    // Store the target time for reference
+    targetTimeRef.current = targetTime;
+    
+    // If we're already interpolating, no need to start another loop
+    if (isInterpolatingRef.current) return;
+    
+    isInterpolatingRef.current = true;
+    
+    // Function for the interpolation loop
+    const interpolateTime = () => {
+      if (!video) {
+        isInterpolatingRef.current = false;
+        return;
+      }
+      
+      const currentTime = video.currentTime;
+      const timeDiff = targetTimeRef.current - currentTime;
+      
+      // If we're close enough to the target, set the time directly and stop
+      if (Math.abs(timeDiff) < 0.01) {
+        video.currentTime = targetTimeRef.current;
+        isInterpolatingRef.current = false;
+        return;
+      }
+      
+      // Calculate the next time value with easing
+      const newTime = currentTime + (timeDiff * interpolationSpeed);
+      
+      // Update the video time
+      video.currentTime = newTime;
+      
+      // Continue the interpolation in the next frame
+      interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
+    };
+    
+    // Start the interpolation loop
+    if (interpolationFrameRef.current) {
+      cancelAnimationFrame(interpolationFrameRef.current);
+    }
+    interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -51,6 +107,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -80,6 +137,37 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Force the first frame to display immediately
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
+      }
+      
+      // Android-specific optimizations
+      if (isAndroid) {
+        console.log("Applying Android-specific optimizations");
+        
+        // Enhanced hardware acceleration for Android
+        video.style.transform = "translate3d(0,0,0) translateZ(0)";
+        
+        // Improve Android rendering performance
+        video.style.backfaceVisibility = "hidden";
+        video.style.perspective = "1000px";
+        
+        // Android texture size optimization
+        video.style.maxWidth = "100%";
+        video.style.maxHeight = "100%";
+        
+        // Android sometimes benefits from webkitTransform
+        // @ts-ignore
+        video.style.webkitTransform = "translate3d(0,0,0)";
+        
+        // Force hardware acceleration using additional properties
+        video.style.willChange = "transform, opacity";
+        
+        // Attempt to improve initial frame rendering on Android
+        if (video.readyState >= 1) {
+          setTimeout(() => {
+            video.currentTime = 0.001;
+            console.log("Forced initial frame on Android");
+          }, 50);
+        }
       }
     } else {
       // Chrome-specific optimizations still apply
@@ -163,7 +251,19 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        video.currentTime = newTime;
+        // Enhanced Android-specific smooth interpolation
+        if (isAndroid) {
+          // Use our new smooth interpolation function for Android
+          smoothlyUpdateVideoTime(video, newTime);
+          
+          // Log Android-specific smoothing when near the end
+          if (progress > 0.95) {
+            console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+          }
+        } else {
+          // Standard approach for non-Android devices
+          video.currentTime = newTime;
+        }
         onAfterVideoChange(progress >= 1);
       });
     };
@@ -187,17 +287,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser
+      // Determine the appropriate scrub value based on browser and device
       // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      // Android-specific scrub value optimization
+      if (isAndroid) {
+        // Android devices benefit from a higher scrub value for smoother performance
+        // Changed from 2.0 to 1.8 for smoother scrubbing
+        scrubValue = 1.8;
+        console.log("Using Android-optimized scrub value:", scrubValue);
+      }
+      
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the browser-specific scrub value
+        scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -264,13 +372,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
+      if (interpolationFrameRef.current) {
+        cancelAnimationFrame(interpolationFrameRef.current);
+      }
       setupEvents.forEach(event => {
         video.removeEventListener(event, handleVideoReady);
       });
       clearTimeout(timeoutId);
       setupCompleted.current = false;
+      isInterpolatingRef.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
   return <>{children}</>;
 };
