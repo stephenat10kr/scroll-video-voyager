@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsIOS } from "../hooks/use-ios";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,10 +38,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  // Define the frames to stop before the end
-  const FRAMES_BEFORE_END = 5;
+  // Define the frames to stop before the end - reduced to 2 frames for better iOS experience
+  const FRAMES_BEFORE_END = 2; // Reduced from 5 to 2 frames
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
+  
+  // Check if we're on iOS using our custom hook
+  const isIOS = useIsIOS();
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -51,6 +55,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     if (!video || !container) return;
 
     console.log("Mobile detection:", isMobile);
+    console.log("iOS detection:", isIOS);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -139,16 +144,33 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate time to stop before the end of the video
-      // For a standard 30fps video, 5 frames = 5/30 = 0.167 seconds before the end
-      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
+      // iOS specific handling - log more data for iOS devices
+      if (isIOS) {
+        console.log(`iOS video progress: ${progress.toFixed(4)}, duration: ${video.duration.toFixed(2)}`);
+      }
       
-      // Adjust progress to stop 5 frames before the end
+      // Calculate time to stop before the end of the video
+      // For iOS, use a smaller value to ensure we get closer to the end of the video
+      const framesBeforeEnd = isIOS ? 1 : FRAMES_BEFORE_END;
+      const stopTimeBeforeEnd = framesBeforeEnd / STANDARD_FRAME_RATE;
+      
+      // Adjust progress to stop frames before the end
       let adjustedProgress = progress;
-      if (progress > 0.98) {  // Only adjust near the end
+      if (progress > 0.97) {  // Only adjust near the end, adjusted threshold from 0.98 to 0.97
         // Scale progress to end at (duration - stopTimeBeforeEnd)
         const maxTime = video.duration - stopTimeBeforeEnd;
         adjustedProgress = Math.min(progress, maxTime / video.duration);
+        
+        // For iOS, let the progress go very near the end (special handling)
+        if (isIOS && progress > 0.99) {
+          // Let iOS go much closer to the end
+          adjustedProgress = Math.min(1, progress);
+        }
+        
+        // Additional logging for end of video behavior
+        if (isIOS) {
+          console.log(`iOS near end: progress=${progress.toFixed(4)}, adjusted=${adjustedProgress.toFixed(4)}, time=${(adjustedProgress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
+        }
       }
       
       const newTime = adjustedProgress * video.duration;
@@ -187,17 +209,23 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      // Determine the appropriate scrub value based on browser and device
+      // Special case for iOS to make scrolling smoother
+      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
+      // iOS specific scrub value - make it even smoother for iOS
+      if (isIOS) {
+        scrubValue = 1.5; // Smoother scrolling for iOS
+        console.log("Using iOS-specific scrub value:", scrubValue);
+      }
+      
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isIOS ? 'iOS' : (isMobile ? 'mobile' : 'desktop'))}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the browser-specific scrub value
+        scrub: scrubValue, // Use the device-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -270,7 +298,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       clearTimeout(timeoutId);
       setupCompleted.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isIOS, isFirefox]);
 
   return <>{children}</>;
 };

@@ -5,6 +5,7 @@ import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import Spinner from "./Spinner";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsIOS } from "@/hooks/use-ios";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -20,6 +21,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
+  const isIOS = useIsIOS(); // Use our custom iOS detection hook
   
   // Use external src if provided, otherwise use the one from Contentful
   const videoSrc = externalSrc || (heroVideoAsset?.fields?.file?.url 
@@ -28,13 +30,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         : heroVideoAsset.fields.file.url)
     : "https://www.dropbox.com/scl/fi/qejf5dgqiv6m77d71r2ec/abstract-background-ink-water.mp4?rlkey=cf5xf73grwr5olszcyjghc5pt&st=ycgfiqec&raw=1");
 
-  // Check if we're running on iOS
-  const isIOS = () => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-  };
-
   const handleVideoLoaded = () => {
     setIsVideoLoaded(true);
+    if (isIOS) {
+      console.log("Video loaded on iOS device");
+    }
   };
   
   // Detect touch devices - fixed the TypeScript error
@@ -50,6 +50,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isVideoLoaded) return;
+    
+    // Special handling for iOS devices
+    if (isIOS) {
+      console.log("Setting up iOS-specific video handling");
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+    }
     
     // For touch devices, we need to initialize the video first
     if (isTouchDevice()) {
@@ -68,7 +75,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         // Increase the end value to extend the scrolling length
         // This makes the scrubbing effect less sensitive
         end: "bottom+=600% bottom", // Changed from 400% to 600% to make scrubbing much less sensitive
-        scrub: 3.5, // Changed from 2.5 to 3.5 to add an even smoother delay effect
+        scrub: isIOS ? 4.0 : 3.5, // Use higher scrub value for iOS for smoother scrolling
         markers: false, // Set to true for debugging
       }
     });
@@ -76,8 +83,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // Wait until video metadata is loaded before creating the animation
     const handleMetadataLoaded = () => {
       if (video.duration) {
-        timeline.to(video, { currentTime: video.duration });
+        // For iOS, we make a slight adjustment to ensure the video reaches the end
+        const targetDuration = isIOS ? video.duration * 0.999 : video.duration;
+        timeline.to(video, { currentTime: targetDuration });
         console.log("Video scroll animation set up with duration:", video.duration);
+        if (isIOS) {
+          console.log("Using iOS-adjusted target duration:", targetDuration);
+        }
       }
     };
     
@@ -116,7 +128,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded]);
+  }, [isVideoLoaded, isIOS]);
 
   // iOS specific video loading
   useEffect(() => {
@@ -125,7 +137,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const video = videoRef.current;
     
     // For iOS devices, we need special handling
-    if (isIOS()) {
+    if (isIOS) {
       console.log("iOS device detected, applying special video handling");
       
       // Make sure video is visible even before fully loaded on iOS
@@ -165,12 +177,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         document.removeEventListener('touchstart', handleUserInteraction);
       };
     }
-  }, [videoSrc]);
+  }, [videoSrc, isIOS]);
 
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
       {/* Show loading state if video is still loading */}
-      {(isLoading || !isVideoLoaded) && !isIOS() && (
+      {(isLoading || !isVideoLoaded) && !isIOS && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <Spinner />
         </div>
