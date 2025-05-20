@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -99,6 +100,7 @@ const RevealText = () => {
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
+        WebkitTextFillColor: "transparent", // Add WebkitTextFillColor for iOS
         ease: "power1.inOut",
         duration: 0.1
       }, i * 0.01);
@@ -128,6 +130,7 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
+          WebkitTextFillColor: "transparent", // Add WebkitTextFillColor for iOS
           lineHeight: "1.2",
           whiteSpace: "pre-wrap",
           wordBreak: "normal",
