@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -70,13 +69,18 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: document.body, // Use the entire body as trigger for iOS
         start: "top top",
-        // Increase the end value to extend the scrolling length
-        // This makes the scrubbing effect less sensitive
-        end: "bottom+=600% bottom", // Changed from 400% to 600% to make scrubbing much less sensitive
-        scrub: isIOS ? 4.0 : 3.5, // Use higher scrub value for iOS for smoother scrolling
+        // Keep consistent 600vh scroll length for all devices
+        end: "bottom+=600% bottom",
+        scrub: isIOS ? 1.0 : 3.5, // Use lower scrub value for iOS for more precise scrolling
         markers: false, // Set to true for debugging
+        onUpdate: (self) => {
+          // Add progress logging for debugging iOS scroll issues
+          if (isIOS && self.progress % 0.1 < 0.01) {
+            console.log(`ScrollTrigger progress: ${Math.round(self.progress * 100)}%, Video time: ${video.currentTime}/${video.duration}`);
+          }
+        }
       }
     });
     
@@ -84,7 +88,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const handleMetadataLoaded = () => {
       if (video.duration) {
         // For iOS, we make a slight adjustment to ensure the video reaches the end
-        const targetDuration = isIOS ? video.duration * 0.999 : video.duration;
+        const targetDuration = isIOS ? video.duration * 0.99 : video.duration;
         timeline.to(video, { currentTime: targetDuration });
         console.log("Video scroll animation set up with duration:", video.duration);
         if (isIOS) {

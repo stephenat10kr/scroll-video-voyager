@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -11,16 +11,31 @@ import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/use-ios";
-import Logo from "../components/Logo";
+import { useViewportHeight } from "../hooks/use-viewport-height";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
   
+  // Use our custom viewport height hook
+  const viewportHeight = useViewportHeight();
+  
   // Log device detection for debugging
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("Device detection - Android:", isAndroid, "iOS:", isIOS);
-  }, [isAndroid, isIOS]);
+    console.log("Viewport height:", viewportHeight);
+  }, [isAndroid, isIOS, viewportHeight]);
+  
+  // Apply the custom viewport height to ensure iOS scrolling works correctly
+  useEffect(() => {
+    if (isIOS) {
+      const contentContainer = document.querySelector('.content-container');
+      if (contentContainer) {
+        // Set explicit minimum height for iOS to ensure proper scrolling
+        contentContainer.setAttribute('style', `min-height: calc(var(--vh, 1vh) * 600);`);
+      }
+    }
+  }, [isIOS, viewportHeight]);
   
   return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
@@ -29,28 +44,11 @@ const Index = () => {
       {/* Video fixed at the top (mid z-index) */}
       <ImprovedScrollVideo />
       
-      {/* Content overlay (high z-index, but below logo) */}
-      <div className="content-container relative z-10">
-        {/* Logo section at the top */}
-        <section className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
-          <div className="w-full max-w-[90%] mx-auto">
-            <div className="flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12 w-full">
-                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                  <div className="aspect-w-444 aspect-h-213 w-full">
-                    <Logo />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Hero Text sections - they will stack directly under the logo */}
+      {/* Content overlay (high z-index) */}
+      <div className="content-container relative z-10 min-h-[600vh]">
+        {/* No separate logo section here - it's included in HeroText */}
         <section>
-          {/* We skip the logo section since we've added it separately above */}
-          <HeroText skipLogoSection={true} />
+          <HeroText skipLogoSection={false} />
         </section>
         
         <section id="revealText-section">
