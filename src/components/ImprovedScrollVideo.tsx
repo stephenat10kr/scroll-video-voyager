@@ -180,8 +180,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         <video 
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-cover pointer-events-none transition-opacity duration-300"
-          style={{ opacity: isVideoVisible ? 1 : 0 }}
+          className="w-full h-full object-cover pointer-events-none"
+          style={{ display: isVideoVisible ? 'block' : 'none' }}
           playsInline 
           preload="auto"
           muted 
