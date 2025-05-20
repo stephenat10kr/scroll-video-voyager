@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -140,6 +141,11 @@ const RevealText = () => {
             <Button variant="default" className="h-[48px] rounded-full bg-coral text-black hover:bg-coral/90" onClick={() => setIsFormOpen(true)}>
               STAY IN THE LOOP
             </Button>
+            
+            {/* New body copy text block in white */}
+            <div className="mt-8 body-text text-roseWhite col-span-12 md:col-span-9">
+              Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive.
+            </div>
           </div>
         </div>
       </div>
