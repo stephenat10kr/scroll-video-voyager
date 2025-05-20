@@ -9,14 +9,19 @@ import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
+import { useIsIOS } from "@/hooks/useIsIOS";
+
+// Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
+
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const isIOS = useIsIOS();
   
   const {
     data: revealTextContent,
@@ -69,7 +74,7 @@ const RevealText = () => {
   });
   
   useEffect(() => {
-    console.log("Current revealTextContent:", revealTextContent);
+    console.log("RevealText component mounted, iOS detected:", isIOS);
     const text = textRef.current;
     if (!text) return;
 
@@ -79,7 +84,7 @@ const RevealText = () => {
     // Create a container for better iOS handling
     text.innerHTML = ""; // Clear the text
     
-    // Create a div specifically for iOS text masking
+    // Create a div specifically for text masking
     const textContainer = document.createElement("div");
     textContainer.className = "text-mask-container";
     textContainer.style.position = "relative";
@@ -119,7 +124,7 @@ const RevealText = () => {
     
     // Get all character spans for animation
     const spans = text.querySelectorAll(".char");
-    console.log(`Found ${spans.length} spans to animate`);
+    console.log(`Found ${spans.length} spans to animate, isIOS: ${isIOS}`);
     
     // Setup the scroll trigger animation
     const tl = gsap.timeline({
@@ -132,51 +137,47 @@ const RevealText = () => {
       }
     });
     
-    // iOS detection
-    const isIOS = /(iPad|iPhone|iPod)/g.test(navigator.userAgent);
-    
     if (isIOS) {
-      console.log("iOS device detected, applying special mask handling");
+      console.log("iOS device detected, applying special color transition");
       
-      // For iOS, we need a different approach
+      // For iOS, apply a simpler approach that focuses on color transition
       spans.forEach(span => {
-        // Set initial styles - white text underneath with coral overlay
+        // Set initial styles for iOS - start with coral text
         gsap.set(span, {
-          color: colors.coral, // Start with coral color
+          color: colors.coral,
           opacity: 1,
-          position: "relative"
         });
       });
       
-      // Animate iOS differently - fade from coral to white
+      // For iOS, animate each character from coral to white with a slight delay between each
       spans.forEach((span, i) => {
         tl.to(span, {
           color: "white",
-          ease: "power1.inOut",
-          duration: 0.1
-        }, i * 0.01);
+          ease: "power2.inOut",
+          duration: 0.05
+        }, i * 0.01); // Slightly stagger each character
       });
     } else {
-      // For non-iOS devices, use the text mask effect
+      // For non-iOS devices, use the background-clip text mask effect
       spans.forEach(span => {
         gsap.set(span, {
-          color: "white", // Set the base color to white
-          backgroundImage: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`, // Coral overlay
+          color: "white", // Base text color
+          backgroundImage: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`,
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
-          textFillColor: "transparent", // For standard browsers
-          WebkitTextFillColor: "transparent" // For webkit browsers
+          WebkitTextFillColor: "transparent",
+          textFillColor: "transparent" 
         });
       });
       
-      // Animate each character to clear the mask and reveal the white text
+      // Animate to remove the mask
       spans.forEach((span, i) => {
         tl.to(span, {
-          backgroundImage: "none", // Remove gradient background
-          WebkitBackgroundClip: "unset", // Unset background clipping
-          backgroundClip: "unset", // Unset background clipping
-          color: "white", // Make sure the text remains white
-          WebkitTextFillColor: "white", // Ensure text is visible
+          backgroundImage: "none",
+          WebkitBackgroundClip: "unset",
+          backgroundClip: "unset",
+          color: "white",
+          WebkitTextFillColor: "white",
           ease: "power1.inOut",
           duration: 0.1
         }, i * 0.01);
@@ -189,7 +190,7 @@ const RevealText = () => {
       }
       tl.kill();
     };
-  }, [revealTextContent]);
+  }, [revealTextContent, isIOS]); // Added isIOS as a dependency
   
   if (isLoading) {
     return <div className="w-full py-24" style={{
@@ -235,4 +236,5 @@ const RevealText = () => {
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
 };
+
 export default RevealText;
