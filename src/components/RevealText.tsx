@@ -101,7 +101,13 @@ const RevealText = () => {
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
     
-    // Fix for iOS and desktop: ensure that both color and WebkitTextFillColor properties are animated properly
+    // Set initial state and animate to transparent
+    gsap.set(spans, {
+      color: colors.coral,
+      WebkitTextFillColor: colors.coral
+    });
+    
+    // Animate each character to transparent 
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
@@ -135,18 +141,13 @@ const RevealText = () => {
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div ref={textRef} style={{
-          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          color: "transparent", // Explicitly set color to transparent
-          WebkitTextFillColor: "transparent", 
-          lineHeight: "1.2",
-          whiteSpace: "pre-wrap",
-          wordBreak: "normal",
-          WebkitFontSmoothing: "antialiased",
-          textRendering: "optimizeLegibility"
-        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
+          <div ref={textRef} className="title-md text-coral col-span-12 md:col-span-9 mb-8 py-[12px]" style={{
+            lineHeight: "1.2",
+            whiteSpace: "pre-wrap",
+            wordBreak: "normal",
+            WebkitFontSmoothing: "antialiased",
+            textRendering: "optimizeLegibility"
+          }}>
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
