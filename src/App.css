@@ -17,19 +17,12 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Updated content container styles with consistent viewport height */
+/* Updated content container styles without the 100vh padding */
 .content-container {
   position: relative;
-  /* Increased from 400vh to 600vh to match ScrollTrigger settings */
-  min-height: 600vh;
-}
-
-/* iOS-specific viewport height handling */
-@supports (-webkit-touch-callout: none) {
-  .content-container {
-    /* Use the CSS variable set by our custom hook */
-    min-height: calc(var(--vh, 1vh) * 600);
-  }
+  /* Remove padding-top: 100vh */
+  /* Increased from 300vh to 400vh to allow more space for scrolling */
+  min-height: 400vh; 
 }
 
 /* Add section spacing */
@@ -46,13 +39,6 @@ html, body {
   width: 100vw;
   height: 100vh;
   z-index: 0;
-}
-
-/* iOS-specific video container height */
-@supports (-webkit-touch-callout: none) {
-  .video-container {
-    height: calc(var(--vh, 1vh) * 100);
-  }
 }
 
 /* Video element styles */
