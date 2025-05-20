@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,23 +9,14 @@ import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
-import { useIsIOS } from "@/hooks/useIsIOS";
-
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
-
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const isIOS = useIsIOS();
-  
-  useEffect(() => {
-    console.log("RevealText isIOS:", isIOS);
-  }, [isIOS]);
-  
   const {
     data: revealTextContent,
     isLoading,
@@ -74,7 +66,6 @@ const RevealText = () => {
       }
     }
   });
-
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -94,78 +85,29 @@ const RevealText = () => {
       ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
-    
     text.innerHTML = formattedHTML;
-    
-    // Short delay to ensure everything is rendered properly, especially important for iOS
-    setTimeout(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: text,
-          start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
-          end: "bottom center",
-          scrub: 0.5,
-          markers: false
-        }
-      });
-      
-      const spans = text.querySelectorAll(".char");
-      console.log(`Found ${spans.length} spans to animate`);
-      
-      // For iOS devices, we'll use opacity instead of color: transparent
-      // This approach works better with the webkit text fill and background clip properties
-      if (isIOS) {
-        spans.forEach((span, i) => {
-          tl.to(span, {
-            opacity: 0,
-            ease: "power1.inOut",
-            duration: 0.1
-          }, i * 0.01);
-        });
-      } else {
-        // For non-iOS devices, keep the original animation
-        spans.forEach((span, i) => {
-          tl.to(span, {
-            color: "transparent", 
-            ease: "power1.inOut",
-            duration: 0.1
-          }, i * 0.01);
-        });
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: text,
+        start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
+        end: "bottom center",
+        scrub: 0.5,
+        markers: false
       }
-    }, isIOS ? 300 : 0); // Add delay for iOS devices
-    
+    });
+    const spans = text.querySelectorAll(".char");
+    console.log(`Found ${spans.length} spans to animate`);
+    spans.forEach((span, i) => {
+      tl.to(span, {
+        color: "transparent",
+        ease: "power1.inOut",
+        duration: 0.1
+      }, i * 0.01);
+    });
     return () => {
-      // Make sure to kill all GSAP animations and ScrollTrigger instances
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      tl.kill();
     };
-  }, [revealTextContent, isIOS]);
-
-  // Apply iOS-specific styling to the text container
-  const getTextStyles = () => {
-    // Base styles
-    const baseStyles = {
-      background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-      WebkitBackgroundClip: "text",
-      backgroundClip: "text",
-      lineHeight: "1.2",
-      whiteSpace: "pre-wrap",
-      wordBreak: "normal",
-      WebkitFontSmoothing: "antialiased",
-      textRendering: "optimizeLegibility"
-    };
-
-    // Add iOS-specific styles
-    if (isIOS) {
-      return {
-        ...baseStyles,
-        WebkitTextFillColor: "transparent", // Critical for iOS text masking
-        color: colors.coral,                // Fallback color
-      };
-    }
-
-    return baseStyles;
-  };
-
+  }, [revealTextContent]);
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -175,22 +117,25 @@ const RevealText = () => {
         </div>
       </div>;
   }
-  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-
   return <>
       <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div 
-            ref={textRef} 
-            style={getTextStyles()}
-            className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]"
-            data-ios={isIOS ? "true" : "false"}
-          >
+          <div ref={textRef} style={{
+          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent", // Added this property for iOS Safari
+          lineHeight: "1.2",
+          whiteSpace: "pre-wrap",
+          wordBreak: "normal",
+          WebkitFontSmoothing: "antialiased",
+          textRendering: "optimizeLegibility" as const
+        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -204,5 +149,4 @@ const RevealText = () => {
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
 };
-
 export default RevealText;
