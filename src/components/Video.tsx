@@ -4,7 +4,7 @@ import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
-import Preloader from "./Preloader";
+// import Preloader from "./Preloader";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
@@ -21,7 +21,7 @@ const Video = () => {
     : undefined;
   
   const [loadProgress, setLoadProgress] = useState(0);
-  const [showPreloader, setShowPreloader] = useState(true);
+  const [showPreloader, setShowPreloader] = useState(false); // Changed to false to skip preloader
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoAttemptsRef = useRef(0);
@@ -80,13 +80,6 @@ const Video = () => {
       prevProgress,       // Previous progress value
       historicalMax       // Historical maximum progress we've reported
     );
-    
-    // Add to progress history
-    progressValuesRef.current.push(newProgress);
-    // Keep array at reasonable size
-    if (progressValuesRef.current.length > 10) {
-      progressValuesRef.current.shift();
-    }
     
     console.log(`Video - Progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%)`);
     
@@ -278,12 +271,14 @@ const Video = () => {
 
   return (
     <>
+      {/*
       {showPreloader && (
         <Preloader 
           progress={loadProgress} 
           onComplete={handlePreloaderComplete} 
         />
       )}
+      */}
       {isAndroid ? (
         <ImprovedScrollVideo src={videoSrc} />
       ) : (

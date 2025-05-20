@@ -12,7 +12,7 @@ import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
-import Preloader from "../components/Preloader";
+// import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import ImageSequencePlayer from "../components/ImageSequencePlayer";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
@@ -21,7 +21,7 @@ import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/conte
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed to false to skip preloader
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const [imageSequenceReady, setImageSequenceReady] = useState(false);
@@ -36,6 +36,7 @@ const Index = () => {
     : undefined;
   
   // Force complete preloader after maximum time
+  /*
   useEffect(() => {
     const maxLoadingTime = 12000; // 12 seconds max loading time
     const forceCompleteTimeout = setTimeout(() => {
@@ -47,8 +48,10 @@ const Index = () => {
     
     return () => clearTimeout(forceCompleteTimeout);
   }, [loadProgress]);
+  */
   
   // Simulate loading progress for testing - improved to reach 100% when video or image sequence is ready
+  /*
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -71,14 +74,17 @@ const Index = () => {
       if (progressInterval) clearInterval(progressInterval);
     };
   }, [videoReady, imageSequenceReady, isAndroid]);
+  */
   
   // When media is ready, immediately set progress to 100%
+  /*
   useEffect(() => {
     if ((isAndroid && imageSequenceReady) || (!isAndroid && videoReady)) {
       console.log("Media is ready, immediately setting progress to 100%");
       setLoadProgress(100);
     }
   }, [videoReady, imageSequenceReady, isAndroid]);
+  */
   
   // Enhanced debugging
   useEffect(() => {
@@ -113,7 +119,9 @@ const Index = () => {
     return (
       <>
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
+        {/* Commented out preloader
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
+        */}
         <div style={{ visibility: 'hidden', position: 'absolute' }}>
           {isAndroid ? (
             <ImageSequencePlayer onReady={handleImageSequenceReady} totalFrames={99} />
