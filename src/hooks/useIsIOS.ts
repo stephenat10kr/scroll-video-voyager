@@ -12,7 +12,10 @@ export const useIsIOS = (): boolean => {
   const isIOS = /iPhone|iPad|iPod/i.test(userAgent) || 
                 /iOS/i.test(userAgent) ||
                 // Also detect iOS Safari browser
-                (/Safari/i.test(userAgent) && /Apple Computer/.test(navigator.vendor));
+                (/Safari/i.test(userAgent) && /Apple Computer/.test(navigator.vendor)) ||
+                // Additional check for iOS webkit
+                /webkit/i.test(userAgent) && /apple/i.test(navigator.vendor);
   
+  console.log("iOS detection:", isIOS, "User Agent:", userAgent);
   return isIOS;
 };

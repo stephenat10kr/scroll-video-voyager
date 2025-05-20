@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -6,34 +5,28 @@ import Spinner from "./Spinner";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsIOS } from "@/hooks/useIsIOS";
-import { useIsAndroid } from "@/hooks/use-android";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
-  onReady?: () => void; // Add onReady callback
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoVisible, setIsVideoVisible] = useState(true);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
-  const isAndroid = useIsAndroid();
   
   // For debugging
   useEffect(() => {
     if (isIOS) {
       console.log("iOS device detected in ImprovedScrollVideo component");
     }
-    if (isAndroid) {
-      console.log("Android device detected in ImprovedScrollVideo component");
-    }
-  }, [isIOS, isAndroid]);
+  }, [isIOS]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -48,11 +41,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
-    
-    // Notify parent component that video is ready
-    if (onReady) {
-      onReady();
-    }
     
     // For iOS, we need to manually initialize the video when it's loaded
     if (isIOS && videoRef.current && !isVideoInitialized) {
@@ -135,9 +123,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         trigger: containerRef.current,
         start: "top top",
         // Increase the end value to extend the scrolling length
-        end: "bottom+=600% bottom", // Keep extended scrolling length
-        // Use a much lower scrub value for Android devices to reduce lag
-        scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
+        // This makes the scrubbing effect less sensitive
+        end: "bottom+=600% bottom", // Changed from 400% to 600% to make scrubbing much less sensitive
+        scrub: 3.5, // Changed from 2.5 to 3.5 to add an even smoother delay effect
         markers: false, // Set to true for debugging
       }
     });
@@ -147,7 +135,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       if (video.duration) {
         timeline.to(video, { currentTime: video.duration });
         console.log("Video scroll animation set up with duration:", video.duration);
-        console.log("Using scrub value:", isAndroid ? "0.5 (Android)" : "3.5 (non-Android)");
       }
     };
     
@@ -207,7 +194,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
@@ -261,11 +248,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
             opacity: isVideoVisible ? 1 : 0,
-            visibility: isVideoVisible ? 'visible' : 'hidden',
-            backgroundColor: 'black', // Add background color to prevent white flashing
-            willChange: 'transform', // Added performance optimization
-            transform: 'translateZ(0)', // Force GPU acceleration
-            backfaceVisibility: 'hidden' // Prevent rendering the back face
+            visibility: isVideoVisible ? 'visible' : 'hidden'
           }}
           playsInline={true}
           webkit-playsinline="true" 
