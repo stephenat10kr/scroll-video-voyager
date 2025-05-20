@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -9,20 +8,14 @@ import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
-import { useIsIOS } from "@/hooks/useIsIOS";
-
-// Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
-
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const isIOS = useIsIOS();
-  
   const {
     data: revealTextContent,
     isLoading,
@@ -72,126 +65,48 @@ const RevealText = () => {
       }
     }
   });
-  
   useEffect(() => {
-    console.log("RevealText component mounted, iOS detected:", isIOS);
+    console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
     if (!text) return;
 
     // Get the text content
     const originalText = text.textContent || "";
-    
-    // Create a container for better iOS handling
-    text.innerHTML = ""; // Clear the text
-    
-    // Create a div specifically for text masking
-    const textContainer = document.createElement("div");
-    textContainer.className = "text-mask-container";
-    textContainer.style.position = "relative";
-    textContainer.style.display = "inline";
-    
+
     // Split text into words
     const words = originalText.split(" ");
 
     // Create HTML structure with words and characters wrapped in spans
-    words.forEach((word, wordIndex) => {
-      const wordEl = document.createElement("div");
-      wordEl.className = "word";
-      wordEl.style.display = "inline-block";
-      wordEl.style.marginRight = "0.25em";
-      
-      // Create character spans for each word
-      word.split("").forEach(char => {
-        const charSpan = document.createElement("span");
-        charSpan.className = "char";
-        charSpan.style.display = "inline-block";
-        charSpan.style.paddingBottom = "0.2em";
-        charSpan.textContent = char;
-        wordEl.appendChild(charSpan);
-      });
-      
-      textContainer.appendChild(wordEl);
-      
-      // Add a space after each word (except the last one)
-      if (wordIndex < words.length - 1) {
-        const space = document.createElement("span");
-        space.innerHTML = "&nbsp;";
-        textContainer.appendChild(space);
-      }
-    });
-    
-    text.appendChild(textContainer);
-    
-    // Get all character spans for animation
-    const spans = text.querySelectorAll(".char");
-    console.log(`Found ${spans.length} spans to animate, isIOS: ${isIOS}`);
-    
-    // Setup the scroll trigger animation
+    const formattedHTML = words.map(word => {
+      // Update the character spans to have display: inline-block and padding-bottom
+      const charSpans = word.split("").map(char => 
+        `<span class="char" style="display: inline-block; padding-bottom: 0.2em;">${char}</span>`
+      ).join("");
+      return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
+    }).join("");
+    text.innerHTML = formattedHTML;
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
-        start: "top bottom-=66.7vh",
+        start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
         end: "bottom center",
         scrub: 0.5,
         markers: false
       }
     });
-    
-    if (isIOS) {
-      console.log("iOS device detected, applying special color transition");
-      
-      // For iOS, apply a simpler approach that focuses on color transition
-      spans.forEach(span => {
-        // Set initial styles for iOS - start with coral text
-        gsap.set(span, {
-          color: colors.coral,
-          opacity: 1,
-        });
-      });
-      
-      // For iOS, animate each character from coral to white with a slight delay between each
-      spans.forEach((span, i) => {
-        tl.to(span, {
-          color: "white",
-          ease: "power2.inOut",
-          duration: 0.05
-        }, i * 0.01); // Slightly stagger each character
-      });
-    } else {
-      // For non-iOS devices, use the background-clip text mask effect
-      spans.forEach(span => {
-        gsap.set(span, {
-          color: "white", // Base text color
-          backgroundImage: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`,
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          textFillColor: "transparent" 
-        });
-      });
-      
-      // Animate to remove the mask
-      spans.forEach((span, i) => {
-        tl.to(span, {
-          backgroundImage: "none",
-          WebkitBackgroundClip: "unset",
-          backgroundClip: "unset",
-          color: "white",
-          WebkitTextFillColor: "white",
-          ease: "power1.inOut",
-          duration: 0.1
-        }, i * 0.01);
-      });
-    }
-    
+    const spans = text.querySelectorAll(".char");
+    console.log(`Found ${spans.length} spans to animate`);
+    spans.forEach((span, i) => {
+      tl.to(span, {
+        color: "transparent",
+        ease: "power1.inOut",
+        duration: 0.1
+      }, i * 0.01);
+    });
     return () => {
-      if (tl.scrollTrigger) {
-        tl.scrollTrigger.kill();
-      }
       tl.kill();
     };
-  }, [revealTextContent, isIOS]); // Added isIOS as a dependency
-  
+  }, [revealTextContent]);
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -201,28 +116,24 @@ const RevealText = () => {
         </div>
       </div>;
   }
-  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-  
   return <>
       <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div 
-            ref={textRef} 
-            className="title-md col-span-12 md:col-span-9 mb-8 py-[12px]" 
-            style={{
-              color: "white", // Set base color to white
-              lineHeight: "1.2",
-              whiteSpace: "pre-wrap",
-              wordBreak: "normal",
-              WebkitFontSmoothing: "antialiased",
-              textRendering: "optimizeLegibility"
-            }}
-          >
+          <div ref={textRef} style={{
+          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          lineHeight: "1.2",
+          whiteSpace: "pre-wrap",
+          wordBreak: "normal",
+          WebkitFontSmoothing: "antialiased",
+          textRendering: "optimizeLegibility"
+        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -236,5 +147,4 @@ const RevealText = () => {
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
 };
-
 export default RevealText;

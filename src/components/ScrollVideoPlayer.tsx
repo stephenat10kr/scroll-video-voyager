@@ -1,23 +1,9 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Define VideoFrameMetadata interface for TypeScript without redefining the existing API
-interface VideoFrameMetadata {
-  presentationTime: number;
-  expectedDisplayTime: number;
-  width: number;
-  height: number;
-  mediaTime: number;
-  presentedFrames: number;
-  processingDuration?: number;
-}
-
-// Use VideoFrameRequestCallback type without declaring it globally
-type VideoFrameRequestCallback = (now: number, metadata: VideoFrameMetadata) => void;
 
 type ScrollVideoPlayerProps = {
   src?: string;
@@ -47,104 +33,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  
-  // Define frame rate constants 
-  const STANDARD_FRAME_RATE = 30;
-  
-  // Increased threshold specifically for Android devices to reduce processing overhead
-  // Changed from 0.0005 to 0.015 (30x higher) for Android to significantly reduce frame processing
-  const isAndroid = useIsAndroid();
-  const progressThreshold = isAndroid ? 0.015 : 0.0005; 
-  
+  // Setting the progressThreshold to 0.002 as requested
+  const progressThreshold = 0.002; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
   const FRAMES_BEFORE_END = 5;
+  // Standard video frame rate (most common)
+  const STANDARD_FRAME_RATE = 30;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-
-  // Create a ref to store the current interpolation target time
-  const targetTimeRef = useRef<number>(0);
-  // Create a ref to store the current animation frame ID for interpolation
-  const interpolationFrameRef = useRef<number | null>(null);
-  // Create a ref to track if interpolation is in progress
-  const isInterpolatingRef = useRef<boolean>(false);
-  // Interpolation speed factor (higher means faster transition)
-  const interpolationSpeed = 0.15;
-
-  // Add videoFrameCallback support detection
-  const hasVideoFrameCallback = useRef<boolean>(false);
-
-  // New function to sync video time with the browser's rendering cycle
-  const syncVideoTime = (video: HTMLVideoElement, time: number) => {
-    if ('requestVideoFrameCallback' in video && hasVideoFrameCallback.current) {
-      // Use requestVideoFrameCallback to sync with next video frame render
-      // @ts-ignore - TypeScript doesn't fully recognize this experimental API
-      video.requestVideoFrameCallback(() => {
-        video.currentTime = time;
-      });
-    } else {
-      // Fallback to standard approach
-      video.currentTime = time;
-    }
-  };
-
-  // Function to smoothly interpolate video time for Android
-  const smoothlyUpdateVideoTime = (video: HTMLVideoElement, targetTime: number) => {
-    // Store the target time for reference
-    targetTimeRef.current = targetTime;
-    
-    // If we're already interpolating, no need to start another loop
-    if (isInterpolatingRef.current) return;
-    
-    isInterpolatingRef.current = true;
-    
-    // Function for the interpolation loop
-    const interpolateTime = () => {
-      if (!video) {
-        isInterpolatingRef.current = false;
-        return;
-      }
-      
-      const currentTime = video.currentTime;
-      const timeDiff = targetTimeRef.current - currentTime;
-      
-      // If we're close enough to the target, set the time directly and stop
-      if (Math.abs(timeDiff) < 0.01) {
-        syncVideoTime(video, targetTimeRef.current);
-        isInterpolatingRef.current = false;
-        return;
-      }
-      
-      // Calculate the next time value with easing
-      const newTime = currentTime + (timeDiff * interpolationSpeed);
-      
-      // Update the video time using our optimized sync function
-      syncVideoTime(video, newTime);
-      
-      // Continue the interpolation in the next frame
-      interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
-    };
-    
-    // Start the interpolation loop
-    if (interpolationFrameRef.current) {
-      cancelAnimationFrame(interpolationFrameRef.current);
-    }
-    interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
-  };
 
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
 
-    // Check for requestVideoFrameCallback support
-    hasVideoFrameCallback.current = 'requestVideoFrameCallback' in video;
-    console.log("Video frame callback support:", hasVideoFrameCallback.current ? "Available" : "Not available");
-
     console.log("Mobile detection:", isMobile);
-    console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -174,37 +80,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Force the first frame to display immediately
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
-      }
-      
-      // Android-specific optimizations
-      if (isAndroid) {
-        console.log("Applying Android-specific optimizations");
-        
-        // Enhanced hardware acceleration for Android
-        video.style.transform = "translate3d(0,0,0) translateZ(0)";
-        
-        // Improve Android rendering performance
-        video.style.backfaceVisibility = "hidden";
-        video.style.perspective = "1000px";
-        
-        // Android texture size optimization
-        video.style.maxWidth = "100%";
-        video.style.maxHeight = "100%";
-        
-        // Android sometimes benefits from webkitTransform
-        // @ts-ignore
-        video.style.webkitTransform = "translate3d(0,0,0)";
-        
-        // Force hardware acceleration using additional properties
-        video.style.willChange = "transform, opacity";
-        
-        // Attempt to improve initial frame rendering on Android
-        if (video.readyState >= 1) {
-          setTimeout(() => {
-            video.currentTime = 0.001;
-            console.log("Forced initial frame on Android");
-          }, 50);
-        }
       }
     } else {
       // Chrome-specific optimizations still apply
@@ -254,8 +129,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
-      
-      // Apply much higher threshold for Android to reduce processing overhead
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -290,29 +163,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Enhanced Android-specific smooth interpolation
-        if (isAndroid) {
-          // Use integer frame rounding to minimize overdraw
-          const roundedTime = Math.floor(newTime * STANDARD_FRAME_RATE) / STANDARD_FRAME_RATE;
-          
-          if (hasVideoFrameCallback.current) {
-            // For Android with requestVideoFrameCallback support, directly sync the time
-            // without using interpolation to reduce processing load
-            console.log("Using requestVideoFrameCallback for frame sync");
-            syncVideoTime(video, roundedTime);
-          } else {
-            // Use rounded time value to reduce unnecessary frame updates
-            smoothlyUpdateVideoTime(video, roundedTime);
-          }
-          
-          // Log Android-specific smoothing when near the end
-          if (progress > 0.95) {
-            console.log(`Android sync: using ${hasVideoFrameCallback.current ? 'videoFrameCallback' : 'smooth interpolation'}, target = ${roundedTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
-          }
-        } else {
-          // Standard approach for non-Android devices
-          syncVideoTime(video, newTime);
-        }
+        video.currentTime = newTime;
         onAfterVideoChange(progress >= 1);
       });
     };
@@ -336,25 +187,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser and device
+      // Determine the appropriate scrub value based on browser
       // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      const scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      // Android-specific scrub value optimization
-      if (isAndroid) {
-        // Android devices benefit from a higher scrub value for smoother performance
-        // Changed from 2.0 to 1.8 for smoother scrubbing
-        scrubValue = 1.8;
-        console.log("Using Android-optimized scrub value:", scrubValue);
-      }
-      
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
+      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the device/browser-specific scrub value
+        scrub: scrubValue, // Use the browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -421,17 +264,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
-      if (interpolationFrameRef.current) {
-        cancelAnimationFrame(interpolationFrameRef.current);
-      }
       setupEvents.forEach(event => {
         video.removeEventListener(event, handleVideoReady);
       });
       clearTimeout(timeoutId);
       setupCompleted.current = false;
-      isInterpolatingRef.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid, progressThreshold]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile]);
 
   return <>{children}</>;
 };

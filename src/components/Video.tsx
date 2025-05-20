@@ -4,29 +4,27 @@ import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
-// import Preloader from "./Preloader";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import Preloader from "./Preloader";
 
 const Video = () => {
-  // Use different video asset IDs based on device type
-  const isAndroid = useIsAndroid();
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  // Update the Contentful asset ID to use the Hero Video
+  const { data: videoAsset, isLoading, error } = useContentfulAsset("5LzoveNWfrc4blO79Fr80U");
   
-  // Use the appropriate video asset ID based on device type
-  const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
-  
-  // Only use Contentful video source, no fallback URLs
+  // Use undefined as fallback instead of local video reference
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
   
   const [loadProgress, setLoadProgress] = useState(0);
-  const [showPreloader, setShowPreloader] = useState(false); // Changed to false to skip preloader
+  const [showPreloader, setShowPreloader] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoAttemptsRef = useRef(0);
   const maxVideoAttempts = 3;
   const progressValuesRef = useRef<number[]>([]);
+  
+  // Detect if the device is Android
+  const isAndroid = useIsAndroid();
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
@@ -81,6 +79,13 @@ const Video = () => {
       historicalMax       // Historical maximum progress we've reported
     );
     
+    // Add to progress history
+    progressValuesRef.current.push(newProgress);
+    // Keep array at reasonable size
+    if (progressValuesRef.current.length > 10) {
+      progressValuesRef.current.shift();
+    }
+    
     console.log(`Video - Progress: ${newProgress.toFixed(1)}% (actual: ${actualProgress.toFixed(1)}%, time-based min: ${minProgressByTime.toFixed(1)}%)`);
     
     // After minimum time, accelerate toward completion
@@ -109,9 +114,6 @@ const Video = () => {
     if (!videoSrc) return;
     
     console.log('Video - Starting loading sequence');
-    console.log('Video - Using asset ID:', videoAssetId);
-    console.log('Video - Is Android device:', isAndroid);
-    
     // Reset the loading start time when the component mounts or source changes
     loadStartTimeRef.current = Date.now();
     // Reset progress history
@@ -267,18 +269,15 @@ const Video = () => {
   console.log('Video component - error:', error);
   console.log('Video component - progress:', loadProgress);
   console.log('Video component - isAndroid:', isAndroid);
-  console.log('Video component - using asset ID:', videoAssetId);
 
   return (
     <>
-      {/*
       {showPreloader && (
         <Preloader 
           progress={loadProgress} 
           onComplete={handlePreloaderComplete} 
         />
       )}
-      */}
       {isAndroid ? (
         <ImprovedScrollVideo src={videoSrc} />
       ) : (

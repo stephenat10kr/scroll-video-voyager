@@ -1,10 +1,8 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
-import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,10 +12,8 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
-  onReady?: () => void; // Add onReady callback prop
 }> = ({
-  src,
-  onReady
+  src
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,16 +24,13 @@ const ScrollVideo: React.FC<{
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
-  const isAndroid = useIsAndroid();
-  
-  // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
-  // Calculate segment count - increase for Android for smoother transitions
-  const segmentCount = isAndroid ? 8 : 5;
+  // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
+  const segmentCount = 5;
   
   // Add intersection observer to detect when video exits viewport
   useEffect(() => {
@@ -92,47 +85,6 @@ const ScrollVideo: React.FC<{
         video.load();
       }
       
-      // Android-specific optimizations
-      if (isAndroid) {
-        console.log("Android detected: Applying Android-specific optimizations");
-        
-        // Enhanced hardware acceleration for Android
-        video.style.transform = "translate3d(0,0,0) translateZ(0)";
-        video.style.backfaceVisibility = "hidden";
-        video.style.perspective = "1000px";
-        
-        // Apply will-change for GPU acceleration on Android
-        video.style.willChange = "transform, opacity";
-        
-        // Force multiple frame loading attempts for Android
-        const loadFirstFrame = () => {
-          if (video.readyState >= 1) {
-            // Set multiple timestamps to ensure frame loading
-            video.currentTime = 0.001;
-            setTimeout(() => { video.currentTime = 0.01; }, 50);
-            setTimeout(() => { video.currentTime = 0.1; }, 100);
-          }
-        };
-        
-        loadFirstFrame();
-        
-        // Additional frame loading attempts for Android
-        setTimeout(loadFirstFrame, 200);
-        setTimeout(loadFirstFrame, 500);
-        
-        // Add Android-specific texture management
-        video.style.imageRendering = "high-quality";
-        
-        // Prevent Android browser from unloading video textures
-        setInterval(() => {
-          if (video.paused && !videoVisible && video.readyState >= 2) {
-            // Touch the video element to prevent texture unloading
-            const currentTime = video.currentTime;
-            video.currentTime = currentTime + 0.001;
-          }
-        }, 2000);
-      }
-      
       // Firefox-specific optimizations
       if (isFirefox) {
         console.log("Firefox detected: Applying Firefox-specific optimizations");
@@ -150,11 +102,6 @@ const ScrollVideo: React.FC<{
         setVideoLoaded(true);
         setVideoVisible(true);
         
-        // Notify parent that video is ready
-        if (onReady) {
-          onReady();
-        }
-        
         // Always pause the video when it can play
         video.pause();
         console.log("Video paused on load");
@@ -163,13 +110,6 @@ const ScrollVideo: React.FC<{
         if (isMobile) {
           // Set the currentTime to show the first frame
           video.currentTime = 0.001;
-          
-          // Android-specific frame loading
-          if (isAndroid) {
-            // Use multiple frames to ensure texture loading on Android
-            setTimeout(() => { video.currentTime = 0.01; }, 50);
-            setTimeout(() => { video.currentTime = 0.1; }, 100);
-          }
         }
       };
       
@@ -178,21 +118,9 @@ const ScrollVideo: React.FC<{
         console.log("Video data loaded");
         setVideoVisible(true);
         
-        // Also notify ready on loadeddata in case canplay doesn't fire
-        if (onReady) {
-          onReady();
-        }
-        
         // Set the currentTime to show the first frame for mobile
         if (isMobile) {
           video.currentTime = 0.001;
-          
-          // Android-specific frame loading
-          if (isAndroid) {
-            // Force rendering multiple frames for Android texture loading
-            setTimeout(() => { video.currentTime = 0.01; }, 50);
-            setTimeout(() => { video.currentTime = 0.1; }, 100);
-          }
         }
       };
       
@@ -204,20 +132,6 @@ const ScrollVideo: React.FC<{
         // Set the currentTime to show the first frame for mobile
         if (isMobile) {
           video.currentTime = 0.001;
-        }
-        
-        // Android-specific optimization after metadata loads
-        if (isAndroid) {
-          // Force hardware decoder initialization on Android
-          video.play().then(() => {
-            video.pause();
-            console.log("Android: Forced play/pause to initialize hardware decoder");
-          }).catch(err => {
-            console.log("Android: Initial play failed, using alternative method", err);
-            // Alternative method - set multiple frames
-            video.currentTime = 0.001;
-            setTimeout(() => { video.currentTime = 0.01; }, 50);
-          });
         }
       };
       
@@ -251,26 +165,6 @@ const ScrollVideo: React.FC<{
         if (isMobile && video.readyState < 2) {
           video.load();
           video.currentTime = 0.001;
-          
-          // Android-specific frame loading in the fallback timeout
-          if (isAndroid) {
-            // Try additional loading methods for Android
-            setTimeout(() => {
-              // Force hardware decoding with a quick play/pause
-              video.play().then(() => {
-                video.pause();
-              }).catch(() => {
-                // If play fails, try multiple frame settings
-                video.currentTime = 0.01;
-                setTimeout(() => { video.currentTime = 0.1; }, 50);
-              });
-            }, 50);
-          }
-        }
-        
-        // Also notify ready after timeout as a last resort
-        if (onReady && !videoLoaded) {
-          onReady();
         }
       }, 300);
       
@@ -283,7 +177,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady, videoLoaded]);
+  }, [secureVideoSrc, isMobile, isFirefox]);
 
   // Add document-level interaction detection
   useEffect(() => {
@@ -298,21 +192,6 @@ const ScrollVideo: React.FC<{
           // Try to display the first frame
           if (video.readyState >= 1) {
             video.currentTime = 0.001;
-            
-            // Android-specific interaction handling
-            if (isAndroid) {
-              // Force multiple frame renders on Android after interaction
-              setTimeout(() => { video.currentTime = 0.01; }, 50);
-              setTimeout(() => { video.currentTime = 0.1; }, 100);
-              
-              // Try to initialize hardware decoder on Android after interaction
-              video.play().then(() => {
-                video.pause();
-                console.log("Android: Initialized hardware decoder after user interaction");
-              }).catch(() => {
-                console.log("Android: Play after interaction failed, using alternative methods");
-              });
-            }
           }
         }
       };
@@ -326,7 +205,7 @@ const ScrollVideo: React.FC<{
         document.removeEventListener('click', handleInteraction);
       };
     }
-  }, [isMobile, isAndroid]);
+  }, [isMobile]);
 
   return (
     <div 
@@ -359,8 +238,7 @@ const ScrollVideo: React.FC<{
             opacity: videoVisible && isInViewport ? 1 : 0,
             // Transition is now managed dynamically based on scroll direction
             display: "block",
-            visibility: "visible",
-            backgroundColor: "black" // Ensure background is black, not white
+            visibility: "visible"
           }} 
         />
       </ScrollVideoPlayer>
