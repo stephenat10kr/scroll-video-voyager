@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import VideoPlayer from "./video/VideoPlayer";
 import { useIsIOS } from "../hooks/use-ios";
+import { logDebugInfo } from "../hooks/scroll-video/scroll-utils";
 
 type ScrollVideoPlayerProps = {
   src?: string;
@@ -34,9 +35,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Detect if we're on iOS for specialized handling
   const isIOS = useIsIOS();
   
-  console.log("ScrollVideoPlayer - Video source:", src);
-  console.log("ScrollVideoPlayer - Segment count:", segmentCount);
-  console.log("ScrollVideoPlayer - Extra scroll pixels:", SCROLL_EXTRA_PX);
+  // Log important details for debugging
+  useEffect(() => {
+    logDebugInfo("ScrollVideoPlayer", "Initializing with video source", src);
+    logDebugInfo("ScrollVideoPlayer", "Segment count", segmentCount);
+    logDebugInfo("ScrollVideoPlayer", "Extra scroll pixels", SCROLL_EXTRA_PX);
+    logDebugInfo("ScrollVideoPlayer", "Mobile device", isMobile);
+    logDebugInfo("ScrollVideoPlayer", "iOS device", isIOS);
+  }, [src, segmentCount, SCROLL_EXTRA_PX, isMobile, isIOS]);
 
   return (
     <VideoPlayer 

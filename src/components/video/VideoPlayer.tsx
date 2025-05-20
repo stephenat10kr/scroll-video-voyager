@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useScrollTrigger } from "../../hooks/use-scroll-trigger";
 import { useVideoOptimization } from "../../hooks/use-video-optimization";
 import { useIsIOS } from "@/hooks/use-ios";
+import { logDebugInfo } from "@/hooks/scroll-video/scroll-utils";
 
 // Check if browser is Firefox
 const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -64,6 +65,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   useEffect(() => {
     if (isSetupComplete && !isLoaded) {
       setIsLoaded(true);
+      logDebugInfo("VideoPlayer", "Video playback system fully loaded");
     }
   }, [isSetupComplete, isLoaded]);
 
@@ -76,7 +78,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (video.src !== src) {
       video.src = src;
       const extension = src.split(".").pop() || "unknown";
-      console.log(`[VideoPlayer] Assigned ${extension.toUpperCase()} video source: ${src}`);
+      logDebugInfo("VideoPlayer", `Assigned ${extension.toUpperCase()} video source: ${src}`);
+      
+      // Force load and initial frame in case it doesn't load automatically
+      video.load();
+      video.currentTime = 0.001; // Small non-zero value to force first frame
     }
   }, [src, videoRef]);
 

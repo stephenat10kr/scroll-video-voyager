@@ -38,6 +38,11 @@ export const useScrollContainer = ({
         const totalHeight = window.innerHeight + scrollExtraPx;
         logDebugInfo("ScrollContainer", `Setting container height to ${totalHeight}px`);
         container.style.height = `${totalHeight}px`;
+        
+        // Ensure the container is visible and properly positioned
+        container.style.position = "relative";
+        container.style.overflow = "hidden";
+        container.style.display = "block";
       }
     };
     

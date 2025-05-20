@@ -1,10 +1,10 @@
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useVideoFrameUpdate } from "./scroll-video/use-video-frame-update";
 import { useScrollContainer } from "./scroll-video/use-scroll-container";
-import { getScrubValue, logDebugInfo } from "./scroll-video/scroll-utils";
+import { getScrubValue, logDebugInfo, isVideoDurationValid } from "./scroll-video/scroll-utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,6 +34,9 @@ export const useScrollTrigger = ({
 }: UseScrollTriggerProps) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const setupCompleted = useRef(false);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const setupAttemptsRef = useRef(0);
+  const maxSetupAttempts = 5;
 
   // Use the container setup hook
   useScrollContainer({
@@ -59,18 +62,31 @@ export const useScrollTrigger = ({
     
     if (!video || !container) return;
 
+    // Force initial video loading
+    if (video.readyState === 0) {
+      video.load();
+    }
+
+    // Function to set up ScrollTrigger
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      // For mobile, try to render a frame immediately without waiting for duration
-      if (isMobile) {
+      // For mobile, try to render a frame immediately
+      if (isMobile && video.readyState === 0) {
         video.currentTime = 0.001;
       }
       
-      // Check if video duration is available
-      if (!video.duration && !isMobile) {
-        logDebugInfo("ScrollTrigger", "Video duration not yet available, waiting...");
-        return;
+      // For non-mobile, check if video duration is available
+      if (!isMobile && !isVideoDurationValid(video)) {
+        setupAttemptsRef.current += 1;
+        logDebugInfo("ScrollTrigger", `Video not ready, attempt ${setupAttemptsRef.current}/${maxSetupAttempts}`);
+        
+        // If we've tried enough times, set up anyway
+        if (setupAttemptsRef.current >= maxSetupAttempts) {
+          logDebugInfo("ScrollTrigger", "Proceeding with setup despite video not ready");
+        } else {
+          return; // Try again later
+        }
       }
       
       // Kill any existing ScrollTrigger
@@ -109,28 +125,45 @@ export const useScrollTrigger = ({
         onUpdate: (self) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
+          
+          // Call update with current progress
           updateVideoFrame(progress);
+          
+          // Log progress periodically (first time and then every 10%)
+          if (progress === 0 || Math.abs(progress - Math.round(progress * 10) / 10) < 0.01) {
+            logDebugInfo("ScrollTrigger", `Progress: ${(progress * 100).toFixed(1)}%`);
+          }
+        },
+        onRefresh: () => {
+          logDebugInfo("ScrollTrigger", "Refreshed");
+          // Force an update to ensure video position matches scroll
+          if (scrollTriggerRef.current) {
+            updateVideoFrame(scrollTriggerRef.current.progress);
+          }
         }
       });
       
+      // Mark setup as completed
       setupCompleted.current = true;
+      setIsSetupComplete(true);
       logDebugInfo("ScrollTrigger", "Setup completed successfully with scrub value:", scrubValue);
     };
 
-    // For mobile devices, we'll set up ScrollTrigger even without duration
-    if (isMobile) {
-      setupScrollTrigger();
-    } else if (video.readyState >= 2) {
-      setupScrollTrigger();
-    }
+    // Initial setup attempt
+    setupScrollTrigger();
 
     // Set up event listeners for video metadata
     const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
     const handleVideoReady = () => {
+      logDebugInfo("ScrollTrigger", `Video event triggered, ready state: ${video.readyState}`);
       if (!setupCompleted.current) {
-        logDebugInfo("ScrollTrigger", "Setting up after video event");
         setupScrollTrigger();
+      } else {
+        // If already set up, make sure the video position is correct
+        if (scrollTriggerRef.current) {
+          updateVideoFrame(scrollTriggerRef.current.progress);
+        }
       }
     };
     
@@ -139,13 +172,15 @@ export const useScrollTrigger = ({
       video.addEventListener(event, handleVideoReady);
     });
     
-    // Safety timeout to ensure ScrollTrigger gets set up
-    const timeoutId = setTimeout(() => {
-      if (!setupCompleted.current) {
-        logDebugInfo("ScrollTrigger", "Setting up after timeout");
+    // Safety interval to ensure ScrollTrigger gets set up
+    const intervalId = setInterval(() => {
+      if (!setupCompleted.current && setupAttemptsRef.current < maxSetupAttempts) {
+        logDebugInfo("ScrollTrigger", "Attempting setup from interval");
         setupScrollTrigger();
+      } else if (setupAttemptsRef.current >= maxSetupAttempts) {
+        clearInterval(intervalId);
       }
-    }, 500); // Increased from 300ms to 500ms for more reliable setup
+    }, 300);
     
     // Clean up function
     return () => {
@@ -162,12 +197,11 @@ export const useScrollTrigger = ({
         }
       });
       
-      clearTimeout(timeoutId);
-      setupCompleted.current = false;
+      clearInterval(intervalId);
     };
   }, [containerRef, videoRef, scrollExtraPx, onAfterVideoChange, onProgressUpdate, isMobile, isIOS, isFirefox, updateVideoFrame, cleanupFrameUpdate]);
 
   return { 
-    isSetupComplete: setupCompleted.current 
+    isSetupComplete 
   };
 };
