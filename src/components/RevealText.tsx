@@ -9,11 +9,14 @@ import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
+import { toast } from "@/components/ui/use-toast";
+
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
+
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -26,26 +29,49 @@ const RevealText = () => {
     queryFn: async () => {
       console.log("Fetching reveal text from Contentful");
       try {
+        // Directly fetch the specific entry by ID
         const entry = await contentfulClient.getEntry('51n6CyvxFYhNwKPqdihLF9');
         console.log("Contentful entry:", entry);
         
         if (entry && entry.fields) {
           console.log("Found entry fields:", entry.fields);
-          return {
-            sys: entry.sys,
-            fields: {
-              text: entry.fields.text || entry.fields.revealText
-            }
-          } as ContentfulRevealText;
+          
+          // Check which field contains the text content
+          let textContent = null;
+          if ('text' in entry.fields) {
+            textContent = entry.fields.text;
+          } else if ('revealText' in entry.fields) {
+            textContent = entry.fields.revealText;
+          } else if ('bodyText' in entry.fields) {
+            textContent = entry.fields.bodyText;
+          }
+          
+          console.log("Extracted text content:", textContent);
+          
+          if (textContent) {
+            return {
+              sys: entry.sys,
+              fields: {
+                text: textContent
+              }
+            } as ContentfulRevealText;
+          }
         }
-        console.log("Entry found but missing expected fields");
+        
+        console.log("Entry found but missing expected text fields");
         return null;
       } catch (err) {
         console.error("Error fetching from Contentful:", err);
+        toast({
+          title: "Error loading content",
+          description: "Could not load the reveal text content. Please try again later.",
+          variant: "destructive"
+        });
         throw err;
       }
     }
   });
+
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -65,7 +91,9 @@ const RevealText = () => {
       ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
+    
     text.innerHTML = formattedHTML;
+    
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
@@ -75,8 +103,10 @@ const RevealText = () => {
         markers: false
       }
     });
+    
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
+    
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
@@ -84,10 +114,12 @@ const RevealText = () => {
         duration: 0.1
       }, i * 0.01);
     });
+    
     return () => {
       tl.kill();
     };
   }, [revealTextContent]);
+
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -97,24 +129,28 @@ const RevealText = () => {
         </div>
       </div>;
   }
+
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+
+  const bodyText = "Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive.";
+
   return <>
       <div className="w-full py-24" style={{
-      backgroundColor: colors.darkGreen
-    }}>
+        backgroundColor: colors.darkGreen
+      }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} style={{
-          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          lineHeight: "1.2",
-          whiteSpace: "pre-wrap",
-          wordBreak: "normal",
-          WebkitFontSmoothing: "antialiased",
-          textRendering: "optimizeLegibility"
-        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
+            background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            lineHeight: "1.2",
+            whiteSpace: "pre-wrap",
+            wordBreak: "normal",
+            WebkitFontSmoothing: "antialiased",
+            textRendering: "optimizeLegibility"
+          }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -122,9 +158,9 @@ const RevealText = () => {
               STAY IN THE LOOP
             </Button>
             
-            {/* New body copy text block in white */}
+            {/* Body copy text block in white */}
             <div className="mt-8 body-text text-roseWhite col-span-12 md:col-span-9">
-              Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive.
+              {bodyText}
             </div>
           </div>
         </div>
@@ -133,4 +169,5 @@ const RevealText = () => {
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
 };
+
 export default RevealText;
