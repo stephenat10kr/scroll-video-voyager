@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -13,6 +14,7 @@ import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
+import ImageSequencePlayer from "../components/ImageSequencePlayer";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 
@@ -22,6 +24,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const [imageSequenceReady, setImageSequenceReady] = useState(false);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -45,7 +48,7 @@ const Index = () => {
     return () => clearTimeout(forceCompleteTimeout);
   }, [loadProgress]);
   
-  // Simulate loading progress for testing - improved to reach 100% when video is ready
+  // Simulate loading progress for testing - improved to reach 100% when video or image sequence is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -53,8 +56,8 @@ const Index = () => {
     setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // If video is ready, jump directly to 100%
-          if (videoReady) {
+          // If video or image sequence is ready, jump directly to 100%
+          if ((isAndroid && imageSequenceReady) || (!isAndroid && videoReady)) {
             return 100;
           }
           // Otherwise continue normal progress, but cap at 95%
@@ -67,15 +70,15 @@ const Index = () => {
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [videoReady]);
+  }, [videoReady, imageSequenceReady, isAndroid]);
   
-  // When video is ready, immediately set progress to 100%
+  // When media is ready, immediately set progress to 100%
   useEffect(() => {
-    if (videoReady) {
-      console.log("Video is ready, immediately setting progress to 100%");
+    if ((isAndroid && imageSequenceReady) || (!isAndroid && videoReady)) {
+      console.log("Media is ready, immediately setting progress to 100%");
       setLoadProgress(100);
     }
-  }, [videoReady]);
+  }, [videoReady, imageSequenceReady, isAndroid]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -86,7 +89,7 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+      console.log("Using image sequence for Android device");
     }
   }, [isIOS, isAndroid]);
   
@@ -100,6 +103,11 @@ const Index = () => {
     setVideoReady(true);
   };
   
+  const handleImageSequenceReady = () => {
+    console.log("Image sequence is ready to display");
+    setImageSequenceReady(true);
+  };
+  
   // Skip content rendering until preloader is done
   if (loading) {
     return (
@@ -108,7 +116,7 @@ const Index = () => {
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
         <div style={{ visibility: 'hidden', position: 'absolute' }}>
           {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+            <ImageSequencePlayer onReady={handleImageSequenceReady} totalFrames={99} />
           ) : (
             <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
@@ -121,8 +129,12 @@ const Index = () => {
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo src={videoSrc} />
+      {/* Video or Image Sequence fixed at the top (mid z-index) */}
+      {isAndroid ? (
+        <ImageSequencePlayer totalFrames={99} />
+      ) : (
+        <ImprovedScrollVideo src={videoSrc} />
+      )}
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
