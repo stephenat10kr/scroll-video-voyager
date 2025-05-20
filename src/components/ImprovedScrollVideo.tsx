@@ -88,11 +88,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
 
     // Add ScrollTrigger to control visibility based on RevealText component position
-    const revealTextElement = document.querySelector('section > div[style*="backgroundColor: rgb(2, 72, 67)"]');
-    if (revealTextElement) {
+    const revealTextSection = document.getElementById('revealText-section');
+    if (revealTextSection) {
       ScrollTrigger.create({
-        trigger: revealTextElement,
-        start: "top top",
+        trigger: revealTextSection,
+        start: "top top", // When the top of revealText reaches the top of the viewport
         onEnter: () => {
           setIsVideoVisible(false);
           console.log("Hiding video (scrolling down)");
@@ -104,7 +104,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         markers: false
       });
     } else {
-      console.warn("RevealText element not found for video visibility trigger");
+      console.warn("RevealText section not found for video visibility trigger");
     }
     
     // Clean up
