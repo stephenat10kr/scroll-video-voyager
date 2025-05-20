@@ -101,17 +101,21 @@ const RevealText = () => {
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
     
-    // Set initial state and animate to transparent
+    // Set initial state - start with coral color mask
     gsap.set(spans, {
-      color: colors.coral,
-      WebkitTextFillColor: colors.coral
+      color: "transparent",
+      WebkitTextFillColor: "transparent",
+      background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+      WebkitBackgroundClip: "text",
+      backgroundClip: "text"
     });
     
-    // Animate each character to transparent 
+    // Animate each character to reveal the white text underneath by making the mask transparent
     spans.forEach((span, i) => {
       tl.to(span, {
-        color: "transparent",
-        WebkitTextFillColor: "transparent", 
+        background: "transparent",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
         ease: "power1.inOut",
         duration: 0.1
       }, i * 0.01);
@@ -141,7 +145,8 @@ const RevealText = () => {
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          <div ref={textRef} className="title-md text-coral col-span-12 md:col-span-9 mb-8 py-[12px]" style={{
+          {/* Use white text color for the underlying text, with the mask applied via JavaScript */}
+          <div ref={textRef} className="title-md text-white col-span-12 md:col-span-9 mb-8 py-[12px]" style={{
             lineHeight: "1.2",
             whiteSpace: "pre-wrap",
             wordBreak: "normal",
@@ -162,3 +167,4 @@ const RevealText = () => {
     </>;
 };
 export default RevealText;
+
