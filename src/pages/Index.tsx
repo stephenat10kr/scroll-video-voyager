@@ -26,11 +26,18 @@ const Index = () => {
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      {/* Video fixed at the top (lower z-index) */}
+      <div className="video-wrapper relative">
+        <ImprovedScrollVideo />
+      </div>
       
-      {/* Content overlay (high z-index, but below logo) */}
-      <div className="content-container relative z-10">
+      {/* Content overlay (higher z-index) */}
+      <div className="content-container absolute top-0 left-0 w-full z-10">
+        {/* Hero Text positioned at the very top */}
+        <section className="relative w-full">
+          <HeroText skipLogoSection={true} />
+        </section>
+        
         {/* Logo section at the top */}
         <section className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
           <div className="w-full max-w-[90%] mx-auto">
@@ -45,12 +52,6 @@ const Index = () => {
               </div>
             </div>
           </div>
-        </section>
-        
-        {/* Hero Text sections - they will stack directly under the logo */}
-        <section>
-          {/* We skip the logo section since we've added it separately above */}
-          <HeroText skipLogoSection={true} />
         </section>
         
         <section id="revealText-section">

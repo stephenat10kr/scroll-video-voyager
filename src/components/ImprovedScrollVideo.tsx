@@ -50,7 +50,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden bg-black"
+      className="relative w-full min-h-screen overflow-hidden bg-black z-0"
     >
       <ImprovedVideoContainer 
         isLoading={isLoading} 
