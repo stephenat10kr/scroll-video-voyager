@@ -28,7 +28,7 @@ const ImageSequencePage = () => {
         )}
       </div>
 
-      {/* Image sequence player with higher z-index */}
+      {/* Canvas-based Image sequence player */}
       <ImageSequencePlayer 
         totalFrames={99} 
         onReady={handleImageSequenceReady}

@@ -1,13 +1,5 @@
 
 import React, { useRef, useEffect, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger);
-
-// Constants for scroll settings
-const SCROLL_EXTRA_PX = 4000;
 
 interface ImageSequencePlayerProps {
   totalFrames?: number;
@@ -21,13 +13,12 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentFrame, setCurrentFrame] = useState(1);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRefs = useRef<HTMLImageElement[]>([]);
   const [framesLoaded, setFramesLoaded] = useState(0);
   const [allFramesLoaded, setAllFramesLoaded] = useState(false);
-  const frameRefs = useRef<HTMLImageElement[]>([]);
-  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
-  const imagesContainerRef = useRef<HTMLDivElement>(null);
-  const isInitializedRef = useRef(false);
+  const requestIdRef = useRef<number | null>(null);
+  const lastFrameIndexRef = useRef<number>(-1);
   
   // Format frame number as 4-digit string (e.g., 0001, 0099)
   const formatFrameNumber = (num: number): string => {
@@ -40,22 +31,8 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     let loadedCount = 0;
     const framesToLoad = totalFrames;
     
-    // Clear any existing frameRefs
-    frameRefs.current = [];
-    
-    // Notify when loading is complete
-    const checkAllLoaded = () => {
-      loadedCount++;
-      setFramesLoaded(loadedCount);
-      
-      if (loadedCount === framesToLoad) {
-        console.log(`ImageSequence - All ${framesToLoad} frames loaded`);
-        setAllFramesLoaded(true);
-        if (onReady) {
-          onReady();
-        }
-      }
-    };
+    // Clear any existing imageRefs
+    imageRefs.current = [];
     
     // Preload images in a staggered way to not overwhelm the browser
     const preloadImages = () => {
@@ -73,31 +50,32 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         // Process this batch
         for (let i = startIndex; i <= endIndex; i++) {
           const img = new Image();
-          img.onload = checkAllLoaded;
+          
+          img.onload = () => {
+            loadedCount++;
+            setFramesLoaded(loadedCount);
+            
+            if (loadedCount === framesToLoad) {
+              console.log(`ImageSequence - All ${framesToLoad} frames loaded`);
+              setAllFramesLoaded(true);
+              if (onReady) {
+                onReady();
+              }
+              
+              // Draw the first frame once all images are loaded
+              drawFrame(1);
+            }
+          };
+          
           img.onerror = () => {
             console.error(`Failed to load frame ${i}`);
-            checkAllLoaded(); // Count errors as loaded to avoid getting stuck
+            loadedCount++; // Count errors as loaded to avoid getting stuck
+            setFramesLoaded(loadedCount);
           };
           
           const frameNumber = formatFrameNumber(i);
           img.src = `${basePath}${frameNumber}.webp`;
-          img.style.width = '100%';
-          img.style.height = '100%';
-          img.style.objectFit = 'cover';
-          img.style.position = 'absolute';
-          img.style.top = '0';
-          img.style.left = '0';
-          img.style.opacity = i === 1 ? '1' : '0'; // Show only first frame initially
-          img.style.transition = 'none'; // No transition for performance
-          
-          // Hardware acceleration for images
-          img.style.transform = 'translate3d(0,0,0)';
-          img.style.backfaceVisibility = 'hidden';
-          img.style.perspective = '1000px';
-          img.style.willChange = 'transform, opacity';
-          img.dataset.frame = i.toString();
-          
-          frameRefs.current.push(img);
+          imageRefs.current[i] = img;
         }
         
         currentBatch++;
@@ -114,103 +92,126 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     
     return () => {
       // Clear references and cancel any pending operations
-      frameRefs.current = [];
+      imageRefs.current = [];
     };
   }, [totalFrames, basePath, onReady]);
   
-  // Setup scroll trigger once all frames are loaded
+  // Draw a specific frame on the canvas
+  const drawFrame = (frameIndex: number) => {
+    if (frameIndex < 1 || frameIndex > totalFrames) return;
+    
+    const canvas = canvasRef.current;
+    const img = imageRefs.current[frameIndex];
+    
+    if (!canvas || !img) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw the image, preserving aspect ratio
+    const scale = Math.min(
+      canvas.width / img.naturalWidth, 
+      canvas.height / img.naturalHeight
+    );
+    
+    // Center the image on the canvas
+    const x = (canvas.width - img.naturalWidth * scale) / 2;
+    const y = (canvas.height - img.naturalHeight * scale) / 2;
+    
+    // Draw at proper scale
+    ctx.drawImage(
+      img, 
+      0, 0, img.naturalWidth, img.naturalHeight,
+      x, y, img.naturalWidth * scale, img.naturalHeight * scale
+    );
+  };
+  
+  // Handle scroll position and update the displayed frame
   useEffect(() => {
-    if (!allFramesLoaded || !containerRef.current || !imagesContainerRef.current || isInitializedRef.current) return;
+    if (!allFramesLoaded) return;
     
-    // Set up container height for scrolling
-    const resizeSection = () => {
-      if (containerRef.current) {
-        containerRef.current.style.height = `${window.innerHeight + SCROLL_EXTRA_PX}px`;
-      }
-    };
-    
-    // Update container size and attach resize listener
-    resizeSection();
-    window.addEventListener("resize", resizeSection);
-    
-    // Add frames to the container
-    const imageContainer = imagesContainerRef.current;
-    frameRefs.current.forEach((img) => {
-      imageContainer.appendChild(img);
-    });
-    
-    // Show the first frame initially
-    if (frameRefs.current.length > 0) {
-      frameRefs.current[0].style.opacity = '1';
-    }
-    
-    // Set up the scroll trigger for frame animation
-    console.log("ImageSequence - Setting up ScrollTrigger");
-    scrollTriggerRef.current = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top top",
-      end: `+=${SCROLL_EXTRA_PX}`,
-      scrub: 1.2, // Smooth scrub value optimized for image sequence
-      pin: true, // Pin the container during scroll
-      anticipatePin: 1,
-      markers: true, // For debugging - will show markers for the scroll trigger
-      onUpdate: (self) => {
-        // Calculate which frame to show based on scroll progress
-        const progress = self.progress;
-        const frameIndex = Math.min(
-          Math.floor(progress * totalFrames),
-          totalFrames - 1
-        );
-        
-        // Only update if the frame has changed to minimize DOM operations
-        if (frameIndex + 1 !== currentFrame) {
-          console.log(`Updating to frame ${frameIndex + 1} (progress: ${progress.toFixed(2)})`);
-          setCurrentFrame(frameIndex + 1);
-          
-          // Hide all frames and show only the current one
-          frameRefs.current.forEach((img, i) => {
-            img.style.opacity = i === frameIndex ? '1' : '0';
-          });
-          
-          if (frameIndex === totalFrames - 1 || frameIndex === 0) {
-            console.log(`ImageSequence - Showing frame: ${frameIndex + 1} (${progress.toFixed(2)})`);
-          }
+    // Calculate the appropriate frame based on scroll position
+    const updateFrame = () => {
+      if (!containerRef.current) return;
+      
+      // Calculate scroll position and progress
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      const maxScroll = docHeight - windowHeight;
+      const scrollProgress = Math.max(0, Math.min(1, scrollTop / maxScroll));
+      
+      // Determine which frame to show
+      const frameIndex = Math.min(
+        Math.max(1, Math.ceil(scrollProgress * totalFrames)),
+        totalFrames
+      );
+      
+      // Only update if the frame has changed
+      if (frameIndex !== lastFrameIndexRef.current) {
+        if (frameIndex === 1 || frameIndex === totalFrames) {
+          console.log(`ImageSequence - Showing frame: ${frameIndex} (${scrollProgress.toFixed(2)})`);
         }
-      }
-    });
-    
-    isInitializedRef.current = true;
-    console.log("ImageSequence - ScrollTrigger initialized");
-    
-    return () => {
-      // Clean up event listeners and scroll trigger
-      window.removeEventListener("resize", resizeSection);
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
+        
+        lastFrameIndexRef.current = frameIndex;
+        drawFrame(frameIndex);
       }
       
-      // Remove appended images
-      frameRefs.current.forEach(img => {
-        if (img.parentNode === imageContainer) {
-          imageContainer.removeChild(img);
-        }
-      });
+      // Continue the animation loop
+      requestIdRef.current = requestAnimationFrame(updateFrame);
     };
-  }, [allFramesLoaded, totalFrames, currentFrame]);
+    
+    // Initialize canvas size
+    const initCanvas = () => {
+      if (canvasRef.current && containerRef.current) {
+        // Set canvas to viewport size
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+        
+        // Draw the first frame
+        drawFrame(1);
+      }
+    };
+    
+    // Set up resize handling
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+        drawFrame(lastFrameIndexRef.current > 0 ? lastFrameIndexRef.current : 1);
+      }
+    };
+    
+    // Initialize canvas and start animation loop
+    initCanvas();
+    requestIdRef.current = requestAnimationFrame(updateFrame);
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up on unmount
+    return () => {
+      if (requestIdRef.current !== null) {
+        cancelAnimationFrame(requestIdRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [allFramesLoaded, totalFrames]);
   
   return (
     <div 
       ref={containerRef}
-      className="fixed top-0 left-0 w-full h-screen z-0 overflow-hidden bg-black"
+      className="relative w-full"
+      style={{ height: `calc(100vh + 4000px)` }} // Extra height for scrolling
     >
-      {/* Dedicated container for images to ensure they're always visible */}
-      <div 
-        ref={imagesContainerRef} 
-        className="absolute inset-0 w-full h-full z-10"
-      ></div>
+      <canvas
+        ref={canvasRef}
+        className="fixed top-0 left-0 w-full h-screen z-10 object-contain bg-black"
+      />
       
       {!allFramesLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
+        <div className="fixed inset-0 flex items-center justify-center bg-black z-20">
           <div className="text-white text-center">
             <div className="mb-4">Loading frames: {framesLoaded}/{totalFrames}</div>
             <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
