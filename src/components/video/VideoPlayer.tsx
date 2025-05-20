@@ -72,6 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const video = videoRef.current;
     if (!video || !src) return;
 
+    // Only update src if it's different
     if (video.src !== src) {
       video.src = src;
       const extension = src.split(".").pop() || "unknown";

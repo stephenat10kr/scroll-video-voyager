@@ -18,7 +18,6 @@ type ScrollVideoPlayerProps = {
 
 /**
  * Component that handles scroll-controlled video playback
- * Now refactored to use smaller, specialized components
  */
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   src,
@@ -35,9 +34,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Detect if we're on iOS for specialized handling
   const isIOS = useIsIOS();
   
+  console.log("ScrollVideoPlayer - Video source:", src);
   console.log("ScrollVideoPlayer - Segment count:", segmentCount);
   console.log("ScrollVideoPlayer - Extra scroll pixels:", SCROLL_EXTRA_PX);
-  console.log("ScrollVideoPlayer - After video extra height:", AFTER_VIDEO_EXTRA_HEIGHT);
 
   return (
     <VideoPlayer 

@@ -11,11 +11,11 @@ export const FRAMES_BEFORE_END = 2; // Reduced from 5 to 2 frames for better iOS
 export const getScrubValue = (isFirefox: boolean, isMobile: boolean, isIOS: boolean): number => {
   // Special case for iOS to make scrolling smoother
   if (isIOS) {
-    return 2.2; // Smoother scrolling for iOS with increased value from 1.5 to 2.2
+    return 1.5; // Reduced from 2.2 to 1.5 for better scroll control on iOS
   }
   
   // Different values for different browsers/devices
-  return isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+  return isFirefox ? 1.8 : (isMobile ? 1.0 : 0.5); // Adjusted scrub values for smoother scrolling
 };
 
 // Helper to log specific debug information

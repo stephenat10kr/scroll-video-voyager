@@ -73,7 +73,11 @@ export const useScrollTrigger = ({
         return;
       }
       
-      if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
+      // Kill any existing ScrollTrigger
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+        scrollTriggerRef.current = null;
+      }
       
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
@@ -81,19 +85,17 @@ export const useScrollTrigger = ({
       // Get the appropriate scrub value based on browser and device
       const scrubValue = getScrubValue(isFirefox, isMobile, isIOS);
       
-      if (isIOS) {
-        logDebugInfo("ScrollTrigger", "Using iOS-specific scrub value:", scrubValue);
-      }
-      
+      // Log the scrub value being used
       logDebugInfo("ScrollTrigger", `Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isIOS ? 'iOS' : (isMobile ? 'mobile' : 'desktop'))}`);
       
-      // Clear any existing ScrollTrigger instances
+      // Clear any existing ScrollTrigger instances for this container
       ScrollTrigger.getAll().forEach(trigger => {
         if (trigger.vars.trigger === container) {
           trigger.kill();
         }
       });
       
+      // Create new ScrollTrigger
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
@@ -108,16 +110,11 @@ export const useScrollTrigger = ({
           const progress = self.progress;
           if (isNaN(progress)) return;
           updateVideoFrame(progress);
-          
-          // Log scroll position for debugging
-          if (isIOS && self.progress > 0.9) {
-            logDebugInfo("ScrollTrigger", `iOS scroll position: ${self.progress.toFixed(4)}, pixels: ${window.scrollY}`);
-          }
         }
       });
       
       setupCompleted.current = true;
-      logDebugInfo("ScrollTrigger", "Setup completed with scrub value:", scrubValue);
+      logDebugInfo("ScrollTrigger", "Setup completed successfully with scrub value:", scrubValue);
     };
 
     // For mobile devices, we'll set up ScrollTrigger even without duration
@@ -127,7 +124,7 @@ export const useScrollTrigger = ({
       setupScrollTrigger();
     }
 
-    // Set up event listeners regardless of initial state
+    // Set up event listeners for video metadata
     const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
     const handleVideoReady = () => {
@@ -135,15 +132,9 @@ export const useScrollTrigger = ({
         logDebugInfo("ScrollTrigger", "Setting up after video event");
         setupScrollTrigger();
       }
-      
-      // Clean up event listeners after setup
-      if (setupCompleted.current) {
-        setupEvents.forEach(event => {
-          video.removeEventListener(event, handleVideoReady);
-        });
-      }
     };
     
+    // Add event listeners
     setupEvents.forEach(event => {
       video.addEventListener(event, handleVideoReady);
     });
@@ -154,12 +145,13 @@ export const useScrollTrigger = ({
         logDebugInfo("ScrollTrigger", "Setting up after timeout");
         setupScrollTrigger();
       }
-    }, 300);
+    }, 500); // Increased from 300ms to 500ms for more reliable setup
     
     // Clean up function
     return () => {
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
+        scrollTriggerRef.current = null;
       }
       
       cleanupFrameUpdate();

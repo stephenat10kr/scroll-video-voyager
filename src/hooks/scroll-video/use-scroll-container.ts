@@ -34,15 +34,17 @@ export const useScrollContainer = ({
     // Resize container based on scroll requirements
     const resizeSection = () => {
       if (container) {
-        // Add extra height for iOS to ensure consistent 600% scroll
+        // Calculate total height including extra scroll distance
         const totalHeight = window.innerHeight + scrollExtraPx;
         logDebugInfo("ScrollContainer", `Setting container height to ${totalHeight}px`);
         container.style.height = `${totalHeight}px`;
       }
     };
     
-    // Initial resize and add listener
+    // Initial resize
     resizeSection();
+    
+    // Listen for window resize events
     window.addEventListener("resize", resizeSection);
 
     // Clean up function
