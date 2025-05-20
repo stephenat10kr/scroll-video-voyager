@@ -26,39 +26,19 @@ const RevealText = () => {
     queryFn: async () => {
       console.log("Fetching reveal text from Contentful");
       try {
-        // Log available content types to see what we have in the space
-        const contentTypes = await contentfulClient.getContentTypes();
-        console.log("Available content types:", contentTypes.items.map(ct => ({
-          id: ct.sys.id,
-          name: ct.name
-        })));
-        const response = await contentfulClient.getEntries({
-          content_type: 'revealText',
-          limit: 1
-        });
-        console.log("Contentful response status:", response.sys);
-        console.log("Total items found:", response.total);
-        console.log("Response items:", response.items.length);
-        if (response.items.length === 0) {
-          console.log("No entries found for content type 'revealText'");
-          return null;
-        }
-        const entry = response.items[0];
-        console.log("First entry sys:", entry.sys);
-        console.log("First entry fields:", entry.fields);
-
-        // Check if the entry has the 'revealText' field (which it does according to logs)
-        if (entry && entry.fields && 'revealText' in entry.fields) {
-          const textContent = entry.fields.revealText as string;
-          console.log("Found valid text content:", textContent);
+        const entry = await contentfulClient.getEntry('51n6CyvxFYhNwKPqdihLF9');
+        console.log("Contentful entry:", entry);
+        
+        if (entry && entry.fields) {
+          console.log("Found entry fields:", entry.fields);
           return {
             sys: entry.sys,
             fields: {
-              text: textContent // Map to the expected 'text' field in our type
+              text: entry.fields.text || entry.fields.revealText
             }
           } as ContentfulRevealText;
         }
-        console.log("Entry found but missing expected field, fields available:", Object.keys(entry.fields));
+        console.log("Entry found but missing expected fields");
         return null;
       } catch (err) {
         console.error("Error fetching from Contentful:", err);
