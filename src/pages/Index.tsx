@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -13,14 +12,40 @@ import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
+import ScrollVideo from "../components/ScrollVideo";
+import { useContentfulAsset } from "@/hooks/useContentfulAsset";
+import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
   
-  // Simulate loading progress for testing
+  // Use appropriate video asset ID based on device
+  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  const { data: videoAsset } = useContentfulAsset(videoAssetId);
+  
+  // Get video source from Contentful
+  const videoSrc = videoAsset?.fields?.file?.url 
+    ? `https:${videoAsset.fields.file.url}`
+    : undefined;
+  
+  // Force complete preloader after maximum time
+  useEffect(() => {
+    const maxLoadingTime = 12000; // 12 seconds max loading time
+    const forceCompleteTimeout = setTimeout(() => {
+      if (loadProgress < 100) {
+        console.log("Force completing preloader after timeout");
+        setLoadProgress(100);
+      }
+    }, maxLoadingTime);
+    
+    return () => clearTimeout(forceCompleteTimeout);
+  }, [loadProgress]);
+  
+  // Simulate loading progress for testing - improved to reach 100% when video is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -28,8 +53,13 @@ const Index = () => {
     setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
+          // If video is ready, jump directly to 100%
+          if (videoReady) {
+            return 100;
+          }
+          // Otherwise continue normal progress, but cap at 95%
           const newProgress = prev + Math.random() * 5;
-          return newProgress >= 100 ? 100 : newProgress;
+          return Math.min(95, newProgress);
         });
       }, 200);
     }, 500);
@@ -37,7 +67,15 @@ const Index = () => {
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, []);
+  }, [videoReady]);
+  
+  // When video is ready, immediately set progress to 100%
+  useEffect(() => {
+    if (videoReady) {
+      console.log("Video is ready, immediately setting progress to 100%");
+      setLoadProgress(100);
+    }
+  }, [videoReady]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -45,16 +83,38 @@ const Index = () => {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
     }
-  }, [isIOS]);
+    
+    if (isAndroid) {
+      console.log("Android device detected in Index component");
+      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+    }
+  }, [isIOS, isAndroid]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
     setLoading(false);
   };
   
+  const handleVideoReady = () => {
+    console.log("Video is ready to display");
+    setVideoReady(true);
+  };
+  
   // Skip content rendering until preloader is done
   if (loading) {
-    return <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />;
+    return (
+      <>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
+        <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
+        <div style={{ visibility: 'hidden', position: 'absolute' }}>
+          {isAndroid ? (
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          ) : (
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          )}
+        </div>
+      </>
+    );
   }
   
   return <div className="min-h-screen w-full relative">
@@ -62,7 +122,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      <ImprovedScrollVideo src={videoSrc} />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
