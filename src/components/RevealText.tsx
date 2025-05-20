@@ -101,21 +101,26 @@ const RevealText = () => {
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
     
-    // Set initial state - start with coral color mask
+    // Apply the coral mask over white text
     gsap.set(spans, {
-      color: "transparent",
-      WebkitTextFillColor: "transparent",
-      background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+      color: "white", // Set the base color to white
+      WebkitTextFillColor: "white", // Set text fill color for Safari/iOS
+      backgroundImage: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`, // Coral overlay
       WebkitBackgroundClip: "text",
-      backgroundClip: "text"
+      backgroundClip: "text",
+      // Important settings to ensure the text fill is masked properly
+      textFillColor: "transparent",
+      WebkitTextFillColor: "transparent"
     });
     
-    // Animate each character to reveal the white text underneath by making the mask transparent
+    // Animate each character to clear the mask and reveal the white text
     spans.forEach((span, i) => {
       tl.to(span, {
-        background: "transparent",
-        WebkitBackgroundClip: "text",
-        backgroundClip: "text",
+        backgroundImage: "none", // Remove gradient background
+        webkitBackgroundClip: "unset", // Unset background clipping
+        backgroundClip: "unset", // Unset background clipping
+        color: "white", // Make sure the text remains white
+        WebkitTextFillColor: "white", // Ensure text is visible on Safari/iOS
         ease: "power1.inOut",
         duration: 0.1
       }, i * 0.01);
@@ -145,14 +150,18 @@ const RevealText = () => {
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
-          {/* Use white text color for the underlying text, with the mask applied via JavaScript */}
-          <div ref={textRef} className="title-md text-white col-span-12 md:col-span-9 mb-8 py-[12px]" style={{
-            lineHeight: "1.2",
-            whiteSpace: "pre-wrap",
-            wordBreak: "normal",
-            WebkitFontSmoothing: "antialiased",
-            textRendering: "optimizeLegibility"
-          }}>
+          <div 
+            ref={textRef} 
+            className="title-md col-span-12 md:col-span-9 mb-8 py-[12px]" 
+            style={{
+              color: "white", // Set base color to white
+              lineHeight: "1.2",
+              whiteSpace: "pre-wrap",
+              wordBreak: "normal",
+              WebkitFontSmoothing: "antialiased",
+              textRendering: "optimizeLegibility"
+            }}
+          >
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -167,4 +176,3 @@ const RevealText = () => {
     </>;
 };
 export default RevealText;
-
