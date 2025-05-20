@@ -1,6 +1,6 @@
 
 import React from "react";
-import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
+import Video from "../components/Video";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
@@ -44,7 +44,7 @@ const Index = () => {
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      <Video />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
