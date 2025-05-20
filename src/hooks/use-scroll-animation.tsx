@@ -24,7 +24,8 @@ export const useScrollAnimation = ({
   
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isVideoLoaded) return;
+    const container = containerRef.current;
+    if (!video || !container || !isVideoLoaded) return;
     
     // Special handling for iOS devices
     if (isIOS) {
@@ -42,16 +43,24 @@ export const useScrollAnimation = ({
       });
     }
     
+    // Clear any existing ScrollTrigger instances first
+    ScrollTrigger.getAll().forEach(trigger => {
+      if (trigger.vars.trigger === container) {
+        trigger.kill();
+      }
+    });
+    
     // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: "top top",
         // Increase the end value to extend the scrolling length
         // This makes the scrubbing effect less sensitive
         end: "bottom+=600% bottom", // Changed from 400% to 600% to make scrubbing much less sensitive
         scrub: isIOS ? 4.0 : 3.5, // Use higher scrub value for iOS for smoother scrolling
         markers: false, // Set to true for debugging
+        pin: true, // Ensure container is pinned during scroll
       }
     });
     
@@ -101,7 +110,12 @@ export const useScrollAnimation = ({
         timeline.scrollTrigger.kill();
       }
       timeline.kill();
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.vars.trigger === container || 
+            (revealTextSection && trigger.vars.trigger === revealTextSection)) {
+          trigger.kill();
+        }
+      });
     };
   }, [isVideoLoaded, isIOS, containerRef, videoRef, onVideoVisibilityChange]);
 };

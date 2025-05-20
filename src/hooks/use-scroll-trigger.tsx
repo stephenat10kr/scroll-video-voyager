@@ -150,6 +150,13 @@ export const useScrollTrigger = ({
       
       console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isIOS ? 'iOS' : (isMobile ? 'mobile' : 'desktop'))}`);
       
+      // Clear any existing ScrollTrigger instances
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.vars.trigger === container) {
+          trigger.kill();
+        }
+      });
+      
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
@@ -222,7 +229,9 @@ export const useScrollTrigger = ({
         cancelAnimationFrame(frameRef.current);
       }
       setupEvents.forEach(event => {
-        video.removeEventListener(event, handleVideoReady);
+        if (video) {
+          video.removeEventListener(event, handleVideoReady);
+        }
       });
       clearTimeout(timeoutId);
       setupCompleted.current = false;

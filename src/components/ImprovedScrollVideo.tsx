@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import { useIsIOS } from "@/hooks/use-ios";
@@ -40,17 +40,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     onVideoVisibilityChange: setIsVideoVisible
   });
   
-  // Disable scrolling while preloader is active
-  useEffect(() => {
-    if (!isVideoLoaded) {
-      document.body.style.overflow = 'hidden';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isVideoLoaded]);
-
   // Log for debugging
   console.log('Video component - videoSrc:', videoSrc);
   console.log('Video component - asset data:', heroVideoAsset);
@@ -59,7 +48,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   console.log('Video component - isIOS:', isIOS);
 
   return (
-    <div ref={containerRef}>
+    <div 
+      ref={containerRef} 
+      className="relative w-full min-h-screen overflow-hidden bg-black"
+    >
       <ImprovedVideoContainer 
         isLoading={isLoading} 
         isVideoLoaded={isVideoLoaded} 
