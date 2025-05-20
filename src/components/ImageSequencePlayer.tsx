@@ -149,6 +149,8 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       start: "top top",
       end: `+=${SCROLL_EXTRA_PX}`,
       scrub: 1.2, // Smooth scrub value optimized for image sequence
+      pin: true, // Pin the container during scroll
+      anticipatePin: 1,
       onUpdate: (self) => {
         // Calculate which frame to show based on scroll progress
         const progress = self.progress;
