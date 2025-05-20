@@ -11,8 +11,11 @@ export const useVideoProgress = () => {
   
   // Update video styling based on scroll direction
   useEffect(() => {
-    // Returned for use in components
-    return { progress, lastProgress: lastProgressRef.current, isAfterVideo };
+    // The issue is here: useEffect must return a cleanup function or nothing
+    // It cannot return an object with values
+    
+    // No need to return anything in this useEffect
+    // We will use the state and ref values directly
   }, [progress, isAfterVideo]);
 
   const handleProgressChange = (newProgress: number) => {
