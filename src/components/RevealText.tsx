@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,6 +16,7 @@ const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  
   const {
     data: revealTextContent,
     isLoading,
@@ -104,20 +104,28 @@ const RevealText = () => {
     // Apply the coral mask over white text
     gsap.set(spans, {
       color: "white", // Set the base color to white
-      WebkitTextFillColor: "white", // Set text fill color for Safari/iOS
       backgroundImage: `linear-gradient(90deg, ${colors.coral} 0%, ${colors.coral} 100%)`, // Coral overlay
       WebkitBackgroundClip: "text",
       backgroundClip: "text",
-      // Important settings to ensure the text fill is masked properly
-      textFillColor: "transparent",
-      WebkitTextFillColor: "transparent"
+      textFillColor: "transparent", // For standard browsers
+      WebkitTextFillColor: "transparent" // For webkit browsers (Safari/iOS)
     });
+    
+    // Debug iOS-specific settings
+    if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
+      console.log("iOS device detected, applying special text mask settings");
+      // Force a reflow for iOS devices
+      text.style.visibility = "hidden";
+      setTimeout(() => {
+        text.style.visibility = "visible";
+      }, 50);
+    }
     
     // Animate each character to clear the mask and reveal the white text
     spans.forEach((span, i) => {
       tl.to(span, {
         backgroundImage: "none", // Remove gradient background
-        webkitBackgroundClip: "unset", // Unset background clipping
+        WebkitBackgroundClip: "unset", // Unset background clipping
         backgroundClip: "unset", // Unset background clipping
         color: "white", // Make sure the text remains white
         WebkitTextFillColor: "white", // Ensure text is visible on Safari/iOS
