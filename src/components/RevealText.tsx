@@ -36,23 +36,34 @@ const RevealText = () => {
         if (entry && entry.fields) {
           console.log("Found entry fields:", entry.fields);
           
-          // Check which field contains the text content
-          let textContent = null;
-          if ('text' in entry.fields) {
-            textContent = entry.fields.text;
-          } else if ('revealText' in entry.fields) {
-            textContent = entry.fields.revealText;
-          } else if ('bodyText' in entry.fields) {
-            textContent = entry.fields.bodyText;
+          // Check which field contains the reveal text content
+          let revealTextContent = null;
+          let bodyTextContent = null;
+          
+          // Look for the revealText field (for the animated gradient text)
+          if ('revealText' in entry.fields) {
+            revealTextContent = entry.fields.revealText;
+          } else if ('text' in entry.fields && !bodyTextContent) {
+            // If no specific revealText field but there's a text field, use it for reveal text
+            revealTextContent = entry.fields.text;
           }
           
-          console.log("Extracted text content:", textContent);
+          // Look for the text field (for the body copy)
+          if ('text' in entry.fields) {
+            bodyTextContent = entry.fields.text;
+          } else if ('bodyText' in entry.fields) {
+            bodyTextContent = entry.fields.bodyText;
+          }
           
-          if (textContent) {
+          console.log("Extracted reveal text content:", revealTextContent);
+          console.log("Extracted body text content:", bodyTextContent);
+          
+          if (revealTextContent || bodyTextContent) {
             return {
               sys: entry.sys,
               fields: {
-                text: textContent
+                revealText: revealTextContent || "Default reveal text",
+                text: bodyTextContent || "Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive."
               }
             } as ContentfulRevealText;
           }
@@ -134,7 +145,8 @@ const RevealText = () => {
     console.error("Error loading reveal text:", error);
   }
 
-  const bodyText = "Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive.";
+  // Use the body text from Contentful or fall back to the default
+  const bodyText = revealTextContent?.fields.text || "Join our community to receive updates about exclusive experiences, membership opportunities, and special events. Lightning Society is a place where curiosity and connection thrive.";
 
   return <>
       <div className="w-full py-24" style={{
@@ -151,7 +163,7 @@ const RevealText = () => {
             WebkitFontSmoothing: "antialiased",
             textRendering: "optimizeLegibility"
           }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
-            {revealTextContent?.fields.text || "Default reveal text"}
+            {revealTextContent?.fields.revealText || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
             <Button variant="default" className="h-[48px] rounded-full bg-coral text-black hover:bg-coral/90" onClick={() => setIsFormOpen(true)}>

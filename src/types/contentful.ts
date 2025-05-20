@@ -82,7 +82,8 @@ export interface ContentfulRevealText {
     };
   };
   fields: {
-    text: string;
+    revealText: string; // For the animated gradient text
+    text: string;      // For the white body copy
   };
 }
 
