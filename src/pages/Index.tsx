@@ -31,9 +31,26 @@ const Index = () => {
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
-        {/* Skip the logo section in HeroText since we position it separately */}
+        {/* Logo section at the top */}
+        <section className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
+          <div className="w-full max-w-[90%] mx-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <div className="aspect-w-444 aspect-h-213 w-full">
+                    <Logo />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Hero Text sections - they will stack directly under the logo */}
         <section>
-          <HeroText skipLogoSection={false} />
+          {/* We skip the logo section since we've added it separately above */}
+          <HeroText skipLogoSection={true} />
         </section>
         
         <section id="revealText-section">

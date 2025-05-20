@@ -35,7 +35,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div className="w-full bg-transparent h-[500vh] relative z-10">
+    <div className="w-full bg-transparent h-[500vh]">
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && (
         <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
