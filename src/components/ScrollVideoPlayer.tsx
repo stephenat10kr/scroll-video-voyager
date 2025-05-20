@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -58,6 +57,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     console.log("iOS detection:", isIOS);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
+    console.log("Scroll extra pixels:", SCROLL_EXTRA_PX);
+    console.log("After video extra height:", AFTER_VIDEO_EXTRA_HEIGHT);
 
     // Optimize video element
     video.controls = false;
@@ -69,6 +70,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.pause();
     console.log("Video paused during initialization");
 
+    // Enhanced iOS-specific optimizations
+    if (isIOS) {
+      console.log("Applying enhanced iOS optimizations");
+      // Force hardware acceleration more aggressively for iOS
+      video.style.transform = "translate3d(0,0,0)";
+      video.style.webkitTransform = "translate3d(0,0,0)";
+      // Ensure native playback is used on iOS
+      video.setAttribute("webkit-playsinline", "true");
+      video.setAttribute("playsinline", "true");
+    }
+    
     // Mobile-specific optimizations that don't affect appearance
     if (isMobile) {
       // Keep these optimizations but remove visibility settings
@@ -121,9 +133,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        // Add extra height for iOS to ensure consistent 600% scroll
+        const totalHeight = window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT;
+        console.log(`Setting container height to ${totalHeight}px`);
+        container.style.height = `${totalHeight}px`;
       }
     };
+    
+    // Initial resize and add listener
     resizeSection();
     window.addEventListener("resize", resizeSection);
 
@@ -144,7 +161,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // iOS specific handling - log more data for iOS devices
+      // iOS specific handling with extensive logging
       if (isIOS) {
         console.log(`iOS video progress: ${progress.toFixed(4)}, duration: ${video.duration.toFixed(2)}`);
       }
@@ -156,7 +173,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // Adjust progress to stop frames before the end
       let adjustedProgress = progress;
-      if (progress > 0.97) {  // Only adjust near the end, adjusted threshold from 0.98 to 0.97
+      if (progress > 0.95) {  // Start adjusting earlier at 95% instead of 97%
         // Scale progress to end at (duration - stopTimeBeforeEnd)
         const maxTime = video.duration - stopTimeBeforeEnd;
         adjustedProgress = Math.min(progress, maxTime / video.duration);
@@ -168,17 +185,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         }
         
         // Additional logging for end of video behavior
-        if (isIOS) {
-          console.log(`iOS near end: progress=${progress.toFixed(4)}, adjusted=${adjustedProgress.toFixed(4)}, time=${(adjustedProgress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
+        if (isIOS || progress > 0.98) {
+          console.log(`Near end: progress=${progress.toFixed(4)}, adjusted=${adjustedProgress.toFixed(4)}, time=${(adjustedProgress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
         }
       }
       
       const newTime = adjustedProgress * video.duration;
-      
-      // Log when we're approaching the end
-      if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
-      }
       
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
@@ -186,7 +198,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       frameRef.current = requestAnimationFrame(() => {
         video.currentTime = newTime;
-        onAfterVideoChange(progress >= 1);
+        onAfterVideoChange(progress >= 0.99); // Consider "after video" slightly earlier
       });
     };
 
@@ -215,7 +227,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // iOS specific scrub value - make it even smoother for iOS
       if (isIOS) {
-        scrubValue = 1.5; // Smoother scrolling for iOS
+        scrubValue = 2.2; // Smoother scrolling for iOS with increased value from 1.5 to 2.2
         console.log("Using iOS-specific scrub value:", scrubValue);
       }
       
@@ -226,13 +238,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
         scrub: scrubValue, // Use the device-specific scrub value
+        pin: true, // Add pinning to ensure video stays in view during scroll
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
+        markers: false, // Set to true for debugging scroll triggers
         onUpdate: (self) => {
           const progress = self.progress;
           if (isNaN(progress)) return;
           updateVideoFrame(progress);
+          
+          // Log scroll position for debugging
+          if (isIOS && self.progress > 0.9) {
+            console.log(`iOS scroll position: ${self.progress.toFixed(4)}, pixels: ${self.scrollTrigger?.scroller.scrollTop}`);
+          }
         }
       });
       

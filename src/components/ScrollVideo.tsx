@@ -7,10 +7,11 @@ import { useIsIOS } from "@/hooks/use-ios";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 4000 to 6000 for iOS, keep 4000 for other devices
+// Use consistent 6000px scroll distance for iOS to ensure 600% scroll
 const DEFAULT_SCROLL_EXTRA_PX = 4000;
 const IOS_SCROLL_EXTRA_PX = 6000; // 600% scroll for iOS
-const AFTER_VIDEO_EXTRA_HEIGHT = 0;
+// Add extra height after video to prevent premature disappearance
+const AFTER_VIDEO_EXTRA_HEIGHT = 200; // Adding extra height to prevent premature disappearance
 
 const ScrollVideo: React.FC<{
   src?: string;
@@ -29,7 +30,7 @@ const ScrollVideo: React.FC<{
   const isIOS = useIsIOS(); // Get iOS detection
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
-  // Calculate the appropriate scroll value based on device
+  // Always use IOS_SCROLL_EXTRA_PX for iOS devices to ensure consistent 600% scroll
   const SCROLL_EXTRA_PX = isIOS ? IOS_SCROLL_EXTRA_PX : DEFAULT_SCROLL_EXTRA_PX;
   
   // Detect Firefox browser
@@ -38,7 +39,7 @@ const ScrollVideo: React.FC<{
   // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
   const segmentCount = 5;
   
-  // Add intersection observer to detect when video exits viewport
+  // Add intersection observer to detect when video exits viewport with improved threshold
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -47,11 +48,13 @@ const ScrollVideo: React.FC<{
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // More sensitive intersection detection to prevent premature disappearance
         setIsInViewport(entry.isIntersecting);
+        console.log(`Video visibility changed: ${entry.isIntersecting ? 'visible' : 'hidden'}, intersection ratio: ${entry.intersectionRatio}`);
       },
       { 
-        threshold: 0.01,  // Trigger when just 1% of element is visible
-        rootMargin: "0px" // No additional margin
+        threshold: [0, 0.1, 0.5, 0.9], // Multiple thresholds for smoother transitions
+        rootMargin: "20px" // Add some margin to prevent abrupt disappearance
       }
     );
 
@@ -94,11 +97,18 @@ const ScrollVideo: React.FC<{
         video.load();
       }
       
-      // iOS-specific optimizations for 600% scroll
+      // Enhanced iOS-specific optimizations for consistent 600% scroll
       if (isIOS) {
         console.log("iOS detected: Applying iOS-specific optimizations for 600% scroll");
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
+        // Force hardware acceleration for iOS
+        video.style.transform = "translate3d(0,0,0)";
+        video.style.willChange = "transform, opacity";
+        // Ensure iOS plays the video smoothly
+        video.muted = true;
+        // Apply iOS-specific optimization to prevent stutter
+        video.preload = "auto";
       }
       
       // Firefox-specific optimizations
