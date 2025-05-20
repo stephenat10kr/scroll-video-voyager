@@ -28,6 +28,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         : heroVideoAsset.fields.file.url)
     : "https://www.dropbox.com/scl/fi/qejf5dgqiv6m77d71r2ec/abstract-background-ink-water.mp4?rlkey=cf5xf73grwr5olszcyjghc5pt&st=ycgfiqec&raw=1");
 
+  // Check if we're running on iOS
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  };
+
   const handleVideoLoaded = () => {
     setIsVideoLoaded(true);
   };
@@ -113,10 +118,59 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     };
   }, [isVideoLoaded]);
 
+  // iOS specific video loading
+  useEffect(() => {
+    if (!videoRef.current || !videoSrc) return;
+    
+    const video = videoRef.current;
+    
+    // For iOS devices, we need special handling
+    if (isIOS()) {
+      console.log("iOS device detected, applying special video handling");
+      
+      // Make sure video is visible even before fully loaded on iOS
+      setIsVideoVisible(true);
+      
+      // Set playsinline explicitly (important for iOS)
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.setAttribute('x-webkit-airplay', 'allow');
+      
+      // Force video to load and show first frame
+      const loadFirstFrame = () => {
+        video.load();
+        video.currentTime = 0.1;  // Set to a small non-zero value
+        setIsVideoLoaded(true);
+      };
+      
+      // Try different approaches to get the video showing
+      loadFirstFrame();
+      
+      // Sometimes on iOS we need a user interaction
+      const handleUserInteraction = () => {
+        loadFirstFrame();
+        // Try to play and immediately pause to kickstart the video
+        video.play().then(() => {
+          setTimeout(() => {
+            video.pause();
+          }, 100);
+        }).catch(err => {
+          console.log("iOS autoplay attempt failed:", err);
+        });
+      };
+      
+      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+      
+      return () => {
+        document.removeEventListener('touchstart', handleUserInteraction);
+      };
+    }
+  }, [videoSrc]);
+
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
       {/* Show loading state if video is still loading */}
-      {(isLoading || !isVideoLoaded) && (
+      {(isLoading || !isVideoLoaded) && !isIOS() && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <Spinner />
         </div>
@@ -131,6 +185,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           playsInline 
           preload="auto"
           muted 
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
           onLoadedData={handleVideoLoaded}
         />
       )}

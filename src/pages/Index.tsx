@@ -12,8 +12,33 @@ import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import Logo from "../components/Logo";
 
+// Check if we're running on iOS
+const useIsIOS = () => {
+  const [isIOS, setIsIOS] = React.useState(false);
+  
+  React.useEffect(() => {
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(iOS);
+    
+    if (iOS) {
+      console.log("iOS device detected in Index component");
+      // Add iOS specific class to body for any global CSS adjustments
+      document.body.classList.add('ios-device');
+    }
+  }, []);
+  
+  return isIOS;
+};
+
 const Index = () => {
   const isAndroid = useIsAndroid();
+  const isIOS = useIsIOS();
+  
+  // Log device detection for debugging
+  React.useEffect(() => {
+    console.log("Device detection - Android:", isAndroid, "iOS:", isIOS);
+  }, [isAndroid, isIOS]);
+  
   return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
