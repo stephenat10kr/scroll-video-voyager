@@ -26,6 +26,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   const [allFramesLoaded, setAllFramesLoaded] = useState(false);
   const frameRefs = useRef<HTMLImageElement[]>([]);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const imagesContainerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
   
   // Format frame number as 4-digit string (e.g., 0001, 0099)
@@ -86,7 +87,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           img.style.position = 'absolute';
           img.style.top = '0';
           img.style.left = '0';
-          img.style.opacity = '0'; // Hide all frames initially
+          img.style.opacity = i === 1 ? '1' : '0'; // Show only first frame initially
           img.style.transition = 'none'; // No transition for performance
           
           // Hardware acceleration for images
@@ -94,6 +95,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
           img.style.backfaceVisibility = 'hidden';
           img.style.perspective = '1000px';
           img.style.willChange = 'transform, opacity';
+          img.dataset.frame = i.toString();
           
           frameRefs.current.push(img);
         }
@@ -118,7 +120,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
   
   // Setup scroll trigger once all frames are loaded
   useEffect(() => {
-    if (!allFramesLoaded || !containerRef.current || isInitializedRef.current) return;
+    if (!allFramesLoaded || !containerRef.current || !imagesContainerRef.current || isInitializedRef.current) return;
     
     // Set up container height for scrolling
     const resizeSection = () => {
@@ -132,9 +134,9 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     window.addEventListener("resize", resizeSection);
     
     // Add frames to the container
-    const container = containerRef.current;
+    const imageContainer = imagesContainerRef.current;
     frameRefs.current.forEach((img) => {
-      container.appendChild(img);
+      imageContainer.appendChild(img);
     });
     
     // Show the first frame initially
@@ -145,12 +147,13 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
     // Set up the scroll trigger for frame animation
     console.log("ImageSequence - Setting up ScrollTrigger");
     scrollTriggerRef.current = ScrollTrigger.create({
-      trigger: container,
+      trigger: containerRef.current,
       start: "top top",
       end: `+=${SCROLL_EXTRA_PX}`,
       scrub: 1.2, // Smooth scrub value optimized for image sequence
       pin: true, // Pin the container during scroll
       anticipatePin: 1,
+      markers: true, // For debugging - will show markers for the scroll trigger
       onUpdate: (self) => {
         // Calculate which frame to show based on scroll progress
         const progress = self.progress;
@@ -161,6 +164,7 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
         
         // Only update if the frame has changed to minimize DOM operations
         if (frameIndex + 1 !== currentFrame) {
+          console.log(`Updating to frame ${frameIndex + 1} (progress: ${progress.toFixed(2)})`);
           setCurrentFrame(frameIndex + 1);
           
           // Hide all frames and show only the current one
@@ -187,8 +191,8 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       
       // Remove appended images
       frameRefs.current.forEach(img => {
-        if (img.parentNode === container) {
-          container.removeChild(img);
+        if (img.parentNode === imageContainer) {
+          imageContainer.removeChild(img);
         }
       });
     };
@@ -199,8 +203,14 @@ const ImageSequencePlayer: React.FC<ImageSequencePlayerProps> = ({
       ref={containerRef}
       className="fixed top-0 left-0 w-full h-screen z-0 overflow-hidden bg-black"
     >
+      {/* Dedicated container for images to ensure they're always visible */}
+      <div 
+        ref={imagesContainerRef} 
+        className="absolute inset-0 w-full h-full z-10"
+      ></div>
+      
       {!allFramesLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
           <div className="text-white text-center">
             <div className="mb-4">Loading frames: {framesLoaded}/{totalFrames}</div>
             <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">

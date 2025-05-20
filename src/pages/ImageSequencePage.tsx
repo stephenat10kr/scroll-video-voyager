@@ -23,9 +23,12 @@ const ImageSequencePage = () => {
         {!imageSequenceReady && (
           <div className="my-2 text-amber-400">Loading image sequence...</div>
         )}
+        {imageSequenceReady && (
+          <div className="my-2 text-green-400">Ready! Scroll down to see the sequence.</div>
+        )}
       </div>
 
-      {/* Image sequence player with higher z-index than header */}
+      {/* Image sequence player with higher z-index */}
       <ImageSequencePlayer 
         totalFrames={99} 
         onReady={handleImageSequenceReady}
