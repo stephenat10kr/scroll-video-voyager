@@ -10,10 +10,21 @@ import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
+import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
+  const isIOS = useIsIOS();
+  
+  // Enhanced debugging
+  React.useEffect(() => {
+    if (isIOS) {
+      console.log("iOS device detected in Index component");
+      console.log("User Agent:", navigator.userAgent);
+    }
+  }, [isIOS]);
+  
   return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
@@ -39,7 +50,7 @@ const Index = () => {
           </div>
         </section>
         
-        {/* Hero Text sections - they will stack directly under the logo */}
+        {/* Content sections */}
         <section>
           {/* We skip the logo section since we've added it separately above */}
           <HeroText skipLogoSection={true} />
