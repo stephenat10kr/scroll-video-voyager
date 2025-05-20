@@ -262,7 +262,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           style={{ 
             opacity: isVideoVisible ? 1 : 0,
             visibility: isVideoVisible ? 'visible' : 'hidden',
-            backgroundColor: 'black' // Add background color to prevent white flashing
+            backgroundColor: 'black', // Add background color to prevent white flashing
+            willChange: 'transform', // Added performance optimization
+            transform: 'translateZ(0)', // Force GPU acceleration
+            backfaceVisibility: 'hidden' // Prevent rendering the back face
           }}
           playsInline={true}
           webkit-playsinline="true" 
