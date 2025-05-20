@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
@@ -27,8 +28,8 @@ const Video = () => {
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
-  // Minimum loading time in milliseconds (3 seconds, changed from 6 seconds)
-  const MIN_LOADING_TIME = 3000;
+  // Minimum loading time in milliseconds (6 seconds)
+  const MIN_LOADING_TIME = 6000;
   // Maximum loading time before forcing completion
   const MAX_LOADING_TIME = 15000;
   
