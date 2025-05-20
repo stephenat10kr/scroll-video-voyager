@@ -3,11 +3,13 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useIsIOS } from "@/hooks/use-ios";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 2000 to 4000
-const SCROLL_EXTRA_PX = 4000;
+// Increase scroll distance from 4000 to 6000 for iOS, keep 4000 for other devices
+const DEFAULT_SCROLL_EXTRA_PX = 4000;
+const IOS_SCROLL_EXTRA_PX = 6000; // 600% scroll for iOS
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
@@ -24,7 +26,11 @@ const ScrollVideo: React.FC<{
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
+  const isIOS = useIsIOS(); // Get iOS detection
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+  
+  // Calculate the appropriate scroll value based on device
+  const SCROLL_EXTRA_PX = isIOS ? IOS_SCROLL_EXTRA_PX : DEFAULT_SCROLL_EXTRA_PX;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -35,6 +41,9 @@ const ScrollVideo: React.FC<{
   // Add intersection observer to detect when video exits viewport
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // Log which scroll value is being used for debugging
+    console.log(`Using scroll value: ${SCROLL_EXTRA_PX}px (iOS: ${isIOS})`);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -53,7 +62,7 @@ const ScrollVideo: React.FC<{
         observer.unobserve(containerRef.current);
       }
     };
-  }, []);
+  }, [isIOS, SCROLL_EXTRA_PX]);
 
   // Update progress state and determine scroll direction
   useEffect(() => {
@@ -83,6 +92,13 @@ const ScrollVideo: React.FC<{
         // Force loading of the first frame
         video.currentTime = 0.001;
         video.load();
+      }
+      
+      // iOS-specific optimizations for 600% scroll
+      if (isIOS) {
+        console.log("iOS detected: Applying iOS-specific optimizations for 600% scroll");
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
       }
       
       // Firefox-specific optimizations
@@ -177,7 +193,7 @@ const ScrollVideo: React.FC<{
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox]);
+  }, [secureVideoSrc, isMobile, isFirefox, isIOS]);
 
   // Add document-level interaction detection
   useEffect(() => {
