@@ -250,7 +250,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           
           // Log scroll position for debugging
           if (isIOS && self.progress > 0.9) {
-            console.log(`iOS scroll position: ${self.progress.toFixed(4)}, pixels: ${self.scrollTrigger?.scroller.scrollTop}`);
+            // Fix: Remove the direct access to scrollTrigger property
+            console.log(`iOS scroll position: ${self.progress.toFixed(4)}, pixels: ${window.scrollY}`);
           }
         }
       });
