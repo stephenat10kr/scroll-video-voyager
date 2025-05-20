@@ -33,20 +33,22 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
-  const progressThreshold = 0.0005; 
+  
+  // Define frame rate constants 
+  const STANDARD_FRAME_RATE = 30;
+  
+  // Increased threshold specifically for Android devices to reduce processing overhead
+  // Changed from 0.0005 to 0.015 (30x higher) for Android to significantly reduce frame processing
+  const isAndroid = useIsAndroid();
+  const progressThreshold = isAndroid ? 0.015 : 0.0005; 
+  
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   // Define the frames to stop before the end
   const FRAMES_BEFORE_END = 5;
-  // Standard video frame rate (most common)
-  const STANDARD_FRAME_RATE = 30;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-  
-  // Use the Android hook for detection
-  const isAndroid = useIsAndroid();
 
   // Create a ref to store the current interpolation target time
   const targetTimeRef = useRef<number>(0);
@@ -217,6 +219,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // Apply much higher threshold for Android to reduce processing overhead
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -253,12 +257,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       frameRef.current = requestAnimationFrame(() => {
         // Enhanced Android-specific smooth interpolation
         if (isAndroid) {
-          // Use our new smooth interpolation function for Android
-          smoothlyUpdateVideoTime(video, newTime);
+          // NEW: Use integer frame rounding to minimize overdraw
+          const roundedTime = Math.floor(newTime * STANDARD_FRAME_RATE) / STANDARD_FRAME_RATE;
+          // Use rounded time value to reduce unnecessary frame updates
+          smoothlyUpdateVideoTime(video, roundedTime);
           
           // Log Android-specific smoothing when near the end
           if (progress > 0.95) {
-            console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+            console.log(`Android smooth interpolation: target time = ${roundedTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
           // Standard approach for non-Android devices
@@ -382,7 +388,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid, progressThreshold]);
 
   return <>{children}</>;
 };
