@@ -5,14 +5,7 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Add TypeScript interface for HTMLVideoElement with requestVideoFrameCallback
-declare global {
-  interface HTMLVideoElement {
-    requestVideoFrameCallback?: (callback: (now: number, metadata: VideoFrameMetadata) => void) => number;
-  }
-}
-
-// Add interface for VideoFrameMetadata
+// Define VideoFrameMetadata interface for TypeScript without redefining the existing API
 interface VideoFrameMetadata {
   presentationTime: number;
   expectedDisplayTime: number;
@@ -22,6 +15,9 @@ interface VideoFrameMetadata {
   presentedFrames: number;
   processingDuration?: number;
 }
+
+// Use VideoFrameRequestCallback type without declaring it globally
+type VideoFrameRequestCallback = (now: number, metadata: VideoFrameMetadata) => void;
 
 type ScrollVideoPlayerProps = {
   src?: string;
@@ -84,7 +80,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const syncVideoTime = (video: HTMLVideoElement, time: number) => {
     if ('requestVideoFrameCallback' in video && hasVideoFrameCallback.current) {
       // Use requestVideoFrameCallback to sync with next video frame render
-      video.requestVideoFrameCallback?.(() => {
+      // @ts-ignore - TypeScript doesn't fully recognize this experimental API
+      video.requestVideoFrameCallback(() => {
         video.currentTime = time;
       });
     } else {
