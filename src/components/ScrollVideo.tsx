@@ -1,73 +1,51 @@
-import React, { useRef, useEffect, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+import React, { useRef, useEffect } from "react";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
+import VideoElement from "./video/VideoElement";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useIsIOS } from "@/hooks/use-ios";
-
-gsap.registerPlugin(ScrollTrigger);
-
-// Use consistent 6000px scroll distance for iOS to ensure 600% scroll
-const DEFAULT_SCROLL_EXTRA_PX = 4000;
-const IOS_SCROLL_EXTRA_PX = 6000; // 600% scroll for iOS
-// Add extra height after video to prevent premature disappearance
-const AFTER_VIDEO_EXTRA_HEIGHT = 200; // Adding extra height to prevent premature disappearance
+import { useVideoIntersection } from "@/hooks/use-video-intersection";
+import { useVideoInitialization } from "@/hooks/use-video-initialization";
+import { useVideoProgress } from "@/hooks/use-video-progress";
+import {
+  DEFAULT_SCROLL_EXTRA_PX,
+  IOS_SCROLL_EXTRA_PX,
+  AFTER_VIDEO_EXTRA_HEIGHT,
+  DEFAULT_SEGMENT_COUNT
+} from "@/config/scroll-video-config";
 
 const ScrollVideo: React.FC<{
   src?: string;
 }> = ({
   src
 }) => {
+  // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isAfterVideo, setIsAfterVideo] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isInViewport, setIsInViewport] = useState(true);
-  const [lastProgress, setLastProgress] = useState(0);
+  
+  // Detect device types
   const isMobile = useIsMobile();
-  const isIOS = useIsIOS(); // Get iOS detection
+  const isIOS = useIsIOS();
+  
+  // Process video source
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
   // Always use IOS_SCROLL_EXTRA_PX for iOS devices to ensure consistent 600% scroll
   const SCROLL_EXTRA_PX = isIOS ? IOS_SCROLL_EXTRA_PX : DEFAULT_SCROLL_EXTRA_PX;
   
-  // Detect Firefox browser
-  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  // Initialize hooks
+  const isInViewport = useVideoIntersection(containerRef);
+  const { videoVisible } = useVideoInitialization(videoRef, secureVideoSrc);
+  const { 
+    progress, 
+    isAfterVideo,
+    lastProgress,
+    handleProgressChange,
+    handleAfterVideoChange,
+    setLastProgress
+  } = useVideoProgress();
   
-  // Calculate segment count (keeping this for ScrollVideoPlayer functionality)
-  const segmentCount = 5;
-  
-  // Add intersection observer to detect when video exits viewport with improved threshold
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Log which scroll value is being used for debugging
-    console.log(`Using scroll value: ${SCROLL_EXTRA_PX}px (iOS: ${isIOS})`);
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // More sensitive intersection detection to prevent premature disappearance
-        setIsInViewport(entry.isIntersecting);
-        console.log(`Video visibility changed: ${entry.isIntersecting ? 'visible' : 'hidden'}, intersection ratio: ${entry.intersectionRatio}`);
-      },
-      { 
-        threshold: [0, 0.1, 0.5, 0.9], // Multiple thresholds for smoother transitions
-        rootMargin: "20px" // Add some margin to prevent abrupt disappearance
-      }
-    );
-
-    observer.observe(containerRef.current);
-
-    return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
-    };
-  }, [isIOS, SCROLL_EXTRA_PX]);
-
-  // Update progress state and determine scroll direction
+  // Update video transition effects based on scroll direction
   useEffect(() => {
     if (progress > lastProgress) {
       // Scrolling down - set immediate transition
@@ -81,157 +59,7 @@ const ScrollVideo: React.FC<{
       }
     }
     setLastProgress(progress);
-  }, [progress]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video && secureVideoSrc) {
-      // Force initial visibility for mobile devices
-      if (isMobile) {
-        // Immediately make video element visible
-        setVideoVisible(true);
-        console.log("Mobile detected: Forcing initial video visibility");
-        
-        // Force loading of the first frame
-        video.currentTime = 0.001;
-        video.load();
-      }
-      
-      // Enhanced iOS-specific optimizations for consistent 600% scroll
-      if (isIOS) {
-        console.log("iOS detected: Applying iOS-specific optimizations for 600% scroll");
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        // Force hardware acceleration for iOS
-        video.style.transform = "translate3d(0,0,0)";
-        video.style.willChange = "transform, opacity";
-        // Ensure iOS plays the video smoothly
-        video.muted = true;
-        // Apply iOS-specific optimization to prevent stutter
-        video.preload = "auto";
-      }
-      
-      // Firefox-specific optimizations
-      if (isFirefox) {
-        console.log("Firefox detected: Applying Firefox-specific optimizations");
-        
-        // Apply Firefox-specific hardware acceleration hints
-        video.style.transform = "translateZ(0)";
-        video.style.backfaceVisibility = "hidden";
-        
-        // Try to improve Firefox performance by reducing motion complexity
-        video.style.willChange = "transform, opacity";
-      }
-      
-      const handleCanPlay = () => {
-        console.log("Video can play now");
-        setVideoLoaded(true);
-        setVideoVisible(true);
-        
-        // Always pause the video when it can play
-        video.pause();
-        console.log("Video paused on load");
-        
-        // For mobile, we need to ensure a frame is displayed
-        if (isMobile) {
-          // Set the currentTime to show the first frame
-          video.currentTime = 0.001;
-        }
-      };
-      
-      // Add loadeddata event to ensure video is fully loaded before showing
-      const handleLoadedData = () => {
-        console.log("Video data loaded");
-        setVideoVisible(true);
-        
-        // Set the currentTime to show the first frame for mobile
-        if (isMobile) {
-          video.currentTime = 0.001;
-        }
-      };
-      
-      // Add loadedmetadata event which might fire earlier on some devices
-      const handleLoadedMetadata = () => {
-        console.log("Video metadata loaded");
-        setVideoVisible(true);
-        
-        // Set the currentTime to show the first frame for mobile
-        if (isMobile) {
-          video.currentTime = 0.001;
-        }
-      };
-      
-      // Add error handling
-      const handleError = (e: Event) => {
-        console.error("Video error:", e);
-        // Even if there's an error, ensure video is visible
-        setVideoVisible(true);
-      };
-      
-      video.addEventListener("canplay", handleCanPlay);
-      video.addEventListener("loadeddata", handleLoadedData);
-      video.addEventListener("loadedmetadata", handleLoadedMetadata);
-      video.addEventListener("error", handleError);
-      
-      // Add a safety timeout to ensure visibility regardless of events
-      const shortTimeoutId = setTimeout(() => {
-        // Force visibility after a very short delay
-        if (isMobile) {
-          setVideoVisible(true);
-          console.log("Mobile video visibility forced by short timeout");
-        }
-      }, 100);
-      
-      // Use a longer timeout as a fallback for all devices
-      const timeoutId = setTimeout(() => {
-        setVideoVisible(true);
-        console.log("Video visibility forced by fallback timeout");
-        
-        // If video still hasn't loaded its first frame, try to force it
-        if (isMobile && video.readyState < 2) {
-          video.load();
-          video.currentTime = 0.001;
-        }
-      }, 300);
-      
-      return () => {
-        video.removeEventListener("canplay", handleCanPlay);
-        video.removeEventListener("loadeddata", handleLoadedData);
-        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        video.removeEventListener("error", handleError);
-        clearTimeout(shortTimeoutId);
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [secureVideoSrc, isMobile, isFirefox, isIOS]);
-
-  // Add document-level interaction detection
-  useEffect(() => {
-    // Global interaction handler for mobile devices
-    if (isMobile) {
-      const handleInteraction = () => {
-        console.log("User interaction detected");
-        setVideoVisible(true);
-        
-        const video = videoRef.current;
-        if (video) {
-          // Try to display the first frame
-          if (video.readyState >= 1) {
-            video.currentTime = 0.001;
-          }
-        }
-      };
-      
-      // Listen for any user interaction
-      document.addEventListener('touchstart', handleInteraction, { once: true });
-      document.addEventListener('click', handleInteraction, { once: true });
-      
-      return () => {
-        document.removeEventListener('touchstart', handleInteraction);
-        document.removeEventListener('click', handleInteraction);
-      };
-    }
-  }, [isMobile]);
+  }, [progress, lastProgress, setLastProgress]);
 
   return (
     <div 
@@ -241,31 +69,20 @@ const ScrollVideo: React.FC<{
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
-        segmentCount={segmentCount} 
-        onAfterVideoChange={setIsAfterVideo}
-        onProgressChange={setProgress}
+        segmentCount={DEFAULT_SEGMENT_COUNT} 
+        onAfterVideoChange={handleAfterVideoChange}
+        onProgressChange={handleProgressChange}
         videoRef={videoRef} 
         containerRef={containerRef} 
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
       >
-        <video 
-          ref={videoRef} 
-          src={secureVideoSrc} 
-          playsInline 
-          preload="auto" 
-          loop={false} 
-          muted 
-          tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
-          style={{
-            minHeight: "100vh",
-            opacity: videoVisible && isInViewport ? 1 : 0,
-            // Transition is now managed dynamically based on scroll direction
-            display: "block",
-            visibility: "visible"
-          }} 
+        <VideoElement
+          videoRef={videoRef}
+          src={secureVideoSrc}
+          videoVisible={videoVisible}
+          isInViewport={isInViewport}
         />
       </ScrollVideoPlayer>
     </div>
