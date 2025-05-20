@@ -5,6 +5,24 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Add TypeScript interface for HTMLVideoElement with requestVideoFrameCallback
+declare global {
+  interface HTMLVideoElement {
+    requestVideoFrameCallback?: (callback: (now: number, metadata: VideoFrameMetadata) => void) => number;
+  }
+}
+
+// Add interface for VideoFrameMetadata
+interface VideoFrameMetadata {
+  presentationTime: number;
+  expectedDisplayTime: number;
+  width: number;
+  height: number;
+  mediaTime: number;
+  presentedFrames: number;
+  processingDuration?: number;
+}
+
 type ScrollVideoPlayerProps = {
   src?: string;
   segmentCount: number;
@@ -59,6 +77,22 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Interpolation speed factor (higher means faster transition)
   const interpolationSpeed = 0.15;
 
+  // Add videoFrameCallback support detection
+  const hasVideoFrameCallback = useRef<boolean>(false);
+
+  // New function to sync video time with the browser's rendering cycle
+  const syncVideoTime = (video: HTMLVideoElement, time: number) => {
+    if ('requestVideoFrameCallback' in video && hasVideoFrameCallback.current) {
+      // Use requestVideoFrameCallback to sync with next video frame render
+      video.requestVideoFrameCallback?.(() => {
+        video.currentTime = time;
+      });
+    } else {
+      // Fallback to standard approach
+      video.currentTime = time;
+    }
+  };
+
   // Function to smoothly interpolate video time for Android
   const smoothlyUpdateVideoTime = (video: HTMLVideoElement, targetTime: number) => {
     // Store the target time for reference
@@ -81,7 +115,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       // If we're close enough to the target, set the time directly and stop
       if (Math.abs(timeDiff) < 0.01) {
-        video.currentTime = targetTimeRef.current;
+        syncVideoTime(video, targetTimeRef.current);
         isInterpolatingRef.current = false;
         return;
       }
@@ -89,8 +123,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Calculate the next time value with easing
       const newTime = currentTime + (timeDiff * interpolationSpeed);
       
-      // Update the video time
-      video.currentTime = newTime;
+      // Update the video time using our optimized sync function
+      syncVideoTime(video, newTime);
       
       // Continue the interpolation in the next frame
       interpolationFrameRef.current = requestAnimationFrame(interpolateTime);
@@ -107,6 +141,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
+
+    // Check for requestVideoFrameCallback support
+    hasVideoFrameCallback.current = 'requestVideoFrameCallback' in video;
+    console.log("Video frame callback support:", hasVideoFrameCallback.current ? "Available" : "Not available");
 
     console.log("Mobile detection:", isMobile);
     console.log("Android detection:", isAndroid);
@@ -257,18 +295,26 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       frameRef.current = requestAnimationFrame(() => {
         // Enhanced Android-specific smooth interpolation
         if (isAndroid) {
-          // NEW: Use integer frame rounding to minimize overdraw
+          // Use integer frame rounding to minimize overdraw
           const roundedTime = Math.floor(newTime * STANDARD_FRAME_RATE) / STANDARD_FRAME_RATE;
-          // Use rounded time value to reduce unnecessary frame updates
-          smoothlyUpdateVideoTime(video, roundedTime);
+          
+          if (hasVideoFrameCallback.current) {
+            // For Android with requestVideoFrameCallback support, directly sync the time
+            // without using interpolation to reduce processing load
+            console.log("Using requestVideoFrameCallback for frame sync");
+            syncVideoTime(video, roundedTime);
+          } else {
+            // Use rounded time value to reduce unnecessary frame updates
+            smoothlyUpdateVideoTime(video, roundedTime);
+          }
           
           // Log Android-specific smoothing when near the end
           if (progress > 0.95) {
-            console.log(`Android smooth interpolation: target time = ${roundedTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+            console.log(`Android sync: using ${hasVideoFrameCallback.current ? 'videoFrameCallback' : 'smooth interpolation'}, target = ${roundedTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
           // Standard approach for non-Android devices
-          video.currentTime = newTime;
+          syncVideoTime(video, newTime);
         }
         onAfterVideoChange(progress >= 1);
       });
