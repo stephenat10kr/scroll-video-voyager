@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -5,6 +6,7 @@ import Spinner from "./Spinner";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsIOS } from "@/hooks/useIsIOS";
+import { useIsAndroid } from "@/hooks/use-android";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -21,13 +23,17 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
+  const isAndroid = useIsAndroid();
   
   // For debugging
   useEffect(() => {
     if (isIOS) {
       console.log("iOS device detected in ImprovedScrollVideo component");
     }
-  }, [isIOS]);
+    if (isAndroid) {
+      console.log("Android device detected in ImprovedScrollVideo component");
+    }
+  }, [isIOS, isAndroid]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -129,9 +135,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         trigger: containerRef.current,
         start: "top top",
         // Increase the end value to extend the scrolling length
-        // This makes the scrubbing effect less sensitive
-        end: "bottom+=600% bottom", // Changed from 400% to 600% to make scrubbing much less sensitive
-        scrub: 3.5, // Changed from 2.5 to 3.5 to add an even smoother delay effect
+        end: "bottom+=600% bottom", // Keep extended scrolling length
+        // Use a much lower scrub value for Android devices to reduce lag
+        scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
         markers: false, // Set to true for debugging
       }
     });
@@ -141,6 +147,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       if (video.duration) {
         timeline.to(video, { currentTime: video.duration });
         console.log("Video scroll animation set up with duration:", video.duration);
+        console.log("Using scrub value:", isAndroid ? "0.5 (Android)" : "3.5 (non-Android)");
       }
     };
     
@@ -200,7 +207,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
