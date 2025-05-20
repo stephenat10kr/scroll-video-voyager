@@ -66,6 +66,7 @@ const RevealText = () => {
       }
     }
   });
+  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -86,6 +87,7 @@ const RevealText = () => {
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
     text.innerHTML = formattedHTML;
+    
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
@@ -95,20 +97,25 @@ const RevealText = () => {
         markers: false
       }
     });
+    
     const spans = text.querySelectorAll(".char");
     console.log(`Found ${spans.length} spans to animate`);
+    
+    // Fix for iOS and desktop: ensure that both color and WebkitTextFillColor properties are animated properly
     spans.forEach((span, i) => {
       tl.to(span, {
         color: "transparent",
-        WebkitTextFillColor: "transparent", // Add WebkitTextFillColor for iOS
+        WebkitTextFillColor: "transparent", 
         ease: "power1.inOut",
         duration: 0.1
       }, i * 0.01);
     });
+    
     return () => {
       tl.kill();
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -118,9 +125,11 @@ const RevealText = () => {
         </div>
       </div>;
   }
+  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+  
   return <>
       <div className="w-full py-24" style={{
       backgroundColor: colors.darkGreen
@@ -130,7 +139,8 @@ const RevealText = () => {
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
-          WebkitTextFillColor: "transparent", // Add WebkitTextFillColor for iOS
+          color: "transparent", // Explicitly set color to transparent
+          WebkitTextFillColor: "transparent", 
           lineHeight: "1.2",
           whiteSpace: "pre-wrap",
           wordBreak: "normal",
