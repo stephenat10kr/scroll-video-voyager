@@ -22,35 +22,21 @@ const Index = () => {
     console.log("Device detection - Android:", isAndroid, "iOS:", isIOS);
   }, [isAndroid, isIOS]);
   
-  return <div className="min-h-screen w-full relative">
+  return (
+    <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo />
+      {/* Video fixed in the background (lowest content z-index) */}
+      <div className="relative z-0">
+        <ImprovedScrollVideo />
+      </div>
       
-      {/* Content overlay (high z-index, but below logo) */}
-      <div className="content-container relative z-10">
-        {/* Logo section at the top */}
-        <section className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
-          <div className="w-full max-w-[90%] mx-auto">
-            <div className="flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12 w-full">
-                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                  <div className="aspect-w-444 aspect-h-213 w-full">
-                    <Logo />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Hero Text sections - they will stack directly under the logo */}
-        <section>
-          {/* We skip the logo section since we've added it separately above */}
-          <HeroText skipLogoSection={true} />
+      {/* Content overlay (higher z-index) */}
+      <div className="content-container absolute top-0 left-0 w-full z-10">
+        {/* HeroText will now be at the very top of the page */}
+        <section className="relative w-full">
+          <HeroText skipLogoSection={false} />
         </section>
         
         <section id="revealText-section">
@@ -77,7 +63,8 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Index;
