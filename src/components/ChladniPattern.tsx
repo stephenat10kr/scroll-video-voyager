@@ -156,7 +156,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       const currentTime = (Date.now() - startTime) / 1000;
       gl.uniform1f(timeLocation, currentTime);
       
-      // Update xy uniform based on scroll position
+      // Use window scroll position instead of element scroll position
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollProgress = scrollHeight > 0 ? scrollY / scrollHeight : 0;
@@ -184,7 +184,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full pointer-events-none"
+      className="w-full h-full"
       style={{ 
         backgroundColor: colors.darkGreen, // Explicitly use darkGreen from theme
       }}
@@ -193,7 +193,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full" 
         style={{ 
-          opacity: 0.5,
+          opacity: 0.8, // Increased opacity for better visibility
           backgroundColor: 'transparent'
         }}
       />

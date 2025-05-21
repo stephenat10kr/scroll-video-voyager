@@ -8,7 +8,7 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import PatternContainer from "../components/PatternContainer";
+import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
@@ -25,6 +25,7 @@ const Index = () => {
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [showChladniPattern, setShowChladniPattern] = useState(false);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -95,6 +96,34 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
+  // Handle scroll-based switching between video and Chladni pattern
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollThreshold = window.innerHeight * 6; // 600vh
+      
+      // When scrolled past threshold, show Chladni pattern and hide video
+      if (scrollY >= scrollThreshold && !showChladniPattern) {
+        console.log("Scroll threshold reached: Showing Chladni pattern");
+        setShowChladniPattern(true);
+      } 
+      // When scrolled back up, hide Chladni pattern and show video
+      else if (scrollY < scrollThreshold && showChladniPattern) {
+        console.log("Scrolled back above threshold: Showing video");
+        setShowChladniPattern(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Run once on mount to set initial state
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [showChladniPattern]);
+  
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
     setLoading(false);
@@ -161,24 +190,46 @@ const Index = () => {
         </section>
       </div>
       
-      {/* Pattern Container (middle z-index) */}
-      <PatternContainer />
+      {/* 600vh spacer to push content down */}
+      <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
       
-      {/* Video (lower z-index than pattern) with fade-in effect */}
+      {/* Background container that switches between video and Chladni pattern */}
       <div 
         className="fixed inset-0 w-full h-screen" 
         style={{ 
           zIndex: 10,
-          opacity: showVideo ? 1 : 0, // Fixed: Show video when showVideo is true
-          transition: "opacity 1s ease-in-out",
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {isAndroid ? (
-          <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-        ) : (
-          <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-        )}
+        {/* Chladni pattern with fade-in/out effect */}
+        <div 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: showChladniPattern ? 1 : 0,
+            transition: "opacity 0.8s ease-in-out",
+            zIndex: 11
+          }}
+        >
+          <ChladniPattern />
+        </div>
+        
+        {/* Video with fade-in/out effect */}
+        <div 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
+            transition: "opacity 0.8s ease-in-out",
+            zIndex: 10
+          }}
+        >
+          {isAndroid ? (
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          ) : (
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          )}
+        </div>
       </div>
       
       {/* Preloader (lowest z-index) - always rendered */}
