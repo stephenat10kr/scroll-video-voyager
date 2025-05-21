@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -120,21 +121,24 @@ const RevealText = () => {
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-  return <>
+  return (
+    <>
       <div className="w-full py-24 pb-36" style={{
-      backgroundColor: colors.darkGreen
-    }}>
+        backgroundColor: colors.darkGreen,
+        marginBottom: 0,
+        paddingBottom: 0,
+      }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} style={{
-          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          lineHeight: "1.2",
-          whiteSpace: "pre-wrap",
-          wordBreak: "normal",
-          WebkitFontSmoothing: "antialiased",
-          textRendering: "optimizeLegibility"
-        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
+            background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            lineHeight: "1.2",
+            whiteSpace: "pre-wrap",
+            wordBreak: "normal",
+            WebkitFontSmoothing: "antialiased",
+            textRendering: "optimizeLegibility"
+          }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -145,6 +149,15 @@ const RevealText = () => {
         </div>
       </div>
       
+      {/* Red spacer directly attached to RevealText - now included in the RevealText component */}
+      <div style={{ 
+        height: "96px", 
+        backgroundColor: '#ea384c',
+        margin: 0,
+        padding: 0,
+        display: 'block',
+      }}></div>
+      
       {/* Intersection marker element at the end of RevealText */}
       <div 
         id="chladni-transition-marker" 
@@ -154,6 +167,7 @@ const RevealText = () => {
       />
       
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
-    </>;
+    </>
+  );
 };
 export default RevealText;
