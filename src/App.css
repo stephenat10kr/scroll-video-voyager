@@ -1,3 +1,4 @@
+
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -16,11 +17,10 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Updated content container styles with increased height */
+/* Content container styles - allowing natural height */
 .content-container {
   position: relative;
-  /* Remove padding-top: 100vh */
-  min-height: 600vh; /* Increased to 600vh to match the Chladni pattern position */
+  /* No min-height - will size based on content */
   z-index: 20; /* Above video and Chladni pattern */
 }
 
