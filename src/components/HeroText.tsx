@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -25,7 +24,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
     error
   } = useHeroText();
   
-  // Simulate loading progress
+  // Simulate loading progress - SLOWED DOWN
   useEffect(() => {
     if (loadingProgress >= 100 || isLoaded) {
       return;
@@ -33,17 +32,18 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
     
     const interval = setInterval(() => {
       setLoadingProgress(prev => {
-        const increment = Math.floor(Math.random() * 10) + 5; // Random increment between 5-15%
+        // Reduced increment from 5-15% to 2-5% for slower progression
+        const increment = Math.floor(Math.random() * 3) + 2; 
         const newProgress = Math.min(prev + increment, 100);
         
         if (newProgress >= 100) {
           clearInterval(interval);
-          // Wait a moment before setting as loaded
-          setTimeout(() => setIsLoaded(true), 500);
+          // Increased delay before setting as loaded from 500ms to 1000ms
+          setTimeout(() => setIsLoaded(true), 1000);
         }
         return newProgress;
       });
-    }, 400); // Update every 400ms
+    }, 800); // Increased interval from 400ms to 800ms for slower updates
     
     return () => clearInterval(interval);
   }, [loadingProgress, isLoaded]);
