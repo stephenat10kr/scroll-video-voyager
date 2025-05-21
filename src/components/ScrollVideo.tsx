@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState, forwardRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
@@ -12,25 +12,23 @@ gsap.registerPlugin(ScrollTrigger);
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
-const ScrollVideo = forwardRef<HTMLVideoElement, {
+const ScrollVideo: React.FC<{
   src?: string;
-  onReady?: () => void;
-}>(({ src, onReady }, ref) => {
+  onReady?: () => void; // Add onReady callback prop
+}> = ({
+  src,
+  onReady
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const internalVideoRef = useRef<HTMLVideoElement>(null);
-  // Use the forwarded ref or fallback to internal ref
-  const videoRef = (ref as React.RefObject<HTMLVideoElement>) || internalVideoRef;
-  
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false); // Start with video hidden
-  const [videoTextureLoaded, setVideoTextureLoaded] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
-  const readyCalledRef = useRef(false);
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -83,17 +81,15 @@ const ScrollVideo = forwardRef<HTMLVideoElement, {
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
-      // Start with video hidden until we confirm it's ready
-      setVideoVisible(false);
-      
-      // Force loading of the first frame for mobile devices
+      // Force initial visibility for mobile devices
       if (isMobile) {
-        console.log("Mobile detected: Attempting to load initial video frame");
+        // Immediately make video element visible
+        setVideoVisible(true);
+        console.log("Mobile detected: Forcing initial video visibility");
         
-        // Try to load the video silently
+        // Force loading of the first frame
+        video.currentTime = 0.001;
         video.load();
-        
-        // Don't set currentTime yet, wait for metadata to load first
       }
       
       // Android-specific optimizations
@@ -108,8 +104,33 @@ const ScrollVideo = forwardRef<HTMLVideoElement, {
         // Apply will-change for GPU acceleration on Android
         video.style.willChange = "transform, opacity";
         
+        // Force multiple frame loading attempts for Android
+        const loadFirstFrame = () => {
+          if (video.readyState >= 1) {
+            // Set multiple timestamps to ensure frame loading
+            video.currentTime = 0.001;
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
+          }
+        };
+        
+        loadFirstFrame();
+        
+        // Additional frame loading attempts for Android
+        setTimeout(loadFirstFrame, 200);
+        setTimeout(loadFirstFrame, 500);
+        
         // Add Android-specific texture management
         video.style.imageRendering = "high-quality";
+        
+        // Prevent Android browser from unloading video textures
+        setInterval(() => {
+          if (video.paused && !videoVisible && video.readyState >= 2) {
+            // Touch the video element to prevent texture unloading
+            const currentTime = video.currentTime;
+            video.currentTime = currentTime + 0.001;
+          }
+        }, 2000);
       }
       
       // Firefox-specific optimizations
@@ -119,182 +140,193 @@ const ScrollVideo = forwardRef<HTMLVideoElement, {
         // Apply Firefox-specific hardware acceleration hints
         video.style.transform = "translateZ(0)";
         video.style.backfaceVisibility = "hidden";
+        
+        // Try to improve Firefox performance by reducing motion complexity
         video.style.willChange = "transform, opacity";
       }
       
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
+        setVideoVisible(true);
         
-        // For mobile, ensure a frame is loaded before marking as ready
-        if (isMobile) {
-          // Set the currentTime to show the first frame
-          video.currentTime = 0.001;
-          
-          // Wait a bit to ensure frame is actually loaded
-          setTimeout(() => {
-            console.log("Setting video texture as loaded");
-            setVideoTextureLoaded(true);
-            
-            // Wait additional time before showing video to ensure texture is displayed
-            setTimeout(() => {
-              setVideoVisible(true);
-              
-              // Notify parent that video is ready, but only once
-              if (onReady && !readyCalledRef.current) {
-                console.log("Calling onReady callback from canplay");
-                onReady();
-                readyCalledRef.current = true;
-              }
-            }, 300);
-          }, 200);
-        } else {
-          // Non-mobile devices can show immediately
-          setVideoTextureLoaded(true);
-          setVideoVisible(true);
-          
-          // Notify parent that video is ready
-          if (onReady && !readyCalledRef.current) {
-            console.log("Calling onReady callback from canplay (non-mobile)");
-            onReady();
-            readyCalledRef.current = true;
-          }
+        // Notify parent that video is ready
+        if (onReady) {
+          onReady();
         }
         
         // Always pause the video when it can play
         video.pause();
         console.log("Video paused on load");
+        
+        // For mobile, we need to ensure a frame is displayed
+        if (isMobile) {
+          // Set the currentTime to show the first frame
+          video.currentTime = 0.001;
+          
+          // Android-specific frame loading
+          if (isAndroid) {
+            // Use multiple frames to ensure texture loading on Android
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
+          }
+        }
       };
       
-      // Add loadeddata event to ensure video is fully loaded
+      // Add loadeddata event to ensure video is fully loaded before showing
       const handleLoadedData = () => {
         console.log("Video data loaded");
+        setVideoVisible(true);
+        
+        // Also notify ready on loadeddata in case canplay doesn't fire
+        if (onReady) {
+          onReady();
+        }
         
         // Set the currentTime to show the first frame for mobile
         if (isMobile) {
           video.currentTime = 0.001;
           
-          // For Android, also try additional frames
+          // Android-specific frame loading
           if (isAndroid) {
-            // Try multiple frames to ensure loading
-            setTimeout(() => { 
-              if (video.readyState >= 2) video.currentTime = 0.01; 
-            }, 50);
-            setTimeout(() => { 
-              if (video.readyState >= 2) video.currentTime = 0.1; 
-            }, 100);
+            // Force rendering multiple frames for Android texture loading
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
           }
         }
-        
-        // Mark texture as loaded after a delay to ensure frame is visible
-        setTimeout(() => {
-          setVideoTextureLoaded(true);
-          
-          // Additional delay before making video visible
-          setTimeout(() => {
-            setVideoVisible(true);
-            
-            // Also notify ready if not already done
-            if (onReady && !readyCalledRef.current) {
-              console.log("Calling onReady callback from loadeddata");
-              onReady();
-              readyCalledRef.current = true;
-            }
-          }, 300);
-        }, 200);
       };
       
-      // Add loadedmetadata event which might fire earlier
+      // Add loadedmetadata event which might fire earlier on some devices
       const handleLoadedMetadata = () => {
         console.log("Video metadata loaded");
+        setVideoVisible(true);
         
-        // For mobile, try to load first frame
+        // Set the currentTime to show the first frame for mobile
         if (isMobile) {
-          // Try setting currentTime only after metadata is available
           video.currentTime = 0.001;
-          
-          // For Android, try additional initialization
-          if (isAndroid) {
-            // Try to initialize decoder without actually playing
-            video.play().then(() => {
-              video.pause();
-              video.currentTime = 0.001;
-              console.log("Android: Initialized hardware decoder");
-            }).catch(() => {
-              console.log("Android: Initial play failed, trying alternative method");
-              // Try setting multiple times to ensure a frame loads
-              video.currentTime = 0.001;
-              setTimeout(() => { video.currentTime = 0.01; }, 50);
-            });
-          }
         }
-      };
-      
-      // Handle seeking events to know when frames are actually showing
-      const handleSeeked = () => {
-        console.log("Video seeked to", video.currentTime);
         
-        // If we previously tried to load a frame and now it's seeked, 
-        // we know the frame is loaded and video is ready to show
-        if (!videoTextureLoaded) {
-          console.log("Video frame loaded after seeking");
-          setVideoTextureLoaded(true);
-          
-          // Add a delay before making video visible to ensure frame is rendered
-          setTimeout(() => {
-            setVideoVisible(true);
-            
-            // Notify ready if not already done
-            if (onReady && !readyCalledRef.current) {
-              console.log("Calling onReady callback after seeking");
-              onReady();
-              readyCalledRef.current = true;
-            }
-          }, 300);
+        // Android-specific optimization after metadata loads
+        if (isAndroid) {
+          // Force hardware decoder initialization on Android
+          video.play().then(() => {
+            video.pause();
+            console.log("Android: Forced play/pause to initialize hardware decoder");
+          }).catch(err => {
+            console.log("Android: Initial play failed, using alternative method", err);
+            // Alternative method - set multiple frames
+            video.currentTime = 0.001;
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+          });
         }
       };
       
       // Add error handling
       const handleError = (e: Event) => {
         console.error("Video error:", e);
-        // Even with error, we need to move forward
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady despite error");
-          onReady();
-          readyCalledRef.current = true;
-        }
+        // Even if there's an error, ensure video is visible
+        setVideoVisible(true);
       };
       
       video.addEventListener("canplay", handleCanPlay);
       video.addEventListener("loadeddata", handleLoadedData);
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
-      video.addEventListener("seeked", handleSeeked);
       video.addEventListener("error", handleError);
       
-      // Add a safety timeout to ensure video eventually becomes ready
-      const timeoutId = setTimeout(() => {
-        console.log("Video visibility forced by fallback timeout");
-        setVideoTextureLoaded(true);
-        setVideoVisible(true);
-        
-        // Also notify ready as a last resort
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback after timeout");
-          onReady();
-          readyCalledRef.current = true;
+      // Add a safety timeout to ensure visibility regardless of events
+      const shortTimeoutId = setTimeout(() => {
+        // Force visibility after a very short delay
+        if (isMobile) {
+          setVideoVisible(true);
+          console.log("Mobile video visibility forced by short timeout");
         }
-      }, 1500); // Increased timeout to ensure all resources load
+      }, 100);
+      
+      // Use a longer timeout as a fallback for all devices
+      const timeoutId = setTimeout(() => {
+        setVideoVisible(true);
+        console.log("Video visibility forced by fallback timeout");
+        
+        // If video still hasn't loaded its first frame, try to force it
+        if (isMobile && video.readyState < 2) {
+          video.load();
+          video.currentTime = 0.001;
+          
+          // Android-specific frame loading in the fallback timeout
+          if (isAndroid) {
+            // Try additional loading methods for Android
+            setTimeout(() => {
+              // Force hardware decoding with a quick play/pause
+              video.play().then(() => {
+                video.pause();
+              }).catch(() => {
+                // If play fails, try multiple frame settings
+                video.currentTime = 0.01;
+                setTimeout(() => { video.currentTime = 0.1; }, 50);
+              });
+            }, 50);
+          }
+        }
+        
+        // Also notify ready after timeout as a last resort
+        if (onReady && !videoLoaded) {
+          onReady();
+        }
+      }, 300);
       
       return () => {
         video.removeEventListener("canplay", handleCanPlay);
         video.removeEventListener("loadeddata", handleLoadedData);
         video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        video.removeEventListener("seeked", handleSeeked);
         video.removeEventListener("error", handleError);
+        clearTimeout(shortTimeoutId);
         clearTimeout(timeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady]);
+  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady, videoLoaded]);
+
+  // Add document-level interaction detection
+  useEffect(() => {
+    // Global interaction handler for mobile devices
+    if (isMobile) {
+      const handleInteraction = () => {
+        console.log("User interaction detected");
+        setVideoVisible(true);
+        
+        const video = videoRef.current;
+        if (video) {
+          // Try to display the first frame
+          if (video.readyState >= 1) {
+            video.currentTime = 0.001;
+            
+            // Android-specific interaction handling
+            if (isAndroid) {
+              // Force multiple frame renders on Android after interaction
+              setTimeout(() => { video.currentTime = 0.01; }, 50);
+              setTimeout(() => { video.currentTime = 0.1; }, 100);
+              
+              // Try to initialize hardware decoder on Android after interaction
+              video.play().then(() => {
+                video.pause();
+                console.log("Android: Initialized hardware decoder after user interaction");
+              }).catch(() => {
+                console.log("Android: Play after interaction failed, using alternative methods");
+              });
+            }
+          }
+        }
+      };
+      
+      // Listen for any user interaction
+      document.addEventListener('touchstart', handleInteraction, { once: true });
+      document.addEventListener('click', handleInteraction, { once: true });
+      
+      return () => {
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('click', handleInteraction);
+      };
+    }
+  }, [isMobile, isAndroid]);
 
   return (
     <div 
@@ -324,21 +356,16 @@ const ScrollVideo = forwardRef<HTMLVideoElement, {
           className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
           style={{
             minHeight: "100vh",
-            opacity: videoVisible && videoTextureLoaded && isInViewport ? 1 : 0,
+            opacity: videoVisible && isInViewport ? 1 : 0,
+            // Transition is now managed dynamically based on scroll direction
             display: "block",
-            visibility: videoVisible ? "visible" : "hidden", // Hide completely until ready
-            backgroundColor: "black",
-            transform: "translateZ(0)",
-            willChange: "opacity",
-            backfaceVisibility: "hidden",
-            transition: "opacity 0.5s ease-in-out" // Smoother opacity transition
+            visibility: "visible",
+            backgroundColor: "black" // Ensure background is black, not white
           }} 
         />
       </ScrollVideoPlayer>
     </div>
   );
-});
-
-ScrollVideo.displayName = "ScrollVideo";
+};
 
 export default ScrollVideo;

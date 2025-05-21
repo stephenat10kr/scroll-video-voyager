@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -23,9 +22,6 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
-  const [videoFullyInitialized, setVideoFullyInitialized] = useState(false);
-  const videoElementRef = useRef(null);
-  const videoContainerRef = useRef(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -38,7 +34,7 @@ const Index = () => {
   
   // Force complete preloader after maximum time
   useEffect(() => {
-    const maxLoadingTime = 8000; // 8 seconds max loading time
+    const maxLoadingTime = 8000; // 8 seconds max loading time (reduced from 12)
     const forceCompleteTimeout = setTimeout(() => {
       if (loadProgress < 100) {
         console.log("Force completing preloader after timeout");
@@ -57,8 +53,8 @@ const Index = () => {
     const startDelay = setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // If video is ready and fully initialized, jump directly to 100%
-          if (videoReady && videoFullyInitialized) {
+          // If video is ready, jump directly to 100%
+          if (videoReady) {
             clearInterval(progressInterval);
             return 100;
           }
@@ -73,15 +69,15 @@ const Index = () => {
       clearTimeout(startDelay);
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [videoReady, videoFullyInitialized]);
+  }, [videoReady]);
   
-  // When video is ready, set progress to 100% only if fully initialized
+  // When video is ready, immediately set progress to 100%
   useEffect(() => {
-    if (videoReady && videoFullyInitialized) {
-      console.log("Video is ready and fully initialized, setting progress to 100%");
+    if (videoReady) {
+      console.log("Video is ready, immediately setting progress to 100%");
       setLoadProgress(100);
     }
-  }, [videoReady, videoFullyInitialized]);
+  }, [videoReady]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -105,12 +101,6 @@ const Index = () => {
   const handleVideoReady = () => {
     console.log("Video is ready to display");
     setVideoReady(true);
-    
-    // Add a delay before considering the video fully initialized to prevent flickering
-    setTimeout(() => {
-      console.log("Video fully initialized");
-      setVideoFullyInitialized(true);
-    }, 500);
   };
   
   // Skip content rendering until preloader is done
@@ -131,28 +121,12 @@ const Index = () => {
     );
   }
   
-  return (
-    <div className="min-h-screen w-full relative">
+  return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video container with black background (mid z-index) */}
-      <div 
-        ref={videoContainerRef} 
-        className="fixed top-0 left-0 w-full h-screen z-0 bg-black"
-      >
-        {isAndroid ? (
-          <ImprovedScrollVideo 
-            ref={videoElementRef}
-            src={videoSrc} 
-          />
-        ) : (
-          <ScrollVideo 
-            ref={videoElementRef}
-            src={videoSrc} 
-          />
-        )}
-      </div>
+      {/* Video fixed at the top (mid z-index) */}
+      <ImprovedScrollVideo src={videoSrc} />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
@@ -202,8 +176,7 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>
-  );
+    </div>;
 };
 
 export default Index;
