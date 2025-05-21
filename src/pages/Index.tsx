@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -241,16 +240,23 @@ const Index = () => {
           <HeroText skipLogoSection={true} />
         </section>
         
-        {/* Remove any bottom margin/padding from RevealText section */}
-        <section id="revealText-section" className="mb-0 pb-0" style={{ marginBottom: "-1px" }}>
-          <RevealText />
-        </section>
-        
-        {/* Red spacer adjusted to remove any potential gap */}
-        <div className="w-full h-24 mt-0" style={{ 
-          backgroundColor: '#ea384c',
-          marginTop: "-1px" // Negative margin to eliminate any possible gap
-        }}></div>
+        <div style={{display: "flex", flexDirection: "column"}}>
+          {/* RevealText with no margin/padding at the bottom */}
+          <div id="revealText-section" style={{marginBottom: "0", paddingBottom: "0"}}>
+            <RevealText />
+          </div>
+          
+          {/* Red spacer directly attached to RevealText */}
+          <div style={{ 
+            width: "100%", 
+            height: "96px", 
+            backgroundColor: '#ea384c',
+            marginTop: "0",
+            marginBottom: "0",
+            paddingTop: "0",
+            paddingBottom: "0"
+          }}></div>
+        </div>
         
         <section>
           <Values title="VALUES" />
