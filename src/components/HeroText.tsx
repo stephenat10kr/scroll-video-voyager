@@ -13,6 +13,7 @@ interface HeroTextProps {
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
   const [isVisible, setIsVisible] = useState(false);
+  const [isLogoVisible, setIsLogoVisible] = useState(false);
   const {
     data: heroTextItems,
     isLoading,
@@ -27,6 +28,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
     const handlePreloaderComplete = () => {
       console.log("HeroText received preloaderComplete event, fading in");
       setIsVisible(true);
+      setIsLogoVisible(true);
     };
     
     // Listen for the custom event
@@ -64,7 +66,13 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12 w-full">
+              <div 
+                className="flex justify-center items-center mt-12 w-full"
+                style={{
+                  opacity: isLogoVisible ? 1 : 0,
+                  transition: "opacity 1s ease-in-out",
+                }}
+              >
                 <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
                   <AspectRatio ratio={444/213} className="w-full">
                     <Logo />
