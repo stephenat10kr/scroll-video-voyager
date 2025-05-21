@@ -17,10 +17,10 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Content container styles - allowing natural height */
+/* Content container styles - positioning at top but allowing scroll */
 .content-container {
-  position: relative;
-  /* No min-height - will size based on content */
+  width: 100%;
+  min-height: 100vh; /* At least full viewport height */
   z-index: 20; /* Above video and Chladni pattern */
 }
 
