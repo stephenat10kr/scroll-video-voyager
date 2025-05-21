@@ -201,26 +201,26 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern with fade-in/out effect */}
+        {/* Chladni pattern with instant transition */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0.8s ease-in-out",
+            transition: "opacity 0s", // Changed from 0.8s to 0s for instant transition
             zIndex: 11
           }}
         >
           <ChladniPattern />
         </div>
         
-        {/* Video with fade-in/out effect */}
+        {/* Video with instant transition */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0.8s ease-in-out",
+            transition: "opacity 0s", // Changed from 0.8s to 0s for instant transition
             zIndex: 10
           }}
         >
