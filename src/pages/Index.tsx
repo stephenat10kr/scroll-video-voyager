@@ -201,26 +201,26 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern with fade-in/out effect */}
+        {/* Chladni pattern with instant display/hide */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0.8s ease-in-out",
+            // Remove transition property for instant change
             zIndex: 11
           }}
         >
           <ChladniPattern />
         </div>
         
-        {/* Video with fade-in/out effect */}
+        {/* Video with instant display/hide */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0.8s ease-in-out",
+            // Remove transition property for instant change
             zIndex: 10
           }}
         >
@@ -239,3 +239,4 @@ const Index = () => {
 };
 
 export default Index;
+
