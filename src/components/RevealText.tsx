@@ -109,7 +109,7 @@ const RevealText = () => {
     };
   }, [revealTextContent]);
   if (isLoading) {
-    return <div className="w-full py-24" style={{
+    return <div className="w-full py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -121,7 +121,7 @@ const RevealText = () => {
     console.error("Error loading reveal text:", error);
   }
   return <>
-      <div className="w-full py-24" style={{
+      <div className="w-full py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
