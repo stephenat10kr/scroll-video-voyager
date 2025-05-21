@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,60 +16,7 @@ const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
-  const loadingTextRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
-  
-  // Simulate loading progress - in a real implementation this would be tied to actual loading progress
-  useEffect(() => {
-    if (loadingProgress >= 100) {
-      return;
-    }
-    
-    const interval = setInterval(() => {
-      setLoadingProgress(prev => {
-        const increment = Math.floor(Math.random() * 10) + 5; // Random increment between 5-15%
-        const newProgress = Math.min(prev + increment, 100);
-        
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          // Wait a moment before setting as loaded
-          setTimeout(() => setIsLoaded(true), 500);
-        }
-        return newProgress;
-      });
-    }, 400); // Update every 400ms
-    
-    return () => clearInterval(interval);
-  }, [loadingProgress]);
-  
-  // Text animation when loading is complete
-  useEffect(() => {
-    if (isLoaded && loadingTextRef.current) {
-      gsap.to(loadingTextRef.current, {
-        duration: 0.8,
-        opacity: 0,
-        y: -20,
-        onComplete: () => {
-          gsap.fromTo(loadingTextRef.current, 
-            { 
-              text: "WELCOME TO", 
-              opacity: 0, 
-              y: 20 
-            },
-            { 
-              duration: 0.8, 
-              text: "WELCOME TO", 
-              opacity: 1, 
-              y: 0 
-            }
-          );
-        }
-      });
-    }
-  }, [isLoaded]);
-  
   const {
     data: revealTextContent,
     isLoading,
@@ -120,7 +66,6 @@ const RevealText = () => {
       }
     }
   });
-  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -163,7 +108,6 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
-  
   if (isLoading) {
     return <div className="w-full py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
@@ -173,11 +117,9 @@ const RevealText = () => {
         </div>
       </div>;
   }
-  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-  
   return (
     <>
       <div className="w-full py-24 pb-36" style={{
