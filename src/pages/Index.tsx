@@ -115,12 +115,12 @@ const Index = () => {
       {/* Pattern Container (middle z-index) */}
       <PatternContainer />
       
-      {/* Video (lower z-index than pattern) with fade-in effect */}
+      {/* Video (lower z-index than pattern) with fade-in effect - TEMPORARILY HIDDEN */}
       <div 
         className="fixed inset-0 w-full h-screen" 
         style={{ 
           zIndex: 10,
-          opacity: showVideo ? 1 : 0,
+          opacity: 0, // Set to 0 to hide the video
           transition: "opacity 1s ease-in-out",
           backgroundColor: "black", // Ensure black background 
         }}
