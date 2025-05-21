@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -26,6 +25,7 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
+  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
@@ -98,6 +98,7 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
+  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -117,13 +118,17 @@ const Index = () => {
         (entries) => {
           const entry = entries[0];
           
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !hasPassedMarker) {
             console.log("Marker intersecting viewport - showing Chladni pattern");
             setShowChladniPattern(true);
-          } else {
-            console.log("Marker not intersecting viewport - showing video");
+            setHasPassedMarker(true); // Set flag to remember we've passed the marker
+          } else if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+            // Only hide pattern if we're scrolling UP past the marker (top > 0)
+            console.log("Scrolled above marker - showing video again");
             setShowChladniPattern(false);
+            setHasPassedMarker(false); // Reset our marker flag
           }
+          // Do nothing when scrolling down past the marker - keep pattern visible
         },
         {
           // Adjust threshold to fine-tune when the transition happens
@@ -149,7 +154,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, []); // Empty dependency array - setup once on mount
+  }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
