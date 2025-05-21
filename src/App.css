@@ -1,4 +1,3 @@
-
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -17,11 +16,11 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Updated content container styles without the 100vh padding */
+/* Updated content container styles with increased height */
 .content-container {
   position: relative;
   /* Remove padding-top: 100vh */
-  min-height: 100vh; 
+  min-height: 600vh; /* Increased to 600vh to match the Chladni pattern position */
   z-index: 20; /* Above video and Chladni pattern */
 }
 
@@ -125,4 +124,3 @@ html, body {
 .read-the-docs {
   color: #888;
 }
-

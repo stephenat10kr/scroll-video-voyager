@@ -188,8 +188,8 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       style={{ 
         zIndex: 15, // Ensure z-index is higher than the video
         backgroundColor: colors.darkGreen, // Use the darkGreen color from theme
-        top: '0', // Change this to 0 to fix the positioning
-        position: 'fixed', // Change to fixed instead of sticky
+        top: '600vh', // Position 600vh from the top of the page
+        position: 'fixed', // Keep it fixed to maintain position during scroll
       }}
     >
       <canvas 
