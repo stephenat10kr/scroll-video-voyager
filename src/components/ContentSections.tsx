@@ -64,8 +64,8 @@ const ContentSections: React.FC = () => {
         </section>
       </div>
       
-      {/* 700vh spacer to push content down */}
-      <div className="w-full" style={{ height: '700vh', backgroundColor: colors.darkGreen }} />
+      {/* 600vh spacer to push content down (updated from 700vh) */}
+      <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
     </>
   );
 };

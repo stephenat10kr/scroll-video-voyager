@@ -32,7 +32,7 @@ const BackgroundManager: React.FC<BackgroundManagerProps> = ({
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const scrollThreshold = window.innerHeight * 7; // 700vh
+      const scrollThreshold = window.innerHeight * 6; // 600vh (updated from 700vh)
       
       // When scrolled past threshold, show Chladni pattern and hide video
       if (scrollY >= scrollThreshold && !showChladniPattern) {

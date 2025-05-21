@@ -29,8 +29,8 @@ export const useVideoScrollAnimation = ({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        // Increase the end value to extend the scrolling length
-        end: "bottom+=600% bottom", // Keep extended scrolling length
+        // Updated the end value to match 600vh instead of 700vh
+        end: "bottom+=500% bottom", // Updated to 500% (600vh total)
         // Use a much lower scrub value for Android devices to reduce lag
         scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
         markers: false, // Set to true for debugging
