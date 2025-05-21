@@ -241,12 +241,16 @@ const Index = () => {
           <HeroText skipLogoSection={true} />
         </section>
         
-        <section id="revealText-section" className="mb-0 pb-0">
+        {/* Remove any bottom margin/padding from RevealText section */}
+        <section id="revealText-section" className="mb-0 pb-0" style={{ marginBottom: "-1px" }}>
           <RevealText />
         </section>
         
-        {/* New red spacer - 96px high */}
-        <div className="w-full h-24 mt-0" style={{ backgroundColor: '#ea384c' }}></div>
+        {/* Red spacer adjusted to remove any potential gap */}
+        <div className="w-full h-24 mt-0" style={{ 
+          backgroundColor: '#ea384c',
+          marginTop: "-1px" // Negative margin to eliminate any possible gap
+        }}></div>
         
         <section>
           <Values title="VALUES" />
