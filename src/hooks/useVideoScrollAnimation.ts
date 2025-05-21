@@ -51,25 +51,6 @@ export const useVideoScrollAnimation = ({
     } else {
       video.addEventListener('loadedmetadata', handleMetadataLoaded);
     }
-
-    // Add ScrollTrigger to control visibility based on RevealText component position
-    const revealTextSection = document.getElementById('revealText-section');
-    if (revealTextSection) {
-      console.log("RevealText section found for video visibility trigger");
-      ScrollTrigger.create({
-        trigger: revealTextSection,
-        start: "top top", // This fires when the top of RevealText reaches the top of viewport
-        onEnter: () => {
-          console.log("Hiding video (scrolling down)");
-        },
-        onLeaveBack: () => {
-          console.log("Showing video (scrolling up)");
-        },
-        markers: false
-      });
-    } else {
-      console.warn("RevealText section not found for video visibility trigger");
-    }
     
     // Clean up
     return () => {
