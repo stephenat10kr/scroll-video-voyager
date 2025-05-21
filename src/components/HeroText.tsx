@@ -1,9 +1,13 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import { AspectRatio } from "./ui/aspect-ratio";
+import { gsap } from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
+
+gsap.registerPlugin(TextPlugin);
 
 interface HeroTextProps {
   skipLogoSection?: boolean;
@@ -11,22 +15,71 @@ interface HeroTextProps {
 
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
+  const loadingTextRef = useRef<HTMLHeadingElement>(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   const {
     data: heroTextItems,
     isLoading,
     error
   } = useHeroText();
+  
+  // Simulate loading progress
+  useEffect(() => {
+    if (loadingProgress >= 100 || isLoaded) {
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      setLoadingProgress(prev => {
+        const increment = Math.floor(Math.random() * 10) + 5; // Random increment between 5-15%
+        const newProgress = Math.min(prev + increment, 100);
+        
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          // Wait a moment before setting as loaded
+          setTimeout(() => setIsLoaded(true), 500);
+        }
+        return newProgress;
+      });
+    }, 400); // Update every 400ms
+    
+    return () => clearInterval(interval);
+  }, [loadingProgress, isLoaded]);
+  
+  // Text animation when data is loaded
+  useEffect(() => {
+    if ((heroTextItems && !isLoading) || isLoaded) {
+      if (loadingTextRef.current) {
+        gsap.to(loadingTextRef.current, {
+          duration: 0.8,
+          opacity: 0,
+          y: -20,
+          onComplete: () => {
+            gsap.fromTo(loadingTextRef.current, 
+              { 
+                text: "WELCOME TO", 
+                opacity: 0, 
+                y: 20 
+              },
+              { 
+                duration: 0.8, 
+                text: "WELCOME TO", 
+                opacity: 1, 
+                y: 0 
+              }
+            );
+          }
+        });
+      }
+    }
+  }, [heroTextItems, isLoading, isLoaded]);
 
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
   
-  if (isLoading) {
-    return <div className="w-full flex items-center justify-center py-12">
-        <p className="text-roseWhite text-lg">Loading...</p>
-      </div>;
-  }
-  
-  if (error || !heroTextItems || heroTextItems.length < 2) {
+  if (error) {
     console.error('Error loading hero text data:', error);
     return <div className="w-full flex items-center justify-center py-12">
         <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
@@ -40,7 +93,12 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
         <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <h2 
+                ref={loadingTextRef}
+                className="title-sm text-roseWhite mb-0 text-center py-0"
+              >
+                {!isLoaded ? `GETTING READY...${loadingProgress}%` : "WELCOME TO"}
+              </h2>
               <div className="flex justify-center items-center mt-12 w-full">
                 <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
                   <AspectRatio ratio={444/213} className="w-full">
@@ -57,13 +115,17 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
-            <h2 className="title-sm text-roseWhite mb-4 text-center">{firstHeroText.fields.heroTextEyebrow}</h2>
-            <h1 className="title-xl text-roseWhite mb-6 text-center">{firstHeroText.fields.heroTextTitle}</h1>
+            <h2 className="title-sm text-roseWhite mb-4 text-center">
+              {isLoading ? "Loading..." : firstHeroText?.fields.heroTextEyebrow}
+            </h2>
+            <h1 className="title-xl text-roseWhite mb-6 text-center">
+              {isLoading ? "" : firstHeroText?.fields.heroTextTitle}
+            </h1>
           </div>
           
           <div className="grid grid-cols-12 gap-4">
             <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-              {firstHeroText.fields.heroTextText}
+              {isLoading ? "" : firstHeroText?.fields.heroTextText}
             </p>
           </div>
         </div>
@@ -73,13 +135,17 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
-            <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
-            <h1 className="title-xl text-roseWhite mb-6 text-center">{secondHeroText.fields.heroTextTitle}</h1>
+            <h2 className="title-sm text-roseWhite mb-4 text-center">
+              {isLoading ? "Loading..." : secondHeroText?.fields.heroTextEyebrow}
+            </h2>
+            <h1 className="title-xl text-roseWhite mb-6 text-center">
+              {isLoading ? "" : secondHeroText?.fields.heroTextTitle}
+            </h1>
           </div>
           
           <div className="grid grid-cols-12 gap-4">
             <p className={`body-text text-roseWhite ${isMobile ? 'col-start-4 col-span-8' : 'col-start-9 col-span-4'}`}>
-              {secondHeroText.fields.heroTextText}
+              {isLoading ? "" : secondHeroText?.fields.heroTextText}
             </p>
           </div>
         </div>
