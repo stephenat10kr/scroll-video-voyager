@@ -186,10 +186,10 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       ref={containerRef} 
       className="fixed w-full h-full pointer-events-none"
       style={{ 
-        zIndex: 15, // Ensure z-index is higher than the video (which is 10)
+        zIndex: 15, // Ensure z-index is higher than the video
         backgroundColor: colors.darkGreen, // Use the darkGreen color from theme
-        top: '600vh', // Position 600vh from the top of the page
-        position: 'sticky', // Make it sticky
+        top: '0', // Change this to 0 to fix the positioning
+        position: 'fixed', // Change to fixed instead of sticky
       }}
     >
       <canvas 

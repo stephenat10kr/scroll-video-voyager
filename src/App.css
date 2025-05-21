@@ -1,5 +1,4 @@
 
-
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -22,9 +21,8 @@ html, body {
 .content-container {
   position: relative;
   /* Remove padding-top: 100vh */
-  /* Increased from 400vh to 600vh to match the Chladni pattern position */
-  min-height: 600vh; 
-  z-index: 20; /* Above video and preloader */
+  min-height: 100vh; 
+  z-index: 20; /* Above video and Chladni pattern */
 }
 
 /* Add section spacing */
