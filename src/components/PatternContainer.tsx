@@ -6,7 +6,7 @@ import colors from '@/lib/theme';
 const PatternContainer: React.FC = () => {
   return (
     <div 
-      className="fixed top-0 left-0 w-full" 
+      className="relative w-full" 
       style={{ 
         zIndex: 15, // Above video (10) but below content (20)
         backgroundColor: colors.darkGreen, // Explicitly set background color
