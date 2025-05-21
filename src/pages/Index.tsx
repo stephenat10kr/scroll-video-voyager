@@ -113,9 +113,29 @@ const Index = () => {
       {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
       
-      {/* Content overlay - now positioned at the top, absolute with z-index 20 */}
+      {/* Pattern Container (middle z-index) */}
+      <PatternContainer />
+      
+      {/* Video (lower z-index than pattern) with fade-in effect - TEMPORARILY HIDDEN */}
       <div 
-        className="content-container absolute top-0 left-0 right-0 z-20"
+        className="fixed inset-0 w-full h-screen" 
+        style={{ 
+          zIndex: 10,
+          opacity: 0, // Set to 0 to hide the video
+          transition: "opacity 1s ease-in-out",
+          backgroundColor: "black", // Ensure black background 
+        }}
+      >
+        {isAndroid ? (
+          <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+        ) : (
+          <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+        )}
+      </div>
+      
+      {/* Content overlay - now on top of everything */}
+      <div 
+        className="content-container relative z-20"
         style={{ backgroundColor: 'transparent' }}
       >
         {/* Logo section at the top */}
@@ -162,26 +182,6 @@ const Index = () => {
         <section>
           <Footer />
         </section>
-      </div>
-      
-      {/* Pattern Container (middle z-index) */}
-      <PatternContainer />
-      
-      {/* Video (lower z-index than pattern) with fade-in effect - TEMPORARILY HIDDEN */}
-      <div 
-        className="fixed inset-0 w-full h-screen" 
-        style={{ 
-          zIndex: 10,
-          opacity: 0, // Set to 0 to hide the video
-          transition: "opacity 1s ease-in-out",
-          backgroundColor: "black", // Ensure black background 
-        }}
-      >
-        {isAndroid ? (
-          <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-        ) : (
-          <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-        )}
       </div>
     </>
   );
