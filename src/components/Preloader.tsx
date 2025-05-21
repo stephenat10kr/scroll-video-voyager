@@ -5,6 +5,7 @@ import colors from "@/lib/theme";
 interface PreloaderProps {
   progress: number;
   onComplete: () => void;
+  videoReady?: boolean; // Add optional prop to know when video is ready
 }
 
 const loadingTexts = [
@@ -14,16 +15,17 @@ const loadingTexts = [
   "Loading possibilities."
 ];
 
-const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
+const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete, videoReady = false }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [displayedProgress, setDisplayedProgress] = useState(0);
+  const [fadeOutStarted, setFadeOutStarted] = useState(false);
   
   // For debugging
   useEffect(() => {
-    console.log(`Preloader - Current progress: ${progress}%`);
-  }, [progress]);
+    console.log(`Preloader - Current progress: ${progress}%, Video ready: ${videoReady}`);
+  }, [progress, videoReady]);
   
   // Smoothly update the displayed progress to avoid jumps
   useEffect(() => {
@@ -60,33 +62,42 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle completion - fade out when progress reaches 100%
+  // Handle completion - only start the fade out when progress reaches 100% AND video is ready
   useEffect(() => {
-    if (displayedProgress >= 100) {
-      console.log("Preloader - 100% reached, preparing to fade out");
+    // Start fade out process only when progress is 100% and video is ready (if videoReady prop is provided)
+    const shouldStartFadeOut = displayedProgress >= 100 && (videoReady || typeof videoReady === 'undefined');
+    
+    if (shouldStartFadeOut && !fadeOutStarted) {
+      console.log("Preloader - 100% reached and video ready, preparing to fade out");
+      setFadeOutStarted(true);
       
       // Show "Come in." text briefly before fading out
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Come in." state for 0.5 seconds
+      // First delay - stay at 100% "Come in." state for 1 second (increased from 0.5)
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
-        // Start fade out sooner
-        setVisible(false);
+        // Add a small additional delay before starting fade out
+        const fadeOutTimeout = setTimeout(() => {
+          // Start fade out with a longer transition
+          setVisible(false);
+          
+          // Call onComplete after fade out animation completes
+          const completeTimeout = setTimeout(() => {
+            console.log("Preloader - Calling onComplete");
+            onComplete();
+          }, 1000); // Increased from 750ms to 1000ms for slightly smoother transition
+          
+          return () => clearTimeout(completeTimeout);
+        }, 500); // Added 500ms additional delay before fade starts
         
-        // Call onComplete after fade out animation completes
-        const completeTimeout = setTimeout(() => {
-          console.log("Preloader - Calling onComplete");
-          onComplete();
-        }, 750); // Reduced from 800ms to 750ms for slightly faster transition
-        
-        return () => clearTimeout(completeTimeout);
-      }, 500); // Keep 500ms for "Come in." message
+        return () => clearTimeout(fadeOutTimeout);
+      }, 1000); // Increased from 500ms to 1000ms for "Come in." message
       
       return () => clearTimeout(welcomeTimeout);
     }
-  }, [displayedProgress, onComplete]);
+  }, [displayedProgress, onComplete, videoReady, fadeOutStarted]);
 
   // Disable scrolling while preloader is active
   useEffect(() => {
@@ -101,12 +112,12 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-800 bg-darkGreen ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity bg-darkGreen ${
         visible ? "opacity-100" : "opacity-0"
       }`}
       style={{ 
         backgroundColor: colors.darkGreen, 
-        transition: "opacity 0.75s ease-out",  // Faster transition
+        transition: "opacity 1s ease-out",  // Longer, smoother transition
         pointerEvents: visible ? "auto" : "none" // Prevent interaction when invisible
       }}
     >
