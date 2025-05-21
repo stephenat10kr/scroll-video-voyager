@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
@@ -12,8 +12,6 @@ interface HeroTextProps {
 
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isLogoVisible, setIsLogoVisible] = useState(false);
   const {
     data: heroTextItems,
     isLoading,
@@ -22,22 +20,6 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
 
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
-  
-  // Listen for a custom event that is triggered when preloader completes
-  useEffect(() => {
-    const handlePreloaderComplete = () => {
-      console.log("HeroText received preloaderComplete event, fading in");
-      setIsVisible(true);
-      setIsLogoVisible(true);
-    };
-    
-    // Listen for the custom event
-    window.addEventListener('preloaderComplete', handlePreloaderComplete);
-    
-    return () => {
-      window.removeEventListener('preloaderComplete', handlePreloaderComplete);
-    };
-  }, []);
   
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
@@ -53,26 +35,14 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div 
-      className="w-full bg-transparent h-[500vh]"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transition: "opacity 1s ease-in-out",
-      }}
-    >
+    <div className="w-full bg-transparent h-[500vh]">
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && (
         <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div 
-                className="flex justify-center items-center mt-12 w-full"
-                style={{
-                  opacity: isLogoVisible ? 1 : 0,
-                  transition: "opacity 1s ease-in-out",
-                }}
-              >
+              <div className="flex justify-center items-center mt-12 w-full">
                 <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
                   <AspectRatio ratio={444/213} className="w-full">
                     <Logo />
