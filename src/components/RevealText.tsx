@@ -125,6 +125,13 @@ const RevealText = () => {
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
+          {/* Intersection marker element positioned in the center of RevealText */}
+          <div 
+            id="chladni-transition-marker" 
+            ref={markerRef} 
+            className="h-[2px] w-full opacity-0 pointer-events-none col-span-12"
+            aria-hidden="true"
+          />
           <div ref={textRef} style={{
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
           WebkitBackgroundClip: "text",
@@ -144,14 +151,6 @@ const RevealText = () => {
           </div>
         </div>
       </div>
-      
-      {/* Intersection marker element at the end of RevealText */}
-      <div 
-        id="chladni-transition-marker" 
-        ref={markerRef} 
-        className="h-[2px] w-full opacity-0 pointer-events-none"
-        aria-hidden="true"
-      />
       
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
