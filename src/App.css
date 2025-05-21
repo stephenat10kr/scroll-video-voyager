@@ -20,7 +20,8 @@ html, body {
 /* Content container styles - allowing natural height */
 .content-container {
   position: relative;
-  /* No min-height - will size based on content */
+  width: 100%;
+  min-height: 100vh;
   z-index: 20; /* Above video and Chladni pattern */
 }
 

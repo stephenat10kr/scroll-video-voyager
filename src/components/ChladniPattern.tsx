@@ -183,7 +183,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-screen pointer-events-none"
+      className="w-full h-full pointer-events-none"
       style={{ 
         backgroundColor: colors.darkGreen, // Explicitly use darkGreen from theme
       }}
