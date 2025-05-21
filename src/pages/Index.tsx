@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -100,7 +99,7 @@ const Index = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const scrollThreshold = window.innerHeight * 6; // 600vh
+      const scrollThreshold = window.innerHeight * 7; // 700vh (changed from 600vh)
       
       // When scrolled past threshold, show Chladni pattern and hide video
       if (scrollY >= scrollThreshold && !showChladniPattern) {
@@ -190,8 +189,8 @@ const Index = () => {
         </section>
       </div>
       
-      {/* 600vh spacer to push content down */}
-      <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
+      {/* 700vh spacer to push content down (changed from 600vh) */}
+      <div className="w-full" style={{ height: '700vh', backgroundColor: colors.darkGreen }} />
       
       {/* Background container that switches between video and Chladni pattern */}
       <div 
@@ -239,4 +238,3 @@ const Index = () => {
 };
 
 export default Index;
-
