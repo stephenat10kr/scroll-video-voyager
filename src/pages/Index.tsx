@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -100,6 +99,11 @@ const Index = () => {
     // Start fading in the video
     setShowVideo(true);
     document.body.style.overflow = 'auto'; // Ensure scrolling is enabled
+    
+    // Dispatch custom event to notify HeroText component
+    const event = new CustomEvent('preloaderComplete');
+    window.dispatchEvent(event);
+    console.log("Dispatched preloaderComplete event");
   };
   
   const handleVideoReady = () => {

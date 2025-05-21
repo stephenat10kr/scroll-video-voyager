@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
@@ -12,6 +12,7 @@ interface HeroTextProps {
 
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
+  const [isVisible, setIsVisible] = useState(false);
   const {
     data: heroTextItems,
     isLoading,
@@ -20,6 +21,21 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
 
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
+  
+  // Listen for a custom event that is triggered when preloader completes
+  useEffect(() => {
+    const handlePreloaderComplete = () => {
+      console.log("HeroText received preloaderComplete event, fading in");
+      setIsVisible(true);
+    };
+    
+    // Listen for the custom event
+    window.addEventListener('preloaderComplete', handlePreloaderComplete);
+    
+    return () => {
+      window.removeEventListener('preloaderComplete', handlePreloaderComplete);
+    };
+  }, []);
   
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
@@ -35,7 +51,13 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div className="w-full bg-transparent h-[500vh]">
+    <div 
+      className="w-full bg-transparent h-[500vh]"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transition: "opacity 1s ease-in-out",
+      }}
+    >
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && (
         <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
