@@ -15,6 +15,7 @@ const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const {
     data: revealTextContent,
@@ -143,6 +144,14 @@ const RevealText = () => {
           </div>
         </div>
       </div>
+      
+      {/* Intersection marker element at the end of RevealText */}
+      <div 
+        id="chladni-transition-marker" 
+        ref={markerRef} 
+        className="h-[2px] w-full opacity-0 pointer-events-none"
+        aria-hidden="true"
+      />
       
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
