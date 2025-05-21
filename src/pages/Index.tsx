@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -243,6 +244,9 @@ const Index = () => {
         <section id="revealText-section">
           <RevealText />
         </section>
+        
+        {/* New red spacer - 96px high */}
+        <div className="w-full h-24" style={{ backgroundColor: '#ea384c' }}></div>
         
         <section>
           <Values title="VALUES" />
