@@ -3,7 +3,6 @@ import React from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
-import Spinner from "./Spinner";
 import { AspectRatio } from "./ui/aspect-ratio";
 
 interface HeroTextProps {
@@ -23,7 +22,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
-        <Spinner />
+        <p className="text-roseWhite text-lg">Loading...</p>
       </div>;
   }
   
