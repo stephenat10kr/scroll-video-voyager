@@ -26,23 +26,23 @@ export const useScrollContainer = ({
     if (!container) return;
     
     // Log device detection info
-    logDebugInfo("ScrollContainer", "Mobile detection:", isMobile);
-    logDebugInfo("ScrollContainer", "iOS detection:", isIOS);
-    logDebugInfo("ScrollContainer", "Firefox detection:", isFirefox);
-    logDebugInfo("ScrollContainer", "Scroll extra pixels:", scrollExtraPx);
+    logDebugInfo("ScrollContainer", "Device detection - Mobile:", isMobile);
+    logDebugInfo("ScrollContainer", "Device detection - iOS:", isIOS);
+    logDebugInfo("ScrollContainer", "Device detection - Firefox:", isFirefox);
 
     // Resize container based on scroll requirements
     const resizeSection = () => {
       if (container) {
-        // Calculate total height including extra scroll distance
+        // Simple sizing approach that worked before
         const totalHeight = window.innerHeight + scrollExtraPx;
-        logDebugInfo("ScrollContainer", `Setting container height to ${totalHeight}px`);
         container.style.height = `${totalHeight}px`;
         
-        // Ensure the container is visible and properly positioned
+        // Ensure visibility
         container.style.position = "relative";
         container.style.overflow = "hidden";
         container.style.display = "block";
+        
+        logDebugInfo("ScrollContainer", `Container height set to ${totalHeight}px`);
       }
     };
     
@@ -52,7 +52,7 @@ export const useScrollContainer = ({
     // Listen for window resize events
     window.addEventListener("resize", resizeSection);
 
-    // Clean up function
+    // Clean up
     return () => {
       window.removeEventListener("resize", resizeSection);
     };

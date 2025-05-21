@@ -20,7 +20,6 @@ export const useVideoFrameUpdate = ({
 }: UseVideoFrameUpdateParams) => {
   const frameRef = useRef<number | null>(null);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.00001; // More sensitive threshold for detecting changes
   
   // Initialize video if needed
   useEffect(() => {
@@ -36,66 +35,43 @@ export const useVideoFrameUpdate = ({
   // Function to update video frames based on scroll position
   const updateVideoFrame = (progress: number) => {
     const video = videoRef.current;
-    if (!video) {
-      logDebugInfo("VideoFrame", "Video reference not available");
-      return;
-    }
+    if (!video) return;
     
-    // Force time update if video is not ready but progress is changing
-    if (!isVideoDurationValid(video) && progress > 0) {
-      video.currentTime = 0.001; // Set to a small value to force loading
-      logDebugInfo("VideoFrame", "Forcing video to show frame", { progress, readyState: video.readyState });
-      onProgressUpdate(progress);
-      return;
-    }
-
-    // Skip updating if the progress change is too small (improves performance)
-    if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
-      return;
-    }
-    
+    // Skip if the progress change is too small (performance optimization)
+    if (Math.abs(progress - lastProgressRef.current) < 0.001) return;
     lastProgressRef.current = progress;
     
     // Call the progress change callback
     onProgressUpdate(progress);
     
-    // Calculate time to stop before the end of the video
-    const framesBeforeEnd = FRAMES_BEFORE_END;
-    const stopTimeBeforeEnd = framesBeforeEnd / STANDARD_FRAME_RATE;
-    
-    // Adjust progress to stop frames before the end
-    let adjustedProgress = progress;
-    
-    // If near the end of the video, adjust progress to prevent hitting the actual end frame
-    if (progress > 0.95) {
-      const maxTime = video.duration - stopTimeBeforeEnd;
-      adjustedProgress = Math.min(progress, maxTime / video.duration);
+    try {
+      if (video.readyState === 0) {
+        // Force load if not ready
+        video.load();
+        video.currentTime = 0.001;
+        return;
+      }
       
-      // For iOS, add specialized handling
-      if (isIOS && progress > 0.98) {
-        // Let iOS go a bit closer to the end (but not all the way)
-        adjustedProgress = Math.min(0.99, progress);
+      // Calculate time based on progress
+      let targetTime = progress * video.duration;
+      
+      // Adjust for end frames
+      if (progress > 0.95) {
+        const stopTime = Math.max(0, video.duration - (FRAMES_BEFORE_END / STANDARD_FRAME_RATE));
+        targetTime = Math.min(targetTime, stopTime);
       }
-    }
-    
-    // Calculate the new video time based on adjusted progress
-    const newTime = adjustedProgress * video.duration;
-    
-    // Cancel any existing animation frame
-    if (frameRef.current) {
-      cancelAnimationFrame(frameRef.current);
-    }
-    
-    // Use requestAnimationFrame for smoother updates
-    frameRef.current = requestAnimationFrame(() => {
-      if (video) {
-        // Always force time update when progress changes significantly
-        video.currentTime = newTime;
-        logDebugInfo("VideoFrame", `Updated to time: ${newTime.toFixed(2)}s (${(adjustedProgress * 100).toFixed(1)}%)`);
+      
+      // Use direct time setting for immediate response
+      if (video.currentTime !== targetTime) {
+        video.currentTime = targetTime;
+        logDebugInfo("VideoFrame", `Set time: ${targetTime.toFixed(2)}s (${(progress * 100).toFixed(1)}%)`);
       }
-      // Consider "after video" when progress is very close to the end
-      onAfterVideoChange(progress >= 0.98);
-    });
+      
+      // Signal if we're at the end of the video
+      onAfterVideoChange(progress > 0.98);
+    } catch (err) {
+      logDebugInfo("VideoFrame", "Error updating frame:", err);
+    }
   };
   
   // Clean up function to cancel animation frame

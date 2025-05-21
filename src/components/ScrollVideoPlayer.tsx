@@ -32,17 +32,28 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
 }) => {
-  // Detect if we're on iOS for specialized handling
   const isIOS = useIsIOS();
   
   // Log important details for debugging
   useEffect(() => {
-    logDebugInfo("ScrollVideoPlayer", "Initializing with video source", src);
-    logDebugInfo("ScrollVideoPlayer", "Segment count", segmentCount);
-    logDebugInfo("ScrollVideoPlayer", "Extra scroll pixels", SCROLL_EXTRA_PX);
-    logDebugInfo("ScrollVideoPlayer", "Mobile device", isMobile);
-    logDebugInfo("ScrollVideoPlayer", "iOS device", isIOS);
-  }, [src, segmentCount, SCROLL_EXTRA_PX, isMobile, isIOS]);
+    logDebugInfo("ScrollVideoPlayer", "Initializing with configuration:", {
+      source: src,
+      segments: segmentCount,
+      scrollExtra: SCROLL_EXTRA_PX,
+      mobile: isMobile,
+      iOS: isIOS
+    });
+    
+    // Ensure video element is properly configured
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.playsInline = true;
+      videoRef.current.preload = "auto";
+      
+      // Force initial frame to show
+      videoRef.current.currentTime = 0.001;
+    }
+  }, [src, segmentCount, SCROLL_EXTRA_PX, isMobile, isIOS, videoRef]);
 
   return (
     <VideoPlayer 

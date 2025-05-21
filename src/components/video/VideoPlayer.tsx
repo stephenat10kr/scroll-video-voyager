@@ -33,8 +33,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isMobile,
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  
-  // Check if we're on iOS using our custom hook
   const isIOS = useIsIOS();
   
   // Apply device-specific video optimizations
@@ -45,7 +43,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     isFirefox 
   });
 
-  // Set up scroll trigger for video scrubbing
+  // Set up scroll trigger for video scrubbing - key part of functionality
   const { isSetupComplete } = useScrollTrigger({
     containerRef,
     videoRef,
@@ -69,31 +67,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [isSetupComplete, isLoaded]);
 
-  // Handle video source assignment
+  // Handle video source assignment - simplified approach
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
 
-    // Only update src if it's different
+    // Only update if source changed
     if (video.src !== src) {
+      logDebugInfo("VideoPlayer", `Setting video source: ${src}`);
+      
+      // Set src and force loading
       video.src = src;
-      const extension = src.split(".").pop() || "unknown";
-      logDebugInfo("VideoPlayer", `Assigned ${extension.toUpperCase()} video source: ${src}`);
-      
-      // Force load and initial frame in case it doesn't load automatically
       video.load();
-      video.currentTime = 0.001; // Small non-zero value to force first frame
       
-      // On iOS, we sometimes need to explicitly set the current time after loading
-      if (isIOS) {
-        setTimeout(() => {
-          if (video) {
-            video.currentTime = 0.001;
-          }
-        }, 100);
-      }
+      // Ensure first frame is shown
+      setTimeout(() => {
+        if (video) {
+          video.currentTime = 0.001;
+        }
+      }, 50);
     }
-  }, [src, videoRef, isIOS]);
+  }, [src, videoRef]);
 
   return <>{children}</>;
 };
