@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { colors } from '../lib/theme';
 
@@ -185,8 +186,12 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       ref={containerRef} 
       className="fixed w-full h-full pointer-events-none"
       style={{ 
-        backgroundColor: colors.darkGreen, // Use the darkGreen color from theme
-        position: 'fixed', // Keep it fixed
+        backgroundColor: colors.darkGreen, // Explicitly use the darkGreen color from theme
+        position: 'fixed',  // Keep it fixed
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
       <canvas 

@@ -16,6 +16,7 @@ import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import colors from "../lib/theme";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -133,7 +134,10 @@ const Index = () => {
       </div>
       
       {/* Content overlay - now on top of everything */}
-      <div className="content-container relative z-20">
+      <div 
+        className="content-container relative z-20"
+        style={{ backgroundColor: 'transparent' }}
+      >
         {/* Logo section at the top */}
         <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
           <div className="w-full max-w-[90%] mx-auto">
