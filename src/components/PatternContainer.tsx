@@ -17,7 +17,9 @@ const PatternContainer: React.FC = () => {
       <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
       
       {/* ChladniPattern rendered at the bottom of the container */}
-      <ChladniPattern />
+      <div style={{ position: 'sticky', top: 0, backgroundColor: colors.darkGreen }}>
+        <ChladniPattern />
+      </div>
     </div>
   );
 };
