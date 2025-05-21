@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { colors } from '../lib/theme';
 
@@ -185,7 +186,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
       ref={containerRef} 
       className="fixed w-full h-full pointer-events-none"
       style={{ 
-        zIndex: 15, // Increased z-index to be above video (which is 10)
+        zIndex: 15, // Ensure z-index is higher than the video (which is 10)
         backgroundColor: colors.darkGreen, // Use the darkGreen color from theme
         top: '600vh', // Position 600vh from the top of the page
         position: 'sticky', // Make it sticky
