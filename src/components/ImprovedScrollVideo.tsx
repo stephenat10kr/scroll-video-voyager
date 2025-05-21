@@ -18,7 +18,8 @@ interface ImprovedScrollVideoProps {
 
 const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProps>(({ src: externalSrc, onReady }, ref) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isVideoVisible, setIsVideoVisible] = useState(true); // Start with video visible
+  const [isVideoVisible, setIsVideoVisible] = useState(false); // Start with video hidden
+  const [isVideoTextureLoaded, setIsVideoTextureLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   // Use the forwarded ref or fallback to internal ref
@@ -28,6 +29,8 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
+  const frameLoadAttemptsRef = useRef(0);
+  const maxFrameLoadAttempts = 5;
   
   // For debugging
   useEffect(() => {
@@ -48,23 +51,62 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
         ? 'https:' + heroVideoAsset.fields.file.url 
         : heroVideoAsset.fields.file.url)
     : undefined);
+    
+  // Function to attempt loading a frame of the video
+  const attemptLoadVideoFrame = () => {
+    const video = videoRef.current;
+    if (!video || frameLoadAttemptsRef.current >= maxFrameLoadAttempts) return;
+    
+    frameLoadAttemptsRef.current++;
+    console.log(`Attempting to load video frame (attempt ${frameLoadAttemptsRef.current}/${maxFrameLoadAttempts})`);
+    
+    // Try different timestamps to ensure a frame loads
+    if (video.readyState >= 1) {
+      video.currentTime = 0.001;
+      
+      // For iOS/Android, try more aggressive frame loading
+      if (isIOS || isAndroid) {
+        setTimeout(() => { 
+          if (video.readyState >= 2) video.currentTime = 0.01; 
+        }, 100);
+        setTimeout(() => { 
+          if (video.readyState >= 2) video.currentTime = 0.1; 
+        }, 200);
+      }
+    }
+    
+    // Schedule next attempt if needed
+    if (frameLoadAttemptsRef.current < maxFrameLoadAttempts) {
+      setTimeout(attemptLoadVideoFrame, 300);
+    }
+  };
 
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
-    setIsVideoVisible(true); // Ensure video is visible when loaded
     
-    // Notify parent component that video is ready, but only once
-    if (onReady && !readyCalledRef.current) {
-      console.log("Calling onReady callback");
-      onReady();
-      readyCalledRef.current = true;
-    }
+    // Don't make video visible yet, wait until texture is confirmed loaded
+    // Try to load the frame first
+    attemptLoadVideoFrame();
     
-    // For iOS, we need to manually initialize the video when it's loaded
-    if (isIOS && videoRef.current && !isVideoInitialized) {
-      initializeVideoForIOS();
-    }
+    // Add a delay before considering texture loaded
+    setTimeout(() => {
+      console.log("Confirming video texture loaded");
+      setIsVideoTextureLoaded(true);
+      
+      // Additional delay before showing video
+      setTimeout(() => {
+        console.log("Making video visible after confirmed texture loaded");
+        setIsVideoVisible(true);
+        
+        // Notify parent component that video is ready, but only once
+        if (onReady && !readyCalledRef.current) {
+          console.log("Calling onReady callback after delay");
+          onReady();
+          readyCalledRef.current = true;
+        }
+      }, 300);
+    }, 300);
   };
   
   // Initialize video specifically for iOS
@@ -98,40 +140,70 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
         video.pause();
         console.log("Successfully initialized video for iOS");
         setIsVideoInitialized(true);
-        setIsVideoVisible(true); // Ensure video is visible after initialization
         
-        // Make sure ready callback is called after successful initialization
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback after iOS initialization");
-          onReady();
-          readyCalledRef.current = true;
-        }
+        // Start the frame loading process
+        attemptLoadVideoFrame();
+        
+        // Add a delay before making video visible
+        setTimeout(() => {
+          setIsVideoTextureLoaded(true);
+          setTimeout(() => {
+            setIsVideoVisible(true);
+            
+            // Make sure ready callback is called after successful initialization
+            if (onReady && !readyCalledRef.current) {
+              console.log("Calling onReady callback after iOS initialization");
+              onReady();
+              readyCalledRef.current = true;
+            }
+          }, 300);
+        }, 200);
       }).catch(err => {
         console.error("Error initializing video for iOS:", err);
         // Try a different approach - set the currentTime which sometimes forces a frame to load
         video.currentTime = 0.1;
         setIsVideoInitialized(true);
-        setIsVideoVisible(true); // Ensure video is visible even after error
         
-        // Still call ready even on error, to prevent getting stuck
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback after iOS initialization (error case)");
-          onReady();
-          readyCalledRef.current = true;
-        }
+        // Don't make video visible yet, continue with frame loading attempts
+        attemptLoadVideoFrame();
+        
+        // Add a delay before making video visible
+        setTimeout(() => {
+          setIsVideoTextureLoaded(true);
+          setTimeout(() => {
+            setIsVideoVisible(true);
+            
+            // Call ready even on error, to prevent getting stuck
+            if (onReady && !readyCalledRef.current) {
+              console.log("Calling onReady callback after iOS initialization (error case)");
+              onReady();
+              readyCalledRef.current = true;
+            }
+          }, 300);
+        }, 200);
       });
     } else {
       // Play didn't return a promise, try setting currentTime
       video.currentTime = 0.1;
       setIsVideoInitialized(true);
-      setIsVideoVisible(true); // Ensure video is visible
       
-      // Call ready in this case too
-      if (onReady && !readyCalledRef.current) {
-        console.log("Calling onReady callback after iOS initialization (no promise case)");
-        onReady();
-        readyCalledRef.current = true;
-      }
+      // Try frame loading attempts
+      attemptLoadVideoFrame();
+      
+      // Add a delay before making video visible
+      setTimeout(() => {
+        setIsVideoTextureLoaded(true);
+        setTimeout(() => {
+          setIsVideoVisible(true);
+          
+          // Call ready in this case too
+          if (onReady && !readyCalledRef.current) {
+            console.log("Calling onReady callback after iOS initialization (no promise case)");
+            onReady();
+            readyCalledRef.current = true;
+          }
+        }, 300);
+      }, 200);
     }
   };
   
@@ -147,9 +219,6 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
     const video = videoRef.current;
     if (!video || !videoSrc) return;
     
-    // Always set video to visible when it has a source
-    setIsVideoVisible(true);
-    
     // Pre-initialize video to avoid black flash
     const preInitVideo = () => {
       if (video.readyState >= 1) {
@@ -157,6 +226,9 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
         console.log("Pre-initializing video frame");
       }
     };
+    
+    // Reset frame load attempts counter when src changes
+    frameLoadAttemptsRef.current = 0;
     
     // Try to pre-initialize immediately
     preInitVideo();
@@ -172,9 +244,14 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
     else if (isTouchDevice() && !isIOS) { // Only run this for non-iOS touch devices
       video.play().then(() => {
         video.pause();
+        attemptLoadVideoFrame();
       }).catch(err => {
         console.error("Error initializing video for touch device:", err);
+        attemptLoadVideoFrame();
       });
+    } else {
+      // For desktop, still try to load frames
+      attemptLoadVideoFrame();
     }
     
     // Create timeline for scroll scrubbing
@@ -217,17 +294,18 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
           console.log("Hiding video (scrolling down)");
         },
         onLeaveBack: () => {
-          setIsVideoVisible(true);
-          console.log("Showing video (scrolling up)");
+          // Only show video if texture is loaded
+          if (isVideoTextureLoaded && isVideoLoaded) {
+            setIsVideoVisible(true);
+            console.log("Showing video (scrolling up)");
+          }
         },
         markers: false
       });
     } else {
-      console.warn("RevealText section not found for video visibility trigger");
-      // Fallback to another selector if the ID approach fails
+      // Fallback to class selector
       const revealTextElement = document.querySelector('.w-full.py-24');
       if (revealTextElement) {
-        console.log("Found RevealText using class selector");
         ScrollTrigger.create({
           trigger: revealTextElement,
           start: "top top",
@@ -236,26 +314,55 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
             console.log("Hiding video (scrolling down) - using fallback selector");
           },
           onLeaveBack: () => {
-            setIsVideoVisible(true);
-            console.log("Showing video (scrolling up) - using fallback selector");
+            // Only show video if texture is loaded
+            if (isVideoTextureLoaded && isVideoLoaded) {
+              setIsVideoVisible(true);
+              console.log("Showing video (scrolling up) - using fallback selector");
+            }
           },
           markers: false
         });
-      } else {
-        console.error("Could not find RevealText component with any selector");
       }
     }
+    
+    // Handle seeked events to know when frames are actually displayed
+    const handleSeeked = () => {
+      console.log("Video seeked to", video.currentTime);
+      
+      // If we previously tried to load a frame and now it's seeked,
+      // we know the frame is loaded
+      if (!isVideoTextureLoaded) {
+        console.log("Video texture loaded after seeking");
+        setIsVideoTextureLoaded(true);
+        
+        // Add delay before making visible
+        setTimeout(() => {
+          setIsVideoVisible(true);
+          
+          // Call ready if not already done
+          if (onReady && !readyCalledRef.current) {
+            console.log("Calling onReady callback after seeking event");
+            onReady();
+            readyCalledRef.current = true;
+          }
+        }, 300);
+      }
+    };
+    
+    // Add seeked listener
+    video.addEventListener("seeked", handleSeeked);
     
     // Clean up
     return () => {
       video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+      video.removeEventListener("seeked", handleSeeked);
       if (timeline.scrollTrigger) {
         timeline.scrollTrigger.kill();
       }
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [videoSrc, isIOS, isVideoInitialized, isAndroid]);
+  }, [videoSrc, isIOS, isVideoInitialized, isAndroid, isVideoTextureLoaded, isVideoLoaded]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
@@ -287,12 +394,21 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
           initializeVideoForIOS();
         }
         
-        // Ensure video ready callback is called if not done yet
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback after iOS delayed initialization");
-          onReady();
-          readyCalledRef.current = true;
-        }
+        // Add additional fallback to ensure video becomes visible
+        setTimeout(() => {
+          if (!isVideoVisible) {
+            console.log("Force setting video visible after delay");
+            setIsVideoTextureLoaded(true);
+            setIsVideoVisible(true);
+            
+            // Ensure ready callback is called if not done yet
+            if (onReady && !readyCalledRef.current) {
+              console.log("Calling onReady callback after iOS delayed initialization");
+              onReady();
+              readyCalledRef.current = true;
+            }
+          }
+        }, 2000);
       }, 500);
       
       return () => {
@@ -300,8 +416,14 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
       };
     }
     
-    // Add a fallback to ensure we always trigger onReady
+    // Add a fallback to ensure we always trigger onReady and make video visible
     const fallbackTimer = setTimeout(() => {
+      if (!isVideoVisible || !isVideoTextureLoaded) {
+        console.log("Fallback: forcing video visible after timeout");
+        setIsVideoTextureLoaded(true);
+        setIsVideoVisible(true);
+      }
+      
       if (onReady && !readyCalledRef.current && videoRef.current) {
         console.log("Fallback: calling onReady callback after timeout");
         onReady();
@@ -312,7 +434,7 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
     return () => {
       clearTimeout(fallbackTimer);
     };
-  }, [isIOS, isVideoInitialized, onReady]);
+  }, [isIOS, isVideoInitialized, onReady, isVideoVisible, isVideoTextureLoaded]);
 
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
@@ -328,13 +450,13 @@ const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProp
           ref={videoRef}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
-            opacity: isVideoVisible ? 1 : 0,
+            opacity: isVideoVisible && isVideoTextureLoaded ? 1 : 0,
             visibility: isVideoVisible ? 'visible' : 'hidden',
             backgroundColor: 'black', // Add background color to prevent white flashing
-            willChange: 'transform', // Added performance optimization
+            willChange: 'transform, opacity', // Added performance optimization
             transform: 'translateZ(0)', // Force GPU acceleration
             backfaceVisibility: 'hidden', // Prevent rendering the back face
-            transition: 'opacity 0.3s ease-out' // Smooth transition for opacity changes
+            transition: 'opacity 0.5s ease-out' // Smooth transition for opacity changes
           }}
           playsInline={true}
           webkit-playsinline="true" 

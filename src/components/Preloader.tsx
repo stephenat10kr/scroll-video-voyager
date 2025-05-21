@@ -68,21 +68,21 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       // Show "Come in." text briefly before fading out
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Come in." state for 0.5 seconds
+      // First delay - stay at 100% "Come in." state for 0.8 seconds (increased from 0.5)
       const welcomeTimeout = setTimeout(() => {
         console.log("Preloader - Starting fade out sequence");
         
-        // Start fade out sooner
+        // Only start fade out after welcome message is shown for a while
         setVisible(false);
         
-        // Call onComplete after fade out animation completes
+        // Call onComplete after fade out animation completes with a longer delay
         const completeTimeout = setTimeout(() => {
           console.log("Preloader - Calling onComplete");
           onComplete();
-        }, 600); // Reduced from 750ms to 600ms for faster transition
+        }, 1000); // Increased from 600ms to 1000ms for a more reliable transition
         
         return () => clearTimeout(completeTimeout);
-      }, 400); // Reduced from 500ms to 400ms for quicker "Come in." message
+      }, 800); // Increased from 400ms to 800ms for longer "Come in." message display
       
       return () => clearTimeout(welcomeTimeout);
     }
@@ -106,7 +106,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       }`}
       style={{ 
         backgroundColor: colors.darkGreen, 
-        transition: "opacity 0.6s ease-out",  // Faster transition (reduced from 0.75s)
+        transition: "opacity 1s ease-out",  // Slower transition (increased from 0.6s to 1s)
         pointerEvents: visible ? "auto" : "none" // Prevent interaction when invisible
       }}
     >

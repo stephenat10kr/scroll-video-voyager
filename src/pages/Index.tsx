@@ -23,6 +23,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const [videoFullyInitialized, setVideoFullyInitialized] = useState(false);
   const videoElementRef = useRef(null);
   const videoContainerRef = useRef(null);
   
@@ -56,8 +57,8 @@ const Index = () => {
     const startDelay = setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // If video is ready, jump directly to 100%
-          if (videoReady) {
+          // If video is ready and fully initialized, jump directly to 100%
+          if (videoReady && videoFullyInitialized) {
             clearInterval(progressInterval);
             return 100;
           }
@@ -72,15 +73,15 @@ const Index = () => {
       clearTimeout(startDelay);
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [videoReady]);
+  }, [videoReady, videoFullyInitialized]);
   
-  // When video is ready, immediately set progress to 100%
+  // When video is ready, set progress to 100% only if fully initialized
   useEffect(() => {
-    if (videoReady) {
-      console.log("Video is ready, immediately setting progress to 100%");
+    if (videoReady && videoFullyInitialized) {
+      console.log("Video is ready and fully initialized, setting progress to 100%");
       setLoadProgress(100);
     }
-  }, [videoReady]);
+  }, [videoReady, videoFullyInitialized]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -104,6 +105,12 @@ const Index = () => {
   const handleVideoReady = () => {
     console.log("Video is ready to display");
     setVideoReady(true);
+    
+    // Add a delay before considering the video fully initialized to prevent flickering
+    setTimeout(() => {
+      console.log("Video fully initialized");
+      setVideoFullyInitialized(true);
+    }, 500);
   };
   
   // Skip content rendering until preloader is done
