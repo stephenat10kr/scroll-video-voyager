@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -239,6 +240,19 @@ const Index = () => {
         <section>
           <HeroText skipLogoSection={true} />
         </section>
+        
+        {/* Transition marker - moved up by 100px using negative margin-top */}
+        <div 
+          id="chladni-transition-marker" 
+          style={{ 
+            position: 'relative', 
+            height: '1px', 
+            width: '100%', 
+            marginTop: '-100px', // This moves the marker up by 100px
+            backgroundColor: 'transparent',
+            zIndex: -1
+          }}
+        />
         
         <section id="revealText-section">
           <RevealText />
