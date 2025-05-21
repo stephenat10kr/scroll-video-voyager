@@ -149,10 +149,10 @@ const RevealText = () => {
         </div>
       </div>
       
-      {/* Red spacer directly attached to RevealText - now included in the RevealText component */}
+      {/* Dark green spacer directly attached to RevealText - now included in the RevealText component */}
       <div style={{ 
         height: "96px", 
-        backgroundColor: '#ea384c',
+        backgroundColor: colors.darkGreen, // Changed from '#ea384c' (red) to dark green
         margin: 0,
         padding: 0,
         display: 'block',
