@@ -30,10 +30,10 @@ const Video = () => {
   
   // Track when loading started
   const loadStartTimeRef = useRef<number>(Date.now());
-  // Minimum loading time in milliseconds (6 seconds)
-  const MIN_LOADING_TIME = 6000;
+  // Minimum loading time in milliseconds (3 seconds - changed from 6)
+  const MIN_LOADING_TIME = 3000;
   // Maximum loading time before forcing completion
-  const MAX_LOADING_TIME = 15000;
+  const MAX_LOADING_TIME = 8000; // Also reduced from 15000 to 8000
   
   // Function to calculate actual video loading progress
   const calculateVideoProgress = (video: HTMLVideoElement): number => {
@@ -225,7 +225,7 @@ const Video = () => {
         clearInterval(loadingTimerRef.current);
         loadingTimerRef.current = null;
       }
-    }, MAX_LOADING_TIME + 2000); // Max time plus buffer
+    }, MAX_LOADING_TIME + 1000); // Max time plus buffer
     
     // Cleanup function
     return () => {

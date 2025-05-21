@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -34,7 +35,7 @@ const Index = () => {
   
   // Force complete preloader after maximum time
   useEffect(() => {
-    const maxLoadingTime = 12000; // 12 seconds max loading time
+    const maxLoadingTime = 8000; // 8 seconds max loading time (reduced from 12)
     const forceCompleteTimeout = setTimeout(() => {
       if (loadProgress < 100) {
         console.log("Force completing preloader after timeout");

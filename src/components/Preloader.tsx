@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -45,7 +46,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         console.log("Preloader - Force completing from 95% to 100%");
         setDisplayedProgress(100);
       }
-    }, 3000); // Reduced from 5000ms to 3000ms - if stuck at 95% for 3 seconds, force to 100%
+    }, 1500); // Reduced from 3000ms to 1500ms - if stuck at 95% for 1.5 seconds, force to 100%
     
     return () => clearTimeout(forceCompleteTimer);
   }, [progress, displayedProgress]);
