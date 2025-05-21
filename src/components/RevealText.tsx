@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -151,8 +150,8 @@ const RevealText = () => {
       
       {/* Dark green spacer directly attached to RevealText - now included in the RevealText component */}
       <div style={{ 
-        height: "96px", 
-        backgroundColor: colors.darkGreen, // Changed from '#ea384c' (red) to dark green
+        height: "128px", // Changed from "96px" to "128px"
+        backgroundColor: colors.darkGreen,
         margin: 0,
         padding: 0,
         display: 'block',
