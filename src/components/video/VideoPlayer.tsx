@@ -72,7 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const video = videoRef.current;
     if (!video || !src) return;
 
-    // Only update if source changed
+    // Simple source setting that worked well previously
     if (video.src !== src) {
       logDebugInfo("VideoPlayer", `Setting video source: ${src}`);
       
@@ -80,19 +80,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.src = src;
       video.load();
       
-      // Ensure first frame is shown
-      video.currentTime = 0.001;
-      
-      // Add error handling
-      const handleError = () => {
-        logDebugInfo("VideoPlayer", "Error loading video source");
-      };
-      
-      video.addEventListener('error', handleError);
-      
-      return () => {
-        video.removeEventListener('error', handleError);
-      };
+      // Ensure first frame is shown (important for iOS)
+      setTimeout(() => {
+        if (video) {
+          video.currentTime = 0.001;
+        }
+      }, 100);
     }
   }, [src, videoRef]);
 

@@ -7,13 +7,12 @@
 export const STANDARD_FRAME_RATE = 30;
 export const FRAMES_BEFORE_END = 2; // Keep at 2 frames for better iOS experience
 
-// Return device-specific scrub value for smoother scrolling
+// Simple scrub values that worked reliably in the past
 export const getScrubValue = (isFirefox: boolean, isMobile: boolean, isIOS: boolean): number => {
-  // Simple fixed values that worked in the past
   if (isIOS) return 0.1;  
   if (isFirefox) return 0.2;
   if (isMobile) return 0.15;
-  return 0.1; // Default value that worked previously
+  return 0.1; // Default value for desktop
 };
 
 // Helper to log specific debug information

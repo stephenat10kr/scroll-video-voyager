@@ -2,8 +2,6 @@
 import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useVideoFrameUpdate } from "./scroll-video/use-video-frame-update";
-import { useScrollContainer } from "./scroll-video/use-scroll-container";
 import { getScrubValue, logDebugInfo } from "./scroll-video/scroll-utils";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -34,23 +32,7 @@ export const useScrollTrigger = ({
 }: UseScrollTriggerProps) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-
-  // Use the container setup hook
-  useScrollContainer({
-    containerRef,
-    scrollExtraPx,
-    isMobile,
-    isIOS,
-    isFirefox
-  });
-  
-  // Use the video frame update hook
-  const { updateVideoFrame, cleanup: cleanupFrameUpdate } = useVideoFrameUpdate({
-    videoRef,
-    onProgressUpdate,
-    onAfterVideoChange,
-    isIOS
-  });
+  const lastProgressRef = useRef(0);
 
   // Initialize ScrollTrigger
   useEffect(() => {
@@ -61,56 +43,114 @@ export const useScrollTrigger = ({
     
     logDebugInfo("ScrollTrigger", "Starting ScrollTrigger setup");
 
+    // Set container dimensions
+    const updateContainerSize = () => {
+      container.style.height = `${window.innerHeight + scrollExtraPx}px`;
+      container.style.position = "relative";
+      container.style.overflow = "hidden";
+    };
+
+    // Update container size initially and on resize
+    updateContainerSize();
+    window.addEventListener('resize', updateContainerSize);
+    
     // Force video to load and show first frame
     video.load();
     video.currentTime = 0.001;
     
-    // Function to set up ScrollTrigger
-    const setupScrollTrigger = () => {
-      // Kill any existing ScrollTrigger
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-        scrollTriggerRef.current = null;
-      }
+    // Function to update video frames based on scroll position
+    const updateVideoFrame = (progress: number) => {
+      if (!video) return;
       
-      // Ensure video is paused
-      video.pause();
+      // Skip if the progress change is too small (performance optimization)
+      if (Math.abs(progress - lastProgressRef.current) < 0.001) return;
+      lastProgressRef.current = progress;
       
-      // Get scrub value based on device
-      const scrubValue = getScrubValue(isFirefox, isMobile, isIOS);
-      logDebugInfo("ScrollTrigger", `Using scrub value: ${scrubValue}`);
+      // Call the progress change callback
+      onProgressUpdate(progress);
       
-      // Create ScrollTrigger with simple configuration
-      scrollTriggerRef.current = ScrollTrigger.create({
-        trigger: container,
-        start: "top top",
-        end: `+=${scrollExtraPx}`,
-        scrub: scrubValue,
-        pin: true,
-        onUpdate: (self) => {
-          updateVideoFrame(self.progress);
+      try {
+        // Ensure video is loaded
+        if (video.readyState === 0) {
+          video.load();
+          video.currentTime = 0.001;
+          return;
         }
-      });
-      
-      setIsSetupComplete(true);
-      logDebugInfo("ScrollTrigger", "Setup completed successfully");
+
+        if (isNaN(video.duration) || video.duration <= 0) {
+          logDebugInfo("VideoFrame", "Invalid video duration, cannot update frame");
+          return;
+        }
+        
+        // Calculate time based on progress
+        let targetTime = progress * video.duration;
+        
+        // Adjust for end frames
+        if (progress > 0.95) {
+          const stopTime = Math.max(0, video.duration - (FRAMES_BEFORE_END / STANDARD_FRAME_RATE));
+          targetTime = Math.min(targetTime, stopTime);
+        }
+        
+        // Set the current time directly
+        video.currentTime = targetTime;
+        
+        // Signal if we're at the end of the video
+        onAfterVideoChange(progress > 0.98);
+      } catch (err) {
+        logDebugInfo("VideoFrame", "Error updating frame:", err);
+      }
     };
     
-    // Try to set up on various video events
+    // Function to set up ScrollTrigger with retry mechanism
+    const setupScrollTrigger = () => {
+      try {
+        // Kill any existing ScrollTrigger
+        if (scrollTriggerRef.current) {
+          scrollTriggerRef.current.kill();
+          scrollTriggerRef.current = null;
+        }
+        
+        // Ensure video is paused
+        video.pause();
+        
+        // Get scrub value based on device
+        const scrubValue = getScrubValue(isFirefox, isMobile, isIOS);
+        logDebugInfo("ScrollTrigger", `Using scrub value: ${scrubValue}`);
+        
+        // Create ScrollTrigger with simplified configuration
+        scrollTriggerRef.current = ScrollTrigger.create({
+          trigger: container,
+          start: "top top",
+          end: `+=${scrollExtraPx}`,
+          scrub: scrubValue,
+          pin: true,
+          onUpdate: (self) => {
+            updateVideoFrame(self.progress);
+          },
+          // Prevent ScrollTrigger from dropping its pin if there's not enough scroll space
+          pinSpacing: true 
+        });
+        
+        setIsSetupComplete(true);
+        logDebugInfo("ScrollTrigger", "Setup completed successfully");
+      } catch (error) {
+        logDebugInfo("ScrollTrigger", "Error setting up ScrollTrigger:", error);
+        // Retry after a short delay
+        setTimeout(setupScrollTrigger, 500);
+      }
+    };
+    
+    // Set up events to ensure video is ready
     const videoEvents = ['loadedmetadata', 'loadeddata', 'canplay'];
     
     const handleVideoReady = () => {
       setupScrollTrigger();
-      // Remove event listeners after first successful setup
-      videoEvents.forEach(event => {
-        video.removeEventListener(event, handleVideoReady);
-      });
+      // Remove event listeners after successful setup
+      videoEvents.forEach(event => video.removeEventListener(event, handleVideoReady));
     };
     
     // Add event listeners
-    videoEvents.forEach(event => {
-      video.addEventListener(event, handleVideoReady);
-    });
+    videoEvents.forEach(event => video.addEventListener(event, handleVideoReady));
     
     // Initial setup attempt
     setupScrollTrigger();
@@ -121,15 +161,18 @@ export const useScrollTrigger = ({
         scrollTriggerRef.current.kill();
       }
       
-      cleanupFrameUpdate();
+      window.removeEventListener('resize', updateContainerSize);
       
       videoEvents.forEach(event => {
         video.removeEventListener(event, handleVideoReady);
       });
     };
-  }, [containerRef, videoRef, scrollExtraPx, onAfterVideoChange, onProgressUpdate, isMobile, isIOS, isFirefox, updateVideoFrame, cleanupFrameUpdate]);
+  }, [containerRef, videoRef, scrollExtraPx, onAfterVideoChange, onProgressUpdate, isMobile, isIOS, isFirefox]);
 
   return { 
     isSetupComplete 
   };
 };
+
+export const STANDARD_FRAME_RATE = 30;
+export const FRAMES_BEFORE_END = 2;

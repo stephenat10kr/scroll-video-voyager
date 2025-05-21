@@ -44,14 +44,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       iOS: isIOS
     });
     
-    // Ensure video element is properly configured
     if (videoRef.current) {
+      // Apply essential video attributes
       videoRef.current.muted = true;
       videoRef.current.playsInline = true;
       videoRef.current.preload = "auto";
       
+      // iOS-specific attributes
+      if (isIOS) {
+        videoRef.current.setAttribute('webkit-playsinline', '');
+        videoRef.current.setAttribute('x-webkit-airplay', 'allow');
+      }
+      
       // Force initial frame to show
-      videoRef.current.currentTime = 0.001;
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0.001;
+        }
+      }, 100);
     }
   }, [src, segmentCount, SCROLL_EXTRA_PX, isMobile, isIOS, videoRef]);
 
