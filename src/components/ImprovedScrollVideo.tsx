@@ -12,25 +12,18 @@ gsap.registerPlugin(ScrollTrigger);
 
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
-  onReady?: () => void; // Callback when video is ready to play
-  onFirstFrameLoaded?: () => void; // Callback when first frame is loaded
+  onReady?: () => void; // Add onReady callback
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ 
-  src: externalSrc, 
-  onReady,
-  onFirstFrameLoaded 
-}) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoVisible, setIsVideoVisible] = useState(true);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
-  const [firstFrameConfirmed, setFirstFrameConfirmed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
-  const firstFrameCalledRef = useRef(false);
   
   // For debugging
   useEffect(() => {
@@ -45,25 +38,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
   // Use external src if provided, otherwise use the one from Contentful
+  // Remove all fallback URLs and only use Contentful
   const videoSrc = externalSrc || (heroVideoAsset?.fields?.file?.url 
     ? (heroVideoAsset.fields.file.url.startsWith('//') 
         ? 'https:' + heroVideoAsset.fields.file.url 
         : heroVideoAsset.fields.file.url)
     : undefined);
 
-  // Ensure the container and video background is always black
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.style.backgroundColor = 'black';
-    }
-    if (videoRef.current) {
-      videoRef.current.style.backgroundColor = 'black';
-    }
-    // Also set body background to black to prevent any white flashes
-    document.body.style.backgroundColor = 'black';
-  }, []);
-
-  // Enhanced video loading handler with first frame confirmation
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
@@ -79,56 +60,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     if (isIOS && videoRef.current && !isVideoInitialized) {
       initializeVideoForIOS();
     }
-    
-    // Ensure we load and display the first frame
-    if (videoRef.current) {
-      // Set a specific time to force frame loading
-      videoRef.current.currentTime = 0.001;
-      
-      // After a short delay, check if the frame has loaded
-      setTimeout(() => {
-        if (videoRef.current && videoRef.current.readyState >= 2) {
-          console.log("First frame confirmed loaded in loadeddata handler");
-          setFirstFrameConfirmed(true);
-          
-          // Notify parent that first frame is loaded, but only once
-          if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-            console.log("Calling onFirstFrameLoaded callback");
-            onFirstFrameLoaded();
-            firstFrameCalledRef.current = true;
-          }
-        }
-      }, 100);
-    }
   };
-
-  // Add seeked event handler to confirm frame navigation worked
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    const handleSeeked = () => {
-      console.log("Video seeked to specific frame");
-      
-      if (!firstFrameConfirmed) {
-        console.log("First frame confirmed loaded in seeked handler");
-        setFirstFrameConfirmed(true);
-        
-        // Notify parent that first frame is loaded if not already called
-        if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-          console.log("Calling onFirstFrameLoaded callback from seeked");
-          onFirstFrameLoaded();
-          firstFrameCalledRef.current = true;
-        }
-      }
-    };
-    
-    video.addEventListener("seeked", handleSeeked);
-    
-    return () => {
-      video.removeEventListener("seeked", handleSeeked);
-    };
-  }, [onFirstFrameLoaded, firstFrameConfirmed]);
   
   // Initialize video specifically for iOS
   const initializeVideoForIOS = () => {
@@ -149,7 +81,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     video.load();
     
     // Set current time to 0 first to ensure we're at the beginning
-    video.currentTime = 0.001;
+    video.currentTime = 0;
     
     // Try to play and immediately pause to initialize the video
     // This helps with iOS's strict autoplay policies
@@ -168,19 +100,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
           onReady();
           readyCalledRef.current = true;
         }
-        
-        // Check for first frame
-        setTimeout(() => {
-          console.log("First frame check after iOS initialization");
-          setFirstFrameConfirmed(true);
-          
-          // Also notify first frame loaded
-          if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-            console.log("Calling onFirstFrameLoaded after iOS initialization");
-            onFirstFrameLoaded();
-            firstFrameCalledRef.current = true;
-          }
-        }, 100);
       }).catch(err => {
         console.error("Error initializing video for iOS:", err);
         // Try a different approach - set the currentTime which sometimes forces a frame to load
@@ -193,17 +112,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
           onReady();
           readyCalledRef.current = true;
         }
-        
-        // Force first frame confirmation after a short delay
-        setTimeout(() => {
-          setFirstFrameConfirmed(true);
-          
-          if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-            console.log("Calling onFirstFrameLoaded after iOS error (fallback)");
-            onFirstFrameLoaded();
-            firstFrameCalledRef.current = true;
-          }
-        }, 100);
       });
     } else {
       // Play didn't return a promise, try setting currentTime
@@ -216,17 +124,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
         onReady();
         readyCalledRef.current = true;
       }
-      
-      // Force first frame confirmation after a short delay
-      setTimeout(() => {
-        setFirstFrameConfirmed(true);
-        
-        if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-          console.log("Calling onFirstFrameLoaded after no promise (fallback)");
-          onFirstFrameLoaded();
-          firstFrameCalledRef.current = true;
-        }
-      }, 100);
     }
   };
   
@@ -392,33 +289,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     };
   }, [isIOS, isVideoInitialized, onReady]);
 
-  // Add absolute fallback for callbacks
-  useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      // If after 3 seconds we still haven't confirmed everything, force it
-      if (onReady && !readyCalledRef.current) {
-        console.log("3s Fallback: calling onReady callback after extended timeout");
-        onReady();
-        readyCalledRef.current = true;
-      }
-      
-      if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-        console.log("3s Fallback: calling onFirstFrameLoaded after extended timeout");
-        onFirstFrameLoaded();
-        firstFrameCalledRef.current = true;
-      }
-    }, 3000);
-    
-    return () => {
-      clearTimeout(fallbackTimer);
-    };
-  }, [onReady, onFirstFrameLoaded]);
-
   return (
-    <div 
-      ref={containerRef} 
-      className="video-container fixed top-0 left-0 w-full h-screen z-0 bg-black"
-    >
+    <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -429,21 +301,20 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
       {videoSrc && (
         <video 
           ref={videoRef}
-          className="w-full h-full object-cover pointer-events-none bg-black"
+          className="w-full h-full object-cover pointer-events-none"
           style={{ 
             opacity: isVideoVisible ? 1 : 0,
             visibility: isVideoVisible ? 'visible' : 'hidden',
             backgroundColor: 'black', // Add background color to prevent white flashing
             willChange: 'transform', // Added performance optimization
             transform: 'translateZ(0)', // Force GPU acceleration
-            backfaceVisibility: 'hidden', // Prevent rendering the back face
-            transition: "opacity 0.5s ease-in-out" // Smooth transition
+            backfaceVisibility: 'hidden' // Prevent rendering the back face
           }}
           playsInline={true}
           webkit-playsinline="true" 
           preload="auto"
           muted={true}
-          autoPlay={false}
+          autoPlay={isIOS ? true : false}
           controls={false}
           onLoadedData={handleVideoLoaded}
         >

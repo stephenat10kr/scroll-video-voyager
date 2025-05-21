@@ -22,7 +22,6 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
-  const [videoFirstFrameLoaded, setVideoFirstFrameLoaded] = useState(false);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -35,7 +34,7 @@ const Index = () => {
   
   // Force complete preloader after maximum time
   useEffect(() => {
-    const maxLoadingTime = 10000; // 10 seconds max loading time (increased from 8)
+    const maxLoadingTime = 8000; // 8 seconds max loading time (reduced from 12)
     const forceCompleteTimeout = setTimeout(() => {
       if (loadProgress < 100) {
         console.log("Force completing preloader after timeout");
@@ -54,37 +53,31 @@ const Index = () => {
     const startDelay = setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
-          // If video is ready AND first frame is loaded, jump directly to 100%
-          if (videoReady && videoFirstFrameLoaded) {
+          // If video is ready, jump directly to 100%
+          if (videoReady) {
             clearInterval(progressInterval);
             return 100;
           }
-          
-          // If only videoReady but first frame not confirmed, go to 95%
-          if (videoReady && !videoFirstFrameLoaded) {
-            return Math.min(95, prev + Math.random() * 5);
-          }
-          
-          // Otherwise continue normal progress, but cap at 90% until video signals ready
+          // Otherwise continue normal progress, but cap at 95%
           const newProgress = prev + Math.random() * 5;
-          return Math.min(90, newProgress);
+          return Math.min(95, newProgress);
         });
       }, 200);
-    }, 300);
+    }, 300); // Reduced from 500ms to 300ms for faster initial loading
     
     return () => {
       clearTimeout(startDelay);
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [videoReady, videoFirstFrameLoaded]);
+  }, [videoReady]);
   
-  // When both video is ready AND first frame loaded, immediately set progress to 100%
+  // When video is ready, immediately set progress to 100%
   useEffect(() => {
-    if (videoReady && videoFirstFrameLoaded) {
-      console.log("Video is ready AND first frame loaded, immediately setting progress to 100%");
+    if (videoReady) {
+      console.log("Video is ready, immediately setting progress to 100%");
       setLoadProgress(100);
     }
-  }, [videoReady, videoFirstFrameLoaded]);
+  }, [videoReady]);
   
   // Enhanced debugging
   useEffect(() => {
@@ -97,9 +90,7 @@ const Index = () => {
       console.log("Android device detected in Index component");
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
-    
-    console.log(`Video ready: ${videoReady}, First frame loaded: ${videoFirstFrameLoaded}`);
-  }, [isIOS, isAndroid, videoReady, videoFirstFrameLoaded]);
+  }, [isIOS, isAndroid]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
@@ -112,51 +103,30 @@ const Index = () => {
     setVideoReady(true);
   };
   
-  const handleFirstFrameLoaded = () => {
-    console.log("First video frame is loaded and visible");
-    setVideoFirstFrameLoaded(true);
-  };
-  
   // Skip content rendering until preloader is done
   if (loading) {
     return (
       <>
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
-        <Preloader 
-          progress={loadProgress} 
-          onComplete={handlePreloaderComplete} 
-          videoReady={videoReady && videoFirstFrameLoaded} // Only consider fully ready when first frame is confirmed
-        />
+        <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
         {/* Preload video while showing preloader but keep it hidden */}
         <div style={{ visibility: 'hidden', position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
           {isAndroid ? (
-            <ImprovedScrollVideo 
-              onReady={handleVideoReady} 
-              onFirstFrameLoaded={handleFirstFrameLoaded}
-              src={videoSrc} 
-            />
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
-            <ScrollVideo 
-              onReady={handleVideoReady} 
-              onFirstFrameLoaded={handleFirstFrameLoaded}
-              src={videoSrc} 
-            />
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
       </>
     );
   }
   
-  return <div className="min-h-screen w-full relative bg-black">
+  return <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
       {/* Video fixed at the top (mid z-index) */}
-      {isAndroid ? (
-        <ImprovedScrollVideo src={videoSrc} />
-      ) : (
-        <ScrollVideo src={videoSrc} />
-      )}
+      <ImprovedScrollVideo src={videoSrc} />
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">

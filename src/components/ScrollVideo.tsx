@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,12 +14,10 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
-  onReady?: () => void;
-  onFirstFrameLoaded?: () => void; // New callback for first frame loaded
+  onReady?: () => void; // Add onReady callback prop
 }> = ({
   src,
-  onReady,
-  onFirstFrameLoaded
+  onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,11 +27,8 @@ const ScrollVideo: React.FC<{
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
-  const [firstFrameConfirmed, setFirstFrameConfirmed] = useState(false);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
-  const readyCalledRef = useRef(false);
-  const firstFrameCalledRef = useRef(false);
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -85,13 +81,6 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
-      // Set background color to black immediately to prevent white flash
-      if (containerRef.current) {
-        containerRef.current.style.backgroundColor = 'black';
-      }
-      video.style.backgroundColor = 'black';
-      document.body.style.backgroundColor = 'black';
-      
       // Force initial visibility for mobile devices
       if (isMobile) {
         // Immediately make video element visible
@@ -161,34 +150,27 @@ const ScrollVideo: React.FC<{
         setVideoLoaded(true);
         setVideoVisible(true);
         
-        // Notify parent that video is ready, but only once
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback");
+        // Notify parent that video is ready
+        if (onReady) {
           onReady();
-          readyCalledRef.current = true;
         }
         
         // Always pause the video when it can play
         video.pause();
         console.log("Video paused on load");
         
-        // For all devices, ensure a frame is displayed
-        video.currentTime = 0.001;
-        
-        // After a short delay, check if the frame has loaded
-        setTimeout(() => {
-          if (video.readyState >= 2) {
-            console.log("First frame confirmed loaded in canplay handler");
-            setFirstFrameConfirmed(true);
-            
-            // Notify parent that first frame is loaded, but only once
-            if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-              console.log("Calling onFirstFrameLoaded callback from canplay");
-              onFirstFrameLoaded();
-              firstFrameCalledRef.current = true;
-            }
+        // For mobile, we need to ensure a frame is displayed
+        if (isMobile) {
+          // Set the currentTime to show the first frame
+          video.currentTime = 0.001;
+          
+          // Android-specific frame loading
+          if (isAndroid) {
+            // Use multiple frames to ensure texture loading on Android
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
           }
-        }, 100);
+        }
       };
       
       // Add loadeddata event to ensure video is fully loaded before showing
@@ -196,43 +178,20 @@ const ScrollVideo: React.FC<{
         console.log("Video data loaded");
         setVideoVisible(true);
         
-        // Also notify ready on loadeddata if not already called
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback from loadeddata");
+        // Also notify ready on loadeddata in case canplay doesn't fire
+        if (onReady) {
           onReady();
-          readyCalledRef.current = true;
         }
         
-        // Set the currentTime to show the first frame
-        video.currentTime = 0.001;
-        
-        // After loadeddata, the first frame should be available
-        setTimeout(() => {
-          console.log("First frame confirmed loaded in loadeddata handler");
-          setFirstFrameConfirmed(true);
+        // Set the currentTime to show the first frame for mobile
+        if (isMobile) {
+          video.currentTime = 0.001;
           
-          // Notify parent that first frame is loaded if not already called
-          if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-            console.log("Calling onFirstFrameLoaded callback from loadeddata");
-            onFirstFrameLoaded();
-            firstFrameCalledRef.current = true;
-          }
-        }, 50);
-      };
-      
-      // Add seeked event to confirm frame navigation worked
-      const handleSeeked = () => {
-        console.log("Video seeked to specific frame");
-        
-        if (!firstFrameConfirmed) {
-          console.log("First frame confirmed loaded in seeked handler");
-          setFirstFrameConfirmed(true);
-          
-          // Notify parent that first frame is loaded if not already called
-          if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-            console.log("Calling onFirstFrameLoaded callback from seeked");
-            onFirstFrameLoaded();
-            firstFrameCalledRef.current = true;
+          // Android-specific frame loading
+          if (isAndroid) {
+            // Force rendering multiple frames for Android texture loading
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
           }
         }
       };
@@ -272,85 +231,59 @@ const ScrollVideo: React.FC<{
       video.addEventListener("canplay", handleCanPlay);
       video.addEventListener("loadeddata", handleLoadedData);
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
-      video.addEventListener("seeked", handleSeeked);
       video.addEventListener("error", handleError);
       
-      // Safety timeout to ensure visibility and trigger callbacks
+      // Add a safety timeout to ensure visibility regardless of events
       const shortTimeoutId = setTimeout(() => {
         // Force visibility after a very short delay
-        setVideoVisible(true);
-        console.log("Video visibility forced by short timeout");
+        if (isMobile) {
+          setVideoVisible(true);
+          console.log("Mobile video visibility forced by short timeout");
+        }
       }, 100);
       
       // Use a longer timeout as a fallback for all devices
       const timeoutId = setTimeout(() => {
-        console.log("Fallback timeout triggered for video loading");
         setVideoVisible(true);
+        console.log("Video visibility forced by fallback timeout");
         
         // If video still hasn't loaded its first frame, try to force it
-        if (video.readyState < 2) {
+        if (isMobile && video.readyState < 2) {
           video.load();
           video.currentTime = 0.001;
           
-          // Try additional loading methods
-          setTimeout(() => {
-            // Try to force frame loading
-            video.currentTime = 0.01;
-            
-            // If we still don't have confirmation, just assume it worked
+          // Android-specific frame loading in the fallback timeout
+          if (isAndroid) {
+            // Try additional loading methods for Android
             setTimeout(() => {
-              if (!firstFrameConfirmed) {
-                console.log("First frame loading assumed complete by fallback timeout");
-                setFirstFrameConfirmed(true);
-                
-                // Notify parent that first frame is loaded (fallback)
-                if (onFirstFrameLoaded && !firstFrameCalledRef.current) {
-                  console.log("Calling onFirstFrameLoaded callback from fallback");
-                  onFirstFrameLoaded();
-                  firstFrameCalledRef.current = true;
-                }
-              }
-            }, 100);
-          }, 50);
+              // Force hardware decoding with a quick play/pause
+              video.play().then(() => {
+                video.pause();
+              }).catch(() => {
+                // If play fails, try multiple frame settings
+                video.currentTime = 0.01;
+                setTimeout(() => { video.currentTime = 0.1; }, 50);
+              });
+            }, 50);
+          }
         }
         
         // Also notify ready after timeout as a last resort
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback from fallback timeout");
+        if (onReady && !videoLoaded) {
           onReady();
-          readyCalledRef.current = true;
         }
-      }, 500); // Increased from 300ms to 500ms
-      
-      // Long timeout as absolute fallback
-      const longTimeoutId = setTimeout(() => {
-        console.log("Long fallback timeout triggered - forcing callbacks");
-        
-        if (!readyCalledRef.current && onReady) {
-          console.log("Forcing onReady callback");
-          onReady();
-          readyCalledRef.current = true;
-        }
-        
-        if (!firstFrameCalledRef.current && onFirstFrameLoaded) {
-          console.log("Forcing onFirstFrameLoaded callback");
-          onFirstFrameLoaded();
-          firstFrameCalledRef.current = true;
-        }
-      }, 2000);
+      }, 300);
       
       return () => {
         video.removeEventListener("canplay", handleCanPlay);
         video.removeEventListener("loadeddata", handleLoadedData);
         video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        video.removeEventListener("seeked", handleSeeked);
         video.removeEventListener("error", handleError);
         clearTimeout(shortTimeoutId);
         clearTimeout(timeoutId);
-        clearTimeout(longTimeoutId);
       };
     }
-  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady, videoLoaded, onFirstFrameLoaded, firstFrameConfirmed]);
+  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady, videoLoaded]);
 
   // Add document-level interaction detection
   useEffect(() => {
@@ -424,13 +357,10 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            transition: "opacity 0.5s ease-in-out",
+            // Transition is now managed dynamically based on scroll direction
             display: "block",
             visibility: "visible",
-            backgroundColor: "black", // Ensure background is black
-            transform: "translateZ(0)", // Force GPU acceleration
-            willChange: "transform, opacity", // Performance optimization
-            backfaceVisibility: "hidden" // Prevent rendering the back face
+            backgroundColor: "black" // Ensure background is black, not white
           }} 
         />
       </ScrollVideoPlayer>
