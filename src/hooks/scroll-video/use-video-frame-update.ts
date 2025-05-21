@@ -1,6 +1,6 @@
 
-import { useRef, useEffect } from 'react';
-import { FRAMES_BEFORE_END, STANDARD_FRAME_RATE, logDebugInfo, isVideoDurationValid } from './scroll-utils';
+import { useRef } from 'react';
+import { FRAMES_BEFORE_END, STANDARD_FRAME_RATE, logDebugInfo } from './scroll-utils';
 
 interface UseVideoFrameUpdateParams {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -18,19 +18,7 @@ export const useVideoFrameUpdate = ({
   onAfterVideoChange,
   isIOS
 }: UseVideoFrameUpdateParams) => {
-  const frameRef = useRef<number | null>(null);
   const lastProgressRef = useRef(0);
-  
-  // Initialize video if needed
-  useEffect(() => {
-    // Force video to load first frame if not already loaded
-    const video = videoRef.current;
-    if (video && video.readyState === 0) {
-      video.load();
-      video.currentTime = 0.001; // Tiny non-zero value to force frame load
-      logDebugInfo("VideoFrame", "Forced initial frame load");
-    }
-  }, [videoRef]);
   
   // Function to update video frames based on scroll position
   const updateVideoFrame = (progress: number) => {
@@ -45,10 +33,15 @@ export const useVideoFrameUpdate = ({
     onProgressUpdate(progress);
     
     try {
+      // Ensure video is loaded
       if (video.readyState === 0) {
-        // Force load if not ready
         video.load();
         video.currentTime = 0.001;
+        return;
+      }
+
+      if (isNaN(video.duration) || video.duration <= 0) {
+        logDebugInfo("VideoFrame", "Invalid video duration, cannot update frame");
         return;
       }
       
@@ -61,11 +54,8 @@ export const useVideoFrameUpdate = ({
         targetTime = Math.min(targetTime, stopTime);
       }
       
-      // Use direct time setting for immediate response
-      if (video.currentTime !== targetTime) {
-        video.currentTime = targetTime;
-        logDebugInfo("VideoFrame", `Set time: ${targetTime.toFixed(2)}s (${(progress * 100).toFixed(1)}%)`);
-      }
+      // Set the current time directly
+      video.currentTime = targetTime;
       
       // Signal if we're at the end of the video
       onAfterVideoChange(progress > 0.98);
@@ -74,12 +64,8 @@ export const useVideoFrameUpdate = ({
     }
   };
   
-  // Clean up function to cancel animation frame
   const cleanup = () => {
-    if (frameRef.current) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
+    // Nothing to clean up in this simpler implementation
   };
 
   return {

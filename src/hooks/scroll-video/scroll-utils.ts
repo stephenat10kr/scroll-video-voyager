@@ -9,13 +9,11 @@ export const FRAMES_BEFORE_END = 2; // Keep at 2 frames for better iOS experienc
 
 // Return device-specific scrub value for smoother scrolling
 export const getScrubValue = (isFirefox: boolean, isMobile: boolean, isIOS: boolean): number => {
-  // More aggressive scrub values to ensure responsiveness
-  if (isIOS) {
-    return 0.1; // More responsive on iOS
-  }
-  
-  // Return based on browser/device - lower values = more responsive
-  return isFirefox ? 0.2 : (isMobile ? 0.1 : 0.05);
+  // Simple fixed values that worked in the past
+  if (isIOS) return 0.1;  
+  if (isFirefox) return 0.2;
+  if (isMobile) return 0.15;
+  return 0.1; // Default value that worked previously
 };
 
 // Helper to log specific debug information
@@ -25,5 +23,6 @@ export const logDebugInfo = (context: string, message: string, data?: any): void
 
 // Added utility to ensure video has valid duration
 export const isVideoDurationValid = (video: HTMLVideoElement | null): boolean => {
-  return !!video && !isNaN(video.duration) && video.duration > 0;
+  if (!video) return false;
+  return !isNaN(video.duration) && video.duration > 0 && video.readyState > 0;
 };

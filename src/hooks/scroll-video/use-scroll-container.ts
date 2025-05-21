@@ -30,14 +30,12 @@ export const useScrollContainer = ({
     logDebugInfo("ScrollContainer", "Device detection - iOS:", isIOS);
     logDebugInfo("ScrollContainer", "Device detection - Firefox:", isFirefox);
 
-    // Resize container based on scroll requirements
+    // Simple resizing function
     const resizeSection = () => {
       if (container) {
-        // Simple sizing approach that worked before
+        // Simple reliable height calculation
         const totalHeight = window.innerHeight + scrollExtraPx;
         container.style.height = `${totalHeight}px`;
-        
-        // Ensure visibility
         container.style.position = "relative";
         container.style.overflow = "hidden";
         container.style.display = "block";

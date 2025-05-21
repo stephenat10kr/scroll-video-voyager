@@ -43,7 +43,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     isFirefox 
   });
 
-  // Set up scroll trigger for video scrubbing - key part of functionality
+  // Set up scroll trigger for video scrubbing
   const { isSetupComplete } = useScrollTrigger({
     containerRef,
     videoRef,
@@ -81,11 +81,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.load();
       
       // Ensure first frame is shown
-      setTimeout(() => {
-        if (video) {
-          video.currentTime = 0.001;
-        }
-      }, 50);
+      video.currentTime = 0.001;
+      
+      // Add error handling
+      const handleError = () => {
+        logDebugInfo("VideoPlayer", "Error loading video source");
+      };
+      
+      video.addEventListener('error', handleError);
+      
+      return () => {
+        video.removeEventListener('error', handleError);
+      };
     }
   }, [src, videoRef]);
 
