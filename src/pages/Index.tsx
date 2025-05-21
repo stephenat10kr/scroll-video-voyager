@@ -240,21 +240,19 @@ const Index = () => {
           <HeroText skipLogoSection={true} />
         </section>
         
-        <div style={{display: "flex", flexDirection: "column"}}>
-          {/* RevealText with no margin/padding at the bottom */}
-          <div id="revealText-section" style={{marginBottom: "0", paddingBottom: "0"}}>
-            <RevealText />
-          </div>
+        {/* RevealText and Red spacer with CSS grid to eliminate gaps */}
+        <div style={{display: "grid", gridTemplateRows: "auto auto", gap: 0}}>
+          {/* RevealText component with no margins or padding */}
+          <RevealText />
           
-          {/* Red spacer directly attached to RevealText */}
+          {/* Red spacer with no margins or padding */}
           <div style={{ 
-            width: "100%", 
             height: "96px", 
             backgroundColor: '#ea384c',
-            marginTop: "0",
-            marginBottom: "0",
-            paddingTop: "0",
-            paddingBottom: "0"
+            margin: 0,
+            padding: 0,
+            position: "relative",
+            top: "-1px" /* Slight negative offset to ensure no gap */
           }}></div>
         </div>
         
