@@ -8,7 +8,7 @@ import Rituals from "../components/Rituals";
 import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
-import ChladniPattern from "../components/ChladniPattern";
+import PatternContainer from "../components/PatternContainer";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
@@ -112,10 +112,10 @@ const Index = () => {
       {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
       
-      {/* Chladni pattern (higher z-index than video) */}
-      <ChladniPattern />
+      {/* Pattern Container (middle z-index) */}
+      <PatternContainer />
       
-      {/* Video (middle z-index) with fade-in effect */}
+      {/* Video (lower z-index than pattern) with fade-in effect */}
       <div 
         className="fixed inset-0 w-full h-screen" 
         style={{ 
