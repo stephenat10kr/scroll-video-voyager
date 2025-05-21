@@ -166,7 +166,50 @@ const Index = () => {
   
   return (
     <>
-      {/* Content overlay - now on top of everything */}
+      {/* Background container that switches between video and Chladni pattern */}
+      <div 
+        className="fixed inset-0 w-full h-full" 
+        style={{ 
+          zIndex: 10,
+          backgroundColor: "black", // Ensure black background 
+        }}
+      >
+        {/* Video with instant transition */}
+        <div 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
+            transition: "opacity 0s", // Keep instant transition
+            zIndex: 10
+          }}
+        >
+          {isAndroid ? (
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          ) : (
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+          )}
+        </div>
+        
+        {/* Chladni pattern with instant transition - now covers all content */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: showChladniPattern ? 1 : 0,
+            transition: "opacity 0s", // Keep instant transition
+            zIndex: 11
+          }}
+          className="chladni-container"
+        >
+          <ChladniPattern className="fixed inset-0" />
+        </div>
+      </div>
+      
+      {/* Content overlay on top of everything */}
       <div 
         className="content-container relative z-20"
         style={{ backgroundColor: 'transparent', position: 'relative' }}
@@ -217,47 +260,8 @@ const Index = () => {
         </section>
       </div>
       
-      {/* We no longer need this spacer as the transition is controlled by the marker */}
-      <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
-      
-      {/* Background container that switches between video and Chladni pattern */}
-      <div 
-        className="fixed inset-0 w-full h-screen" 
-        style={{ 
-          zIndex: 10,
-          backgroundColor: "black", // Ensure black background 
-        }}
-      >
-        {/* Chladni pattern with instant transition */}
-        <div 
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
-            zIndex: 11
-          }}
-        >
-          <ChladniPattern />
-        </div>
-        
-        {/* Video with instant transition */}
-        <div 
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
-            zIndex: 10
-          }}
-        >
-          {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          )}
-        </div>
-      </div>
+      {/* We no longer need this spacer since the Chladni pattern will cover all content */}
+      <div className="w-full h-0" style={{ backgroundColor: colors.darkGreen }} />
       
       {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />

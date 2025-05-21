@@ -4,9 +4,10 @@ import { colors } from '../lib/theme';
 
 interface ChladniPatternProps {
   children?: React.ReactNode;
+  className?: string;
 }
 
-const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
+const ChladniPattern: React.FC<ChladniPatternProps> = ({ children, className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -184,7 +185,7 @@ const ChladniPattern: React.FC<ChladniPatternProps> = ({ children }) => {
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full"
+      className={`w-full h-full ${className}`}
       style={{ 
         backgroundColor: colors.darkGreen, // Explicitly use darkGreen from theme
       }}
