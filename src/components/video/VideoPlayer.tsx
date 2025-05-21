@@ -83,8 +83,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       // Force load and initial frame in case it doesn't load automatically
       video.load();
       video.currentTime = 0.001; // Small non-zero value to force first frame
+      
+      // On iOS, we sometimes need to explicitly set the current time after loading
+      if (isIOS) {
+        setTimeout(() => {
+          if (video) {
+            video.currentTime = 0.001;
+          }
+        }, 100);
+      }
     }
-  }, [src, videoRef]);
+  }, [src, videoRef, isIOS]);
 
   return <>{children}</>;
 };
