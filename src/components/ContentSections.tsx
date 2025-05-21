@@ -64,8 +64,8 @@ const ContentSections: React.FC = () => {
         </section>
       </div>
       
-      {/* Dark background for sections after hero text */}
-      <div className="w-full" style={{ height: '100vh', backgroundColor: colors.darkGreen }} />
+      {/* 700vh spacer to push content down */}
+      <div className="w-full" style={{ height: '700vh', backgroundColor: colors.darkGreen }} />
     </>
   );
 };

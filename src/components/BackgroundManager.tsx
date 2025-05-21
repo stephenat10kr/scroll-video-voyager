@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import ChladniPattern from "./ChladniPattern";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import ScrollVideo from "./ScrollVideo";
@@ -18,7 +18,6 @@ const BackgroundManager: React.FC<BackgroundManagerProps> = ({
 }) => {
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const isAndroid = useIsAndroid();
-  const heroTextRef = useRef<HTMLElement | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -29,52 +28,31 @@ const BackgroundManager: React.FC<BackgroundManagerProps> = ({
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
   
-  // Find the HeroText component in the DOM
+  // Handle scroll-based switching between video and Chladni pattern
   useEffect(() => {
-    // Look for HeroText section to observe
-    const heroTextElement = document.querySelector('section:has(> div > section > div > div > h1.title-xl)');
-    
-    if (heroTextElement) {
-      console.log("Found HeroText element for visibility tracking");
-      heroTextRef.current = heroTextElement as HTMLElement;
-    } else {
-      console.warn("Could not find HeroText element");
-    }
-  }, []);
-  
-  // Set up intersection observer to detect when HeroText leaves/enters viewport
-  useEffect(() => {
-    if (!heroTextRef.current) return;
-    
-    const observerOptions = {
-      root: null, // Use viewport as root
-      rootMargin: "0px", // No margin
-      threshold: 0.1 // Trigger when 10% of the element is visible/invisible
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollThreshold = window.innerHeight * 7; // 700vh
+      
+      // When scrolled past threshold, show Chladni pattern and hide video
+      if (scrollY >= scrollThreshold && !showChladniPattern) {
+        console.log("Scroll threshold reached: Showing Chladni pattern");
+        setShowChladniPattern(true);
+      } 
+      // When scrolled back up, hide Chladni pattern and show video
+      else if (scrollY < scrollThreshold && showChladniPattern) {
+        console.log("Scrolled back above threshold: Showing video");
+        setShowChladniPattern(false);
+      }
     };
     
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach(entry => {
-        // When HeroText is no longer intersecting (out of view), show Chladni pattern
-        if (!entry.isIntersecting && !showChladniPattern) {
-          console.log("HeroText left viewport: Showing Chladni pattern");
-          setShowChladniPattern(true);
-        } 
-        // When HeroText is intersecting (in view), show video
-        else if (entry.isIntersecting && showChladniPattern) {
-          console.log("HeroText entered viewport: Showing video");
-          setShowChladniPattern(false);
-        }
-      });
-    };
+    window.addEventListener('scroll', handleScroll);
     
-    const observer = new IntersectionObserver(handleIntersection, observerOptions);
-    observer.observe(heroTextRef.current);
+    // Run once on mount to set initial state
+    handleScroll();
     
     return () => {
-      if (heroTextRef.current) {
-        observer.unobserve(heroTextRef.current);
-      }
-      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [showChladniPattern]);
 
