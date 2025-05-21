@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -92,6 +93,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       style={{ 
         backgroundColor: colors.darkGreen, 
         zIndex: 5, // Lower than video (which will be 10) but higher than Chladni (which is 0)
+        opacity: 0, // TEMPORARILY HIDDEN
       }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
