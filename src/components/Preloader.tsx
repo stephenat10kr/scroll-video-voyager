@@ -79,10 +79,10 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         const completeTimeout = setTimeout(() => {
           console.log("Preloader - Calling onComplete");
           onComplete();
-        }, 750); // Reduced from 800ms to 750ms for slightly faster transition
+        }, 600); // Reduced from 750ms to 600ms for faster transition
         
         return () => clearTimeout(completeTimeout);
-      }, 500); // Keep 500ms for "Come in." message
+      }, 400); // Reduced from 500ms to 400ms for quicker "Come in." message
       
       return () => clearTimeout(welcomeTimeout);
     }
@@ -106,7 +106,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       }`}
       style={{ 
         backgroundColor: colors.darkGreen, 
-        transition: "opacity 0.75s ease-out",  // Faster transition
+        transition: "opacity 0.6s ease-out",  // Faster transition (reduced from 0.75s)
         pointerEvents: visible ? "auto" : "none" // Prevent interaction when invisible
       }}
     >

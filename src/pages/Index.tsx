@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -22,6 +23,8 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const videoElementRef = useRef(null);
+  const videoContainerRef = useRef(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -34,7 +37,7 @@ const Index = () => {
   
   // Force complete preloader after maximum time
   useEffect(() => {
-    const maxLoadingTime = 8000; // 8 seconds max loading time (reduced from 12)
+    const maxLoadingTime = 8000; // 8 seconds max loading time
     const forceCompleteTimeout = setTimeout(() => {
       if (loadProgress < 100) {
         console.log("Force completing preloader after timeout");
@@ -121,12 +124,28 @@ const Index = () => {
     );
   }
   
-  return <div className="min-h-screen w-full relative">
+  return (
+    <div className="min-h-screen w-full relative">
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo src={videoSrc} />
+      {/* Video container with black background (mid z-index) */}
+      <div 
+        ref={videoContainerRef} 
+        className="fixed top-0 left-0 w-full h-screen z-0 bg-black"
+      >
+        {isAndroid ? (
+          <ImprovedScrollVideo 
+            ref={videoElementRef}
+            src={videoSrc} 
+          />
+        ) : (
+          <ScrollVideo 
+            ref={videoElementRef}
+            src={videoSrc} 
+          />
+        )}
+      </div>
       
       {/* Content overlay (high z-index, but below logo) */}
       <div className="content-container relative z-10">
@@ -176,7 +195,8 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Index;

@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, forwardRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
@@ -12,18 +12,18 @@ gsap.registerPlugin(ScrollTrigger);
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
-const ScrollVideo: React.FC<{
+const ScrollVideo = forwardRef<HTMLVideoElement, {
   src?: string;
-  onReady?: () => void; // Add onReady callback prop
-}> = ({
-  src,
-  onReady
-}) => {
+  onReady?: () => void;
+}>(({ src, onReady }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  // Use the forwarded ref or fallback to internal ref
+  const videoRef = (ref as React.RefObject<HTMLVideoElement>) || internalVideoRef;
+  
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(true); // Start with video visible
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
@@ -81,10 +81,11 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const video = videoRef.current;
     if (video && secureVideoSrc) {
+      // Prevent the initial black flash by ensuring video is always visible
+      setVideoVisible(true);
+      
       // Force initial visibility for mobile devices
       if (isMobile) {
-        // Immediately make video element visible
-        setVideoVisible(true);
         console.log("Mobile detected: Forcing initial video visibility");
         
         // Force loading of the first frame
@@ -357,15 +358,19 @@ const ScrollVideo: React.FC<{
           style={{
             minHeight: "100vh",
             opacity: videoVisible && isInViewport ? 1 : 0,
-            // Transition is now managed dynamically based on scroll direction
             display: "block",
             visibility: "visible",
-            backgroundColor: "black" // Ensure background is black, not white
+            backgroundColor: "black", // Ensure background is black
+            transform: "translateZ(0)", // Force GPU acceleration
+            willChange: "opacity", // Optimize for opacity changes
+            backfaceVisibility: "hidden" // Prevent rendering the back face
           }} 
         />
       </ScrollVideoPlayer>
     </div>
   );
-};
+});
+
+ScrollVideo.displayName = "ScrollVideo";
 
 export default ScrollVideo;

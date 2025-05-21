@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+
+import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import Spinner from "./Spinner";
@@ -15,11 +16,14 @@ interface ImprovedScrollVideoProps {
   onReady?: () => void; // Add onReady callback
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
+const ImprovedScrollVideo = forwardRef<HTMLVideoElement, ImprovedScrollVideoProps>(({ src: externalSrc, onReady }, ref) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isVideoVisible, setIsVideoVisible] = useState(true);
+  const [isVideoVisible, setIsVideoVisible] = useState(true); // Start with video visible
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  // Use the forwarded ref or fallback to internal ref
+  const videoRef = (ref as React.RefObject<HTMLVideoElement>) || internalVideoRef;
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
@@ -48,6 +52,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const handleVideoLoaded = () => {
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
+    setIsVideoVisible(true); // Ensure video is visible when loaded
     
     // Notify parent component that video is ready, but only once
     if (onReady && !readyCalledRef.current) {
@@ -93,6 +98,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         video.pause();
         console.log("Successfully initialized video for iOS");
         setIsVideoInitialized(true);
+        setIsVideoVisible(true); // Ensure video is visible after initialization
         
         // Make sure ready callback is called after successful initialization
         if (onReady && !readyCalledRef.current) {
@@ -105,6 +111,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         // Try a different approach - set the currentTime which sometimes forces a frame to load
         video.currentTime = 0.1;
         setIsVideoInitialized(true);
+        setIsVideoVisible(true); // Ensure video is visible even after error
         
         // Still call ready even on error, to prevent getting stuck
         if (onReady && !readyCalledRef.current) {
@@ -117,6 +124,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       // Play didn't return a promise, try setting currentTime
       video.currentTime = 0.1;
       setIsVideoInitialized(true);
+      setIsVideoVisible(true); // Ensure video is visible
       
       // Call ready in this case too
       if (onReady && !readyCalledRef.current) {
@@ -137,7 +145,24 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isVideoLoaded) return;
+    if (!video || !videoSrc) return;
+    
+    // Always set video to visible when it has a source
+    setIsVideoVisible(true);
+    
+    // Pre-initialize video to avoid black flash
+    const preInitVideo = () => {
+      if (video.readyState >= 1) {
+        video.currentTime = 0.001;
+        console.log("Pre-initializing video frame");
+      }
+    };
+    
+    // Try to pre-initialize immediately
+    preInitVideo();
+    
+    // And also after a slight delay to ensure it works
+    setTimeout(preInitVideo, 50);
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -230,7 +255,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
+  }, [videoSrc, isIOS, isVideoInitialized, isAndroid]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
@@ -308,7 +333,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             backgroundColor: 'black', // Add background color to prevent white flashing
             willChange: 'transform', // Added performance optimization
             transform: 'translateZ(0)', // Force GPU acceleration
-            backfaceVisibility: 'hidden' // Prevent rendering the back face
+            backfaceVisibility: 'hidden', // Prevent rendering the back face
+            transition: 'opacity 0.3s ease-out' // Smooth transition for opacity changes
           }}
           playsInline={true}
           webkit-playsinline="true" 
@@ -324,6 +350,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       )}
     </div>
   );
-};
+});
+
+ImprovedScrollVideo.displayName = "ImprovedScrollVideo";
 
 export default ImprovedScrollVideo;
