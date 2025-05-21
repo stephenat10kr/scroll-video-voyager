@@ -241,12 +241,12 @@ const Index = () => {
           <HeroText skipLogoSection={true} />
         </section>
         
-        <section id="revealText-section">
+        <section id="revealText-section" className="mb-0 pb-0">
           <RevealText />
         </section>
         
         {/* New red spacer - 96px high */}
-        <div className="w-full h-24" style={{ backgroundColor: '#ea384c' }}></div>
+        <div className="w-full h-24 mt-0" style={{ backgroundColor: '#ea384c' }}></div>
         
         <section>
           <Values title="VALUES" />
