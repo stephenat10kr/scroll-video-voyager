@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -24,6 +23,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
+  const readyCalledRef = useRef(false);
   
   // For debugging
   useEffect(() => {
@@ -49,9 +49,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     console.log("Video loaded event triggered");
     setIsVideoLoaded(true);
     
-    // Notify parent component that video is ready
-    if (onReady) {
+    // Notify parent component that video is ready, but only once
+    if (onReady && !readyCalledRef.current) {
+      console.log("Calling onReady callback");
       onReady();
+      readyCalledRef.current = true;
     }
     
     // For iOS, we need to manually initialize the video when it's loaded
@@ -91,16 +93,37 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         video.pause();
         console.log("Successfully initialized video for iOS");
         setIsVideoInitialized(true);
+        
+        // Make sure ready callback is called after successful initialization
+        if (onReady && !readyCalledRef.current) {
+          console.log("Calling onReady callback after iOS initialization");
+          onReady();
+          readyCalledRef.current = true;
+        }
       }).catch(err => {
         console.error("Error initializing video for iOS:", err);
         // Try a different approach - set the currentTime which sometimes forces a frame to load
         video.currentTime = 0.1;
         setIsVideoInitialized(true);
+        
+        // Still call ready even on error, to prevent getting stuck
+        if (onReady && !readyCalledRef.current) {
+          console.log("Calling onReady callback after iOS initialization (error case)");
+          onReady();
+          readyCalledRef.current = true;
+        }
       });
     } else {
       // Play didn't return a promise, try setting currentTime
       video.currentTime = 0.1;
       setIsVideoInitialized(true);
+      
+      // Call ready in this case too
+      if (onReady && !readyCalledRef.current) {
+        console.log("Calling onReady callback after iOS initialization (no promise case)");
+        onReady();
+        readyCalledRef.current = true;
+      }
     }
   };
   
@@ -238,13 +261,33 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           console.log("Delayed initialization for iOS");
           initializeVideoForIOS();
         }
+        
+        // Ensure video ready callback is called if not done yet
+        if (onReady && !readyCalledRef.current) {
+          console.log("Calling onReady callback after iOS delayed initialization");
+          onReady();
+          readyCalledRef.current = true;
+        }
       }, 500);
       
       return () => {
         document.removeEventListener('visibilitychange', handleIOSVisibilityChange);
       };
     }
-  }, [isIOS, isVideoInitialized]);
+    
+    // Add a fallback to ensure we always trigger onReady
+    const fallbackTimer = setTimeout(() => {
+      if (onReady && !readyCalledRef.current && videoRef.current) {
+        console.log("Fallback: calling onReady callback after timeout");
+        onReady();
+        readyCalledRef.current = true;
+      }
+    }, 3000); // 3 second fallback
+    
+    return () => {
+      clearTimeout(fallbackTimer);
+    };
+  }, [isIOS, isVideoInitialized, onReady]);
 
   return (
     <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -44,18 +43,19 @@ const Index = () => {
     }, maxLoadingTime);
     
     return () => clearTimeout(forceCompleteTimeout);
-  }, [loadProgress]);
+  }, []);
   
   // Simulate loading progress for testing - improved to reach 100% when video is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
     // Start with a small delay
-    setTimeout(() => {
+    const startDelay = setTimeout(() => {
       progressInterval = setInterval(() => {
         setLoadProgress(prev => {
           // If video is ready, jump directly to 100%
           if (videoReady) {
+            clearInterval(progressInterval);
             return 100;
           }
           // Otherwise continue normal progress, but cap at 95%
@@ -63,9 +63,10 @@ const Index = () => {
           return Math.min(95, newProgress);
         });
       }, 200);
-    }, 500);
+    }, 300); // Reduced from 500ms to 300ms for faster initial loading
     
     return () => {
+      clearTimeout(startDelay);
       if (progressInterval) clearInterval(progressInterval);
     };
   }, [videoReady]);
@@ -94,6 +95,7 @@ const Index = () => {
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, showing content");
     setLoading(false);
+    document.body.style.overflow = 'auto'; // Ensure scrolling is enabled
   };
   
   const handleVideoReady = () => {
@@ -107,7 +109,8 @@ const Index = () => {
       <>
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
         <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
-        <div style={{ visibility: 'hidden', position: 'absolute' }}>
+        {/* Preload video while showing preloader but keep it hidden */}
+        <div style={{ visibility: 'hidden', position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
           {isAndroid ? (
             <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (

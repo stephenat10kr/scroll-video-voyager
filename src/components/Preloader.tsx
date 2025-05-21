@@ -75,11 +75,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
         // Start fade out sooner
         setVisible(false);
         
-        // Call onComplete after fade out animation
+        // Call onComplete after fade out animation completes
         const completeTimeout = setTimeout(() => {
           console.log("Preloader - Calling onComplete");
           onComplete();
-        }, 800); // Reduced from 1500ms to 800ms for faster transition
+        }, 750); // Reduced from 800ms to 750ms for slightly faster transition
         
         return () => clearTimeout(completeTimeout);
       }, 500); // Keep 500ms for "Come in." message
@@ -104,7 +104,11 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-800 bg-darkGreen ${
         visible ? "opacity-100" : "opacity-0"
       }`}
-      style={{ backgroundColor: colors.darkGreen, transition: "opacity 0.8s ease-out" }}
+      style={{ 
+        backgroundColor: colors.darkGreen, 
+        transition: "opacity 0.75s ease-out",  // Faster transition
+        pointerEvents: visible ? "auto" : "none" // Prevent interaction when invisible
+      }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
         {/* Loading percentage and text */}
