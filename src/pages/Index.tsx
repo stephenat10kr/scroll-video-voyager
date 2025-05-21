@@ -109,13 +109,10 @@ const Index = () => {
   
   return (
     <>
-      {/* Background pattern (lowest z-index) */}
-      <ChladniPattern />
-      
-      {/* Preloader (middle z-index) - always rendered */}
+      {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
       
-      {/* Video (highest z-index) with fade-in effect */}
+      {/* Video (middle z-index) with fade-in effect */}
       <div 
         className="fixed inset-0 w-full h-screen" 
         style={{ 
@@ -131,6 +128,9 @@ const Index = () => {
           <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
         )}
       </div>
+      
+      {/* Chladni pattern (highest z-index) */}
+      <ChladniPattern />
       
       {/* Content overlay - now on top of everything */}
       <div className="content-container relative z-20">

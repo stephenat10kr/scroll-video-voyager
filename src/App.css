@@ -22,8 +22,8 @@ html, body {
 .content-container {
   position: relative;
   /* Remove padding-top: 100vh */
-  /* Increased from 300vh to 400vh to allow more space for scrolling */
-  min-height: 400vh; 
+  /* Increased from 400vh to 600vh to match the Chladni pattern position */
+  min-height: 600vh; 
   z-index: 20; /* Above video and preloader */
 }
 
@@ -39,7 +39,7 @@ html, body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 0; /* Will be controlled by parent */
+  z-index: 10; /* Below Chladni pattern (15) but above preloader (5) */
 }
 
 /* Video element styles */
@@ -48,6 +48,7 @@ html, body {
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  background-color: black; /* Ensure black background behind video */
 }
 
 /* Text flip animation styles */
