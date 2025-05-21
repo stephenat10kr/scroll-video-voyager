@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -26,6 +26,7 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -96,33 +97,59 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // Handle scroll-based switching between video and Chladni pattern
+  // Set up Intersection Observer for reliable transition between video and Chladni pattern
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const scrollThreshold = window.innerHeight * 6; // 600vh
+    // Wait for the component to be fully mounted
+    const setupObserver = () => {
+      // Find our marker element
+      const markerElement = document.getElementById('chladni-transition-marker');
       
-      // When scrolled past threshold, show Chladni pattern and hide video
-      if (scrollY >= scrollThreshold && !showChladniPattern) {
-        console.log("Scroll threshold reached: Showing Chladni pattern");
-        setShowChladniPattern(true);
-      } 
-      // When scrolled back up, hide Chladni pattern and show video
-      else if (scrollY < scrollThreshold && showChladniPattern) {
-        console.log("Scrolled back above threshold: Showing video");
-        setShowChladniPattern(false);
+      if (!markerElement) {
+        console.log("Transition marker element not found, retrying in 500ms");
+        setTimeout(setupObserver, 500);
+        return;
+      }
+      
+      console.log("Setting up Intersection Observer for transition marker");
+      
+      // Create new Intersection Observer
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          
+          if (entry.isIntersecting) {
+            console.log("Marker intersecting viewport - showing Chladni pattern");
+            setShowChladniPattern(true);
+          } else {
+            console.log("Marker not intersecting viewport - showing video");
+            setShowChladniPattern(false);
+          }
+        },
+        {
+          // Adjust threshold to fine-tune when the transition happens
+          threshold: 0.1,
+          // Use the viewport as the root
+          root: null
+        }
+      );
+      
+      // Start observing the marker element
+      observerRef.current.observe(markerElement);
+      console.log("Intersection Observer started watching marker element");
+    };
+    
+    // Start setting up the observer
+    setupObserver();
+    
+    // Cleanup function
+    return () => {
+      if (observerRef.current) {
+        console.log("Cleaning up Intersection Observer");
+        observerRef.current.disconnect();
+        observerRef.current = null;
       }
     };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Run once on mount to set initial state
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [showChladniPattern]);
+  }, []); // Empty dependency array - setup once on mount
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -190,7 +217,7 @@ const Index = () => {
         </section>
       </div>
       
-      {/* 600vh spacer to push content down */}
+      {/* We no longer need this spacer as the transition is controlled by the marker */}
       <div className="w-full" style={{ height: '600vh', backgroundColor: colors.darkGreen }} />
       
       {/* Background container that switches between video and Chladni pattern */}
@@ -207,7 +234,7 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Changed from 0.8s to 0s for instant transition
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 11
           }}
         >
@@ -220,7 +247,7 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Changed from 0.8s to 0s for instant transition
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 10
           }}
         >

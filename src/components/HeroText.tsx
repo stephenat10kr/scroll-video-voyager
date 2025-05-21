@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
@@ -11,6 +11,7 @@ interface HeroTextProps {
 
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
+  const markerRef = useRef<HTMLDivElement>(null);
   const {
     data: heroTextItems,
     isLoading,
@@ -86,7 +87,18 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       </div>
 
       {/* Additional spacing to fill the 500vh height */}
-      <div className="h-[300vh]"></div>
+      <div className="h-[200vh]"></div>
+      
+      {/* Intersection marker element at the transition point */}
+      <div 
+        id="chladni-transition-marker" 
+        ref={markerRef} 
+        className="h-[2px] w-full opacity-0 pointer-events-none"
+        aria-hidden="true"
+      />
+      
+      {/* Remaining space to maintain the desired height */}
+      <div className="h-[100vh]"></div>
     </div>
   );
 };
