@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -17,7 +18,6 @@ interface ImprovedScrollVideoProps {
 
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isVideoVisible, setIsVideoVisible] = useState(true);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
   // Use external src if provided, otherwise use the one from Contentful
-  // Remove all fallback URLs and only use Contentful
   const videoSrc = externalSrc || (heroVideoAsset?.fields?.file?.url 
     ? (heroVideoAsset.fields.file.url.startsWith('//') 
         ? 'https:' + heroVideoAsset.fields.file.url 
@@ -188,37 +187,15 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         trigger: revealTextSection,
         start: "top top", // This fires when the top of RevealText reaches the top of viewport
         onEnter: () => {
-          setIsVideoVisible(false);
           console.log("Hiding video (scrolling down)");
         },
         onLeaveBack: () => {
-          setIsVideoVisible(true);
           console.log("Showing video (scrolling up)");
         },
         markers: false
       });
     } else {
       console.warn("RevealText section not found for video visibility trigger");
-      // Fallback to another selector if the ID approach fails
-      const revealTextElement = document.querySelector('.w-full.py-24');
-      if (revealTextElement) {
-        console.log("Found RevealText using class selector");
-        ScrollTrigger.create({
-          trigger: revealTextElement,
-          start: "top top",
-          onEnter: () => {
-            setIsVideoVisible(false);
-            console.log("Hiding video (scrolling down) - using fallback selector");
-          },
-          onLeaveBack: () => {
-            setIsVideoVisible(true);
-            console.log("Showing video (scrolling up) - using fallback selector");
-          },
-          markers: false
-        });
-      } else {
-        console.error("Could not find RevealText component with any selector");
-      }
     }
     
     // Clean up
@@ -290,7 +267,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   }, [isIOS, isVideoInitialized, onReady]);
 
   return (
-    <div ref={containerRef} className="video-container fixed top-0 left-0 w-full h-screen z-0">
+    <div ref={containerRef} className="video-container w-full h-screen">
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -303,12 +280,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           ref={videoRef}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
-            opacity: isVideoVisible ? 1 : 0,
-            visibility: isVideoVisible ? 'visible' : 'hidden',
-            backgroundColor: 'black', // Add background color to prevent white flashing
-            willChange: 'transform', // Added performance optimization
-            transform: 'translateZ(0)', // Force GPU acceleration
-            backfaceVisibility: 'hidden' // Prevent rendering the back face
+            backgroundColor: 'black',
+            willChange: 'transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden'
           }}
           playsInline={true}
           webkit-playsinline="true" 

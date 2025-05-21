@@ -14,7 +14,7 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
-  onReady?: () => void; // Add onReady callback prop
+  onReady?: () => void;
 }> = ({
   src,
   onReady
@@ -23,7 +23,6 @@ const ScrollVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAfterVideo, setIsAfterVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
@@ -38,7 +37,7 @@ const ScrollVideo: React.FC<{
   
   // Calculate segment count - increase for Android for smoother transitions
   const segmentCount = isAndroid ? 8 : 5;
-  
+
   // Add intersection observer to detect when video exits viewport
   useEffect(() => {
     if (!containerRef.current) return;
@@ -48,8 +47,8 @@ const ScrollVideo: React.FC<{
         setIsInViewport(entry.isIntersecting);
       },
       { 
-        threshold: 0.01,  // Trigger when just 1% of element is visible
-        rootMargin: "0px" // No additional margin
+        threshold: 0.01,
+        rootMargin: "0px"
       }
     );
 
@@ -83,8 +82,6 @@ const ScrollVideo: React.FC<{
     if (video && secureVideoSrc) {
       // Force initial visibility for mobile devices
       if (isMobile) {
-        // Immediately make video element visible
-        setVideoVisible(true);
         console.log("Mobile detected: Forcing initial video visibility");
         
         // Force loading of the first frame
@@ -125,7 +122,7 @@ const ScrollVideo: React.FC<{
         
         // Prevent Android browser from unloading video textures
         setInterval(() => {
-          if (video.paused && !videoVisible && video.readyState >= 2) {
+          if (video.paused && video.readyState >= 2) {
             // Touch the video element to prevent texture unloading
             const currentTime = video.currentTime;
             video.currentTime = currentTime + 0.001;
@@ -148,7 +145,6 @@ const ScrollVideo: React.FC<{
       const handleCanPlay = () => {
         console.log("Video can play now");
         setVideoLoaded(true);
-        setVideoVisible(true);
         
         // Notify parent that video is ready
         if (onReady) {
@@ -176,7 +172,6 @@ const ScrollVideo: React.FC<{
       // Add loadeddata event to ensure video is fully loaded before showing
       const handleLoadedData = () => {
         console.log("Video data loaded");
-        setVideoVisible(true);
         
         // Also notify ready on loadeddata in case canplay doesn't fire
         if (onReady) {
@@ -199,7 +194,6 @@ const ScrollVideo: React.FC<{
       // Add loadedmetadata event which might fire earlier on some devices
       const handleLoadedMetadata = () => {
         console.log("Video metadata loaded");
-        setVideoVisible(true);
         
         // Set the currentTime to show the first frame for mobile
         if (isMobile) {
@@ -224,8 +218,10 @@ const ScrollVideo: React.FC<{
       // Add error handling
       const handleError = (e: Event) => {
         console.error("Video error:", e);
-        // Even if there's an error, ensure video is visible
-        setVideoVisible(true);
+        // Even if there's an error, try to notify ready
+        if (onReady && !videoLoaded) {
+          onReady();
+        }
       };
       
       video.addEventListener("canplay", handleCanPlay);
@@ -237,14 +233,12 @@ const ScrollVideo: React.FC<{
       const shortTimeoutId = setTimeout(() => {
         // Force visibility after a very short delay
         if (isMobile) {
-          setVideoVisible(true);
           console.log("Mobile video visibility forced by short timeout");
         }
       }, 100);
       
       // Use a longer timeout as a fallback for all devices
       const timeoutId = setTimeout(() => {
-        setVideoVisible(true);
         console.log("Video visibility forced by fallback timeout");
         
         // If video still hasn't loaded its first frame, try to force it
@@ -291,7 +285,6 @@ const ScrollVideo: React.FC<{
     if (isMobile) {
       const handleInteraction = () => {
         console.log("User interaction detected");
-        setVideoVisible(true);
         
         const video = videoRef.current;
         if (video) {
@@ -331,8 +324,7 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden bg-black" 
-      style={{ zIndex: 1 }}
+      className="relative w-full min-h-screen overflow-hidden bg-black"
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -353,14 +345,12 @@ const ScrollVideo: React.FC<{
           loop={false} 
           muted 
           tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none z-0 bg-black" 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
           style={{
             minHeight: "100vh",
-            opacity: videoVisible && isInViewport ? 1 : 0,
-            // Transition is now managed dynamically based on scroll direction
+            backgroundColor: "black",
             display: "block",
-            visibility: "visible",
-            backgroundColor: "black" // Ensure background is black, not white
+            visibility: "visible"
           }} 
         />
       </ScrollVideoPlayer>

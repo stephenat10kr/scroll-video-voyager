@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -22,6 +23,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -34,7 +36,7 @@ const Index = () => {
   
   // Force complete preloader after maximum time
   useEffect(() => {
-    const maxLoadingTime = 8000; // 8 seconds max loading time (reduced from 12)
+    const maxLoadingTime = 8000; // 8 seconds max loading time
     const forceCompleteTimeout = setTimeout(() => {
       if (loadProgress < 100) {
         console.log("Force completing preloader after timeout");
@@ -93,8 +95,10 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   const handlePreloaderComplete = () => {
-    console.log("Preloader complete, showing content");
+    console.log("Preloader complete, fading in video");
     setLoading(false);
+    // Start fading in the video
+    setShowVideo(true);
     document.body.style.overflow = 'auto'; // Ensure scrolling is enabled
   };
   
@@ -103,35 +107,35 @@ const Index = () => {
     setVideoReady(true);
   };
   
-  // Skip content rendering until preloader is done
-  if (loading) {
-    return (
-      <>
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, backgroundColor: '#000' }} />
-        <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
-        {/* Preload video while showing preloader but keep it hidden */}
-        <div style={{ visibility: 'hidden', position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
-          {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          )}
-        </div>
-      </>
-    );
-  }
-  
-  return <div className="min-h-screen w-full relative">
+  return (
+    <>
       {/* Background pattern (lowest z-index) */}
       <ChladniPattern />
       
-      {/* Video fixed at the top (mid z-index) */}
-      <ImprovedScrollVideo src={videoSrc} />
+      {/* Preloader (middle z-index) - always rendered */}
+      <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
       
-      {/* Content overlay (high z-index, but below logo) */}
-      <div className="content-container relative z-10">
+      {/* Video (highest z-index) with fade-in effect */}
+      <div 
+        className="fixed inset-0 w-full h-screen" 
+        style={{ 
+          zIndex: 10,
+          opacity: showVideo ? 1 : 0,
+          transition: "opacity 1s ease-in-out",
+          backgroundColor: "black", // Ensure black background 
+        }}
+      >
+        {isAndroid ? (
+          <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+        ) : (
+          <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+        )}
+      </div>
+      
+      {/* Content overlay - now on top of everything */}
+      <div className="content-container relative z-20">
         {/* Logo section at the top */}
-        <section className="relative z-20 w-full h-screen flex flex-col justify-center items-center bg-transparent">
+        <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
@@ -148,7 +152,6 @@ const Index = () => {
         
         {/* Content sections */}
         <section>
-          {/* We skip the logo section since we've added it separately above */}
           <HeroText skipLogoSection={true} />
         </section>
         
@@ -176,7 +179,8 @@ const Index = () => {
           <Footer />
         </section>
       </div>
-    </div>;
+    </>
+  );
 };
 
 export default Index;

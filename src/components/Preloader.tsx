@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -16,7 +15,6 @@ const loadingTexts = [
 
 const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [displayedProgress, setDisplayedProgress] = useState(0);
   
@@ -60,54 +58,40 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle completion - fade out when progress reaches 100%
+  // Handle completion - show "Come in" when progress reaches 100%
   useEffect(() => {
     if (displayedProgress >= 100) {
-      console.log("Preloader - 100% reached, preparing to fade out");
+      console.log("Preloader - 100% reached, showing welcome message");
       
-      // Show "Come in." text briefly before fading out
+      // Show "Come in." text
       setShowWelcome(true);
       
-      // First delay - stay at 100% "Come in." state for 0.5 seconds
-      const welcomeTimeout = setTimeout(() => {
-        console.log("Preloader - Starting fade out sequence");
-        
-        // Start fade out sooner
-        setVisible(false);
-        
-        // Call onComplete after fade out animation completes
-        const completeTimeout = setTimeout(() => {
-          console.log("Preloader - Calling onComplete");
-          onComplete();
-        }, 750); // Reduced from 800ms to 750ms for slightly faster transition
-        
-        return () => clearTimeout(completeTimeout);
-      }, 500); // Keep 500ms for "Come in." message
-      
-      return () => clearTimeout(welcomeTimeout);
+      // Call onComplete right away, but don't hide the preloader
+      // This will trigger the video to start fading in
+      console.log("Preloader - Calling onComplete");
+      onComplete();
     }
   }, [displayedProgress, onComplete]);
 
-  // Disable scrolling while preloader is active
+  // Disable scrolling while loading
   useEffect(() => {
-    if (visible) {
+    if (displayedProgress < 100) {
       document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
     }
     
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [visible]);
+  }, [displayedProgress]);
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-800 bg-darkGreen ${
-        visible ? "opacity-100" : "opacity-0"
-      }`}
+      className="fixed inset-0 flex flex-col items-center justify-center bg-darkGreen"
       style={{ 
         backgroundColor: colors.darkGreen, 
-        transition: "opacity 0.75s ease-out",  // Faster transition
-        pointerEvents: visible ? "auto" : "none" // Prevent interaction when invisible
+        zIndex: 5, // Lower than video (which will be 10) but higher than Chladni (which is 0)
       }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">

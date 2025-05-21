@@ -1,4 +1,5 @@
 
+
 /* Remove the max-width constraint */
 #root {
   max-width: 100%;
@@ -23,22 +24,22 @@ html, body {
   /* Remove padding-top: 100vh */
   /* Increased from 300vh to 400vh to allow more space for scrolling */
   min-height: 400vh; 
+  z-index: 20; /* Above video and preloader */
 }
 
 /* Add section spacing */
 .content-container section {
   position: relative;
-  z-index: 10;
 }
 
-/* Video container styles */
+/* Video container styles - with updated z-index */
 .video-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 0;
+  z-index: 0; /* Will be controlled by parent */
 }
 
 /* Video element styles */
@@ -125,3 +126,4 @@ html, body {
 .read-the-docs {
   color: #888;
 }
+
