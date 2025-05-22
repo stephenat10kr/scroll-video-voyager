@@ -4,9 +4,11 @@ import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import { AspectRatio } from "./ui/aspect-ratio";
+
 interface HeroTextProps {
   skipLogoSection?: boolean;
 }
+
 const HeroText: React.FC<HeroTextProps> = ({
   skipLogoSection = false
 }) => {
@@ -16,20 +18,24 @@ const HeroText: React.FC<HeroTextProps> = ({
     isLoading,
     error
   } = useHeroText();
+  
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
+  
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
         <p className="text-roseWhite text-lg">Loading...</p>
       </div>;
   }
+  
   if (error || !heroTextItems || heroTextItems.length < 2) {
     console.error('Error loading hero text data:', error);
     return <div className="w-full flex items-center justify-center py-12">
         <p className="text-roseWhite text-lg">Unable to load content. Please refresh the page.</p>
       </div>;
   }
-  return <div className="w-full bg-transparent">
+  
+  return <div className="w-full bg-transparent h-[4000px]">
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
@@ -82,4 +88,5 @@ const HeroText: React.FC<HeroTextProps> = ({
       
     </div>;
 };
+
 export default HeroText;
