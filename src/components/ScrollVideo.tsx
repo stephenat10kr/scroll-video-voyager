@@ -8,8 +8,8 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Standardize scroll distance to 4500px for all devices
-const SCROLL_EXTRA_PX = 4500;
+// Standardize scroll distance to 4200px for all devices
+const SCROLL_EXTRA_PX = 4200;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
@@ -44,13 +44,13 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is 0-4500px, hide it when beyond 4500px
+      // Show video when scroll position is 0-4200px, hide it when beyond 4200px
       setIsInViewport(scrollPosition <= SCROLL_EXTRA_PX);
       
       if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log("Showing video (scroll position <= 4500px)");
+        console.log("Showing video (scroll position <= 4200px)");
       } else {
-        console.log("Hiding video (scroll position > 4500px)");
+        console.log("Hiding video (scroll position > 4200px)");
       }
     };
     

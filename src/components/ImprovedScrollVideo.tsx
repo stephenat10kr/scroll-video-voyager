@@ -25,8 +25,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // Define a fixed scroll distance of 4500px for all devices
-  const SCROLL_EXTRA_PX = 4500;
+  // Define a fixed scroll distance of 4200px for all devices
+  const SCROLL_EXTRA_PX = 4200;
   
   // For debugging
   useEffect(() => {
@@ -142,13 +142,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is 0-4500px, hide it when beyond 4500px
+      // Show video when scroll position is 0-4200px, hide it when beyond 4200px
       setIsVisible(scrollPosition <= SCROLL_EXTRA_PX);
       
       if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log("Showing video (scroll position <= 4500px)");
+        console.log("Showing video (scroll position <= 4200px)");
       } else {
-        console.log("Hiding video (scroll position > 4500px)");
+        console.log("Hiding video (scroll position > 4200px)");
       }
     };
     
