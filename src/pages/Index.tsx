@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -181,7 +180,7 @@ const Index = () => {
         className="fixed inset-0 w-full h-full" 
         style={{ 
           zIndex: 10,
-          backgroundColor: colors.darkGreen, // Changed from black to darkGreen
+          backgroundColor: colors.darkGreen,
         }}
       >
         {/* Video with instant transition */}
@@ -190,7 +189,7 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0s",
             zIndex: 10
           }}
         >
@@ -210,7 +209,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0s",
             zIndex: 11
           }}
           className="chladni-container"
@@ -224,25 +223,9 @@ const Index = () => {
         className="content-container relative z-20"
         style={{ backgroundColor: 'transparent', position: 'relative' }}
       >
-        {/* Logo section at the top */}
-        <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
-          <div className="w-full max-w-[90%] mx-auto">
-            <div className="flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12 w-full">
-                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                  <div className="aspect-w-444 aspect-h-213 w-full">
-                    <Logo />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Content sections */}
+        {/* Content sections - Removed redundant Logo section */}
         <section>
-          <HeroText skipLogoSection={true} />
+          <HeroText skipLogoSection={false} />
         </section>
         
         {/* RevealText component now includes the red spacer */}
