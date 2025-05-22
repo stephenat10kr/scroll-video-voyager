@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -25,6 +24,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
+  // Define a fixed scroll distance of 4000px for all devices
+  const SCROLL_EXTRA_PX = 4000;
+  
   // For debugging
   useEffect(() => {
     if (isIOS) {
@@ -32,6 +34,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
     if (isAndroid) {
       console.log("Android device detected in ImprovedScrollVideo component");
+      console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
     }
   }, [isIOS, isAndroid]);
   
@@ -151,13 +154,32 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       });
     }
     
+    // Update container height to match the scroll distance
+    if (containerRef.current) {
+      containerRef.current.style.height = `${window.innerHeight + SCROLL_EXTRA_PX}px`;
+      
+      // Add resize event listener to maintain the height on window resize
+      const handleResize = () => {
+        if (containerRef.current) {
+          containerRef.current.style.height = `${window.innerHeight + SCROLL_EXTRA_PX}px`;
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      console.log("Container height set to:", window.innerHeight + SCROLL_EXTRA_PX + "px");
+      
+      // Clean up resize listener
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+    
     // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        // Increase the end value to extend the scrolling length
-        end: "bottom+=600% bottom", // Keep extended scrolling length
+        end: `bottom bottom`, // Use the container's bottom
         // Use a much lower scrub value for Android devices to reduce lag
         scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
         markers: false, // Set to true for debugging
@@ -207,7 +229,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, SCROLL_EXTRA_PX]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {

@@ -110,6 +110,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
+    console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
 
     // Optimize video element
     video.controls = false;
@@ -204,6 +205,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
+        // Always use the fixed SCROLL_EXTRA_PX value regardless of device
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };
@@ -304,6 +306,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
+        // Use the standardized fixed SCROLL_EXTRA_PX value for all devices
         end: `+=${SCROLL_EXTRA_PX}`,
         scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,

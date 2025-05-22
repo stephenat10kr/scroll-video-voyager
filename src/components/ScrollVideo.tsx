@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,7 +7,7 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 2000 to 4000
+// Standardize scroll distance to 4000px for all devices
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
@@ -28,6 +27,8 @@ const ScrollVideo: React.FC<{
   const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
+  
+  console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
