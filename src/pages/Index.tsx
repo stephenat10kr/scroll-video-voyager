@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -9,7 +8,7 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
-import { useIsAndroid, ANDROID_IMAGE_SEQUENCE_BASE_URL } from "../hooks/use-android";
+import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
@@ -18,6 +17,7 @@ import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
 import ImageSequenceScrubber from "@/components/ImageSequenceScrubber";
+import { useContentfulImageSequence } from "@/hooks/useContentfulImageSequence";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -34,10 +34,27 @@ const Index = () => {
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
+  // Fetch the image sequence for Android devices
+  const { data: imageUrls = [], isLoading: imagesLoading } = useContentfulImageSequence({
+    tag: "heroSequence",
+    prefix: "LS_HeroSequence"
+  });
+  
   // Get video source from Contentful
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
+    
+  // Log image sequence status
+  useEffect(() => {
+    if (isAndroid) {
+      if (imagesLoading) {
+        console.log("Loading image sequence for Android device...");
+      } else {
+        console.log(`Image sequence loaded: ${imageUrls.length} frames`);
+      }
+    }
+  }, [isAndroid, imageUrls.length, imagesLoading]);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -166,7 +183,7 @@ const Index = () => {
   };
   
   const handleVideoReady = () => {
-    console.log("Video is ready to display");
+    console.log("Video or image sequence is ready to display");
     setVideoReady(true);
   };
   
@@ -196,11 +213,7 @@ const Index = () => {
         >
           {isAndroid ? (
             <ImageSequenceScrubber
-              baseUrl="" /* This is no longer used in test mode */
-              startFrame={0}
-              endFrame={236}
-              filePrefix="LS_HeroSequence"
-              fileExtension="jpg"
+              imageUrls={imageUrls}
               onReady={handleVideoReady}
             />
           ) : isIOS ? (

@@ -1,30 +1,34 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Spinner from "./Spinner";
-import { ANDROID_TEST_IMAGE_URL } from "@/hooks/use-android";
+import { getFallbackImageUrl } from "@/hooks/useContentfulImageSequence";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
 interface ImageSequenceScrubberProps {
-  baseUrl: string;
-  startFrame: number;
-  endFrame: number;
-  filePrefix: string;
-  fileExtension: string;
+  // Support both old and new approaches
+  baseUrl?: string;
+  imageUrls?: string[];
+  startFrame?: number;
+  endFrame?: number;
+  filePrefix?: string;
+  fileExtension?: string;
   onReady?: () => void;
 }
 
 const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   baseUrl,
+  imageUrls = [],
   startFrame = 0,
   endFrame = 236,
   filePrefix = "LS_HeroSequence",
   fileExtension = "jpg",
   onReady
 }) => {
-  const [currentFrame, setCurrentFrame] = useState(startFrame);
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadedImages, setLoadedImages] = useState<HTMLImageElement[]>([]);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -32,63 +36,100 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readyCalledRef = useRef(false);
   
-  // For now, we'll just use a single test image
-  const testMode = true;
-  const totalFrames = testMode ? 1 : (endFrame - startFrame + 1);
+  // Determine if we're using direct image URLs or the old approach
+  const usingDirectUrls = imageUrls && imageUrls.length > 0;
+  const totalFrames = usingDirectUrls ? imageUrls.length : (endFrame - startFrame + 1);
+  
+  // Fallback to a single image if no images are provided
+  const useFallback = totalFrames <= 0;
 
   // Preload all images in the sequence
   useEffect(() => {
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
+    
+    // Use a single fallback image if no images are provided
+    if (useFallback) {
+      const img = new Image();
+      const fallbackUrl = getFallbackImageUrl();
+      
+      img.onload = () => {
+        setLoadProgress(100);
+        setLoadedImages([img]);
+        setIsLoading(false);
+        
+        console.log("Using fallback image:", fallbackUrl);
+        
+        if (canvasRef.current) {
+          drawImageOnCanvas(img);
+        }
+        
+        if (onReady && !readyCalledRef.current) {
+          onReady();
+          readyCalledRef.current = true;
+        }
+      };
+      
+      img.onerror = (err) => {
+        console.error("Failed to load fallback image:", err);
+        
+        if (onReady && !readyCalledRef.current) {
+          onReady();
+          readyCalledRef.current = true;
+        }
+      };
+      
+      img.src = fallbackUrl;
+      return;
+    }
 
-    const loadImage = (frameNum: number) => {
+    // Function to load a single image
+    const loadImage = (index: number) => {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         
-        // Use the test image URL directly for now
-        const imgSrc = testMode 
-          ? ANDROID_TEST_IMAGE_URL 
-          : `${baseUrl}/${filePrefix}${String(frameNum).padStart(3, '0')}.${fileExtension}`;
+        let imgSrc: string;
         
-        console.log(`Loading image from: ${imgSrc}`);
+        if (usingDirectUrls) {
+          imgSrc = imageUrls[index];
+        } else {
+          const frameNum = index + startFrame;
+          imgSrc = `${baseUrl}/${filePrefix}${String(frameNum).padStart(3, '0')}.${fileExtension}`;
+        }
         
         img.onload = () => {
           loadedCount++;
           setLoadProgress(Math.floor((loadedCount / totalFrames) * 100));
-          console.log(`Image loaded successfully: ${imgSrc}`);
           resolve(img);
         };
         
         img.onerror = (err) => {
-          console.error(`Failed to load image: ${imgSrc}`, err);
+          console.error(`Failed to load image at index ${index}:`, imgSrc, err);
           reject(err);
         };
         
         img.src = imgSrc;
-        images[frameNum - startFrame] = img;
+        images[index] = img;
       });
     };
 
-    console.log(`Starting to load ${totalFrames} image frame(s) in ${testMode ? 'TEST MODE' : 'normal mode'}`);
+    console.log(`Starting to load ${totalFrames} image frames using ${usingDirectUrls ? 'direct URLs' : 'constructed URLs'}`);
     
     const loadAllImages = async () => {
       try {
         const imagePromises = [];
         
-        // In test mode, just load one image
-        if (testMode) {
-          imagePromises.push(loadImage(startFrame));
-        } else {
-          // Load all frames as before
-          for (let i = startFrame; i <= endFrame; i++) {
-            imagePromises.push(loadImage(i));
-          }
+        for (let i = 0; i < totalFrames; i++) {
+          imagePromises.push(loadImage(i));
         }
         
-        await Promise.all(imagePromises);
+        // Use Promise.allSettled to continue even if some images fail
+        const results = await Promise.allSettled(imagePromises);
+        const successCount = results.filter(result => result.status === 'fulfilled').length;
         
-        console.log("All image frames loaded successfully");
-        setLoadedImages(images);
+        console.log(`Successfully loaded ${successCount} of ${totalFrames} image frames`);
+        
+        setLoadedImages(images.filter(img => img && img.complete));
         setIsLoading(false);
         
         // Draw the first frame on canvas
@@ -103,11 +144,10 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         }
         
       } catch (error) {
-        console.error("Failed to load all image frames:", error);
+        console.error("Error loading image sequence:", error);
         
         // Still call ready callback even on error to prevent getting stuck
         if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback after image loading (error case)");
           onReady();
           readyCalledRef.current = true;
         }
@@ -118,10 +158,9 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
 
     // Cleanup function
     return () => {
-      // Clear any references to images to help with garbage collection
       setLoadedImages([]);
     };
-  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, testMode]);
+  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, usingDirectUrls, imageUrls, useFallback]);
 
   // Draw the current image on canvas
   const drawImageOnCanvas = (img: HTMLImageElement) => {
@@ -179,8 +218,8 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         // Calculate the current frame based on progress
         const progress = this.progress();
         const frameIndex = Math.min(
-          Math.floor(progress * (totalFrames - 1)),
-          totalFrames - 1
+          Math.floor(progress * (loadedImages.length - 1)),
+          loadedImages.length - 1
         );
         
         if (frameIndex !== currentFrame) {
@@ -224,7 +263,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
       }
       timeline.kill();
     };
-  }, [isLoading, loadedImages, totalFrames, currentFrame]);
+  }, [isLoading, loadedImages, currentFrame]);
 
   // Initialize canvas size when component mounts
   useEffect(() => {
