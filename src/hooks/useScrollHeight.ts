@@ -16,28 +16,29 @@ export const useScrollHeight = (): number => {
     // Function to calculate the appropriate height based on device and viewport
     const calculateScrollHeight = () => {
       const viewportHeight = window.innerHeight;
-      const numberOfSections = 3; // Logo + 2 hero text sections
       
-      // Base calculation - multiply viewport height by number of sections
-      // and add some extra space for reliable transitions
-      let calculatedHeight = viewportHeight * numberOfSections;
+      // Use a fixed multiplier that better matches video duration
+      // 2.8 multiplier gives more space for the video to complete before transition
+      let multiplier = 2.8;
       
       // Device-specific adjustments
       if (isIOS) {
         // iOS needs additional space for reliable scrolling
-        calculatedHeight = viewportHeight * (numberOfSections + 0.2);
-        console.log(`iOS detected: Setting scroll height to ${calculatedHeight}px`);
+        multiplier = 3.0;
+        console.log(`iOS detected: Using multiplier ${multiplier}`);
       } else if (isAndroid) {
         // Android may need different adjustments
-        calculatedHeight = viewportHeight * (numberOfSections + 0.1);
-        console.log(`Android detected: Setting scroll height to ${calculatedHeight}px`);
+        multiplier = 2.9;
+        console.log(`Android detected: Using multiplier ${multiplier}`);
       } else {
         // Desktop or other devices
-        calculatedHeight = viewportHeight * numberOfSections;
-        console.log(`Desktop/other detected: Setting scroll height to ${calculatedHeight}px`);
+        console.log(`Desktop/other detected: Using multiplier ${multiplier}`);
       }
       
-      return Math.round(calculatedHeight);
+      const calculatedHeight = Math.round(viewportHeight * multiplier);
+      console.log(`Calculated scroll height: ${calculatedHeight}px (viewport: ${viewportHeight}px × ${multiplier})`);
+      
+      return calculatedHeight;
     };
 
     // Set initial height

@@ -33,7 +33,7 @@ const ScrollVideo: React.FC<{
   // Use the provided scroll transition position
   const SCROLL_EXTRA_PX = scrollTransitionPosition;
   
-  console.log(`Using scroll distance: ${SCROLL_EXTRA_PX}px`);
+  console.log(`ScrollVideo: Using scroll distance: ${SCROLL_EXTRA_PX}px`);
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -44,21 +44,21 @@ const ScrollVideo: React.FC<{
   // Calculate segment count - increase for Android for smoother transitions
   const segmentCount = isAndroid ? 8 : 5;
 
-  // Add scroll event listener to detect when to hide/show video
+  // Enhanced scroll event listener to detect when to hide/show video
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is <= SCROLL_EXTRA_PX, hide it when beyond
-      setIsInViewport(scrollPosition <= SCROLL_EXTRA_PX);
+      const isAtOrBeforeTransition = scrollPosition <= SCROLL_EXTRA_PX;
       
-      if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
-      } else {
-        console.log(`Hiding video (scroll position > ${SCROLL_EXTRA_PX}px)`);
+      // Only update if there's a change in visibility state
+      if (isInViewport !== isAtOrBeforeTransition) {
+        setIsInViewport(isAtOrBeforeTransition);
+        console.log(`ScrollVideo: ${isAtOrBeforeTransition ? "Showing" : "Hiding"} video (scroll: ${scrollPosition}px, threshold: ${SCROLL_EXTRA_PX}px)`);
       }
     };
     
-    window.addEventListener('scroll', handleScroll);
+    // Use passive event listener for better scroll performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
     // Initial check
     handleScroll();
@@ -66,7 +66,7 @@ const ScrollVideo: React.FC<{
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [SCROLL_EXTRA_PX]);
+  }, [SCROLL_EXTRA_PX, isInViewport]);
 
   // Update progress state and determine scroll direction
   useEffect(() => {
@@ -361,8 +361,10 @@ const ScrollVideo: React.FC<{
             display: "block",
             visibility: isInViewport ? "visible" : "hidden",
             opacity: isInViewport ? 1 : 0,
-            transition: "opacity 0.3s ease-out"
-          }} 
+            // Use instant transition for perfect synchronization
+            transition: "opacity 0s"
+          }}
+          data-scroll-threshold={SCROLL_EXTRA_PX} /* Add data attribute for debugging */
         />
       </ScrollVideoPlayer>
     </div>

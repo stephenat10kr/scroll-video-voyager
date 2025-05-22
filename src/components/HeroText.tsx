@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
@@ -25,6 +25,11 @@ const HeroText: React.FC<HeroTextProps> = ({
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
   
+  // Log height information for debugging
+  useEffect(() => {
+    console.log(`HeroText component using scroll height: ${scrollHeight}px`);
+  }, [scrollHeight]);
+  
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
         <p className="text-roseWhite text-lg">Loading...</p>
@@ -40,8 +45,14 @@ const HeroText: React.FC<HeroTextProps> = ({
   
   return <div 
     className="w-full bg-transparent" 
-    style={{ height: `${scrollHeight}px` }}
+    style={{ 
+      height: `${scrollHeight}px`,
+      // Force the component to take exactly the calculated height
+      minHeight: `${scrollHeight}px`,
+      maxHeight: `${scrollHeight}px`
+    }}
     id="hero-text-container"
+    data-scroll-height={scrollHeight} /* Add data attribute for debugging */
   >
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">

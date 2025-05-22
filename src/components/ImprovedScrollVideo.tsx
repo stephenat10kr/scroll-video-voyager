@@ -36,7 +36,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
   
   // For debugging
   useEffect(() => {
-    console.log(`Using scroll distance: ${SCROLL_EXTRA_PX}px`);
+    console.log(`ImprovedScrollVideo: Using scroll distance: ${SCROLL_EXTRA_PX}px`);
   }, [SCROLL_EXTRA_PX]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
@@ -138,17 +138,21 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     );
   };
   
-  // Add scroll event listener to hide/show video based on scroll position
+  // Enhanced scroll event handler - more sensitive to the exact transition point
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is <= SCROLL_EXTRA_PX, hide it when beyond
-      setIsVisible(scrollPosition <= SCROLL_EXTRA_PX);
+      const isAtOrBeforeTransition = scrollPosition <= SCROLL_EXTRA_PX;
       
-      console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
+      // Only update if there's a change in visibility state
+      if (isVisible !== isAtOrBeforeTransition) {
+        setIsVisible(isAtOrBeforeTransition);
+        console.log(`ImprovedScrollVideo: ${isAtOrBeforeTransition ? "Showing" : "Hiding"} video (scroll: ${scrollPosition}px, threshold: ${SCROLL_EXTRA_PX}px)`);
+      }
     };
     
-    window.addEventListener('scroll', handleScroll);
+    // Use passive event listener for better scroll performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
     // Initial check
     handleScroll();
@@ -156,7 +160,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [SCROLL_EXTRA_PX]);
+  }, [SCROLL_EXTRA_PX, isVisible]);
   
   useEffect(() => {
     const video = videoRef.current;
@@ -309,7 +313,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
             opacity: isVisible ? 1 : 0,
-            transition: 'opacity 0.3s ease-out',
+            // Use instant transition for better synchronization
+            transition: 'opacity 0s',
             visibility: isVisible ? 'visible' : 'hidden'
           }}
           playsInline={true}
@@ -319,6 +324,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
           autoPlay={isIOS ? true : false}
           controls={false}
           onLoadedData={handleVideoLoaded}
+          data-scroll-threshold={SCROLL_EXTRA_PX} /* Add data attribute for debugging */
         >
           <source src={videoSrc} type="video/mp4" />
           Your browser does not support HTML5 video.
