@@ -1,3 +1,4 @@
+
 // Define the structure of a Contentful tag
 interface ContentfulTag {
   sys: {
@@ -185,6 +186,3 @@ export interface ContentfulRitualsResponse {
   skip: number;
   limit: number;
 }
-
-// Add a new tag constant for the hero sequence
-export const HERO_SEQUENCE_TAG = "heroSequence";

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -17,9 +16,6 @@ import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
-import ImageSequenceScrubber from "@/components/ImageSequenceScrubber";
-import { useContentfulImageSequence } from "@/hooks/useContentfulImageSequence";
-import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -29,74 +25,17 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); 
-  const [retryCount, setRetryCount] = useState(0);
+  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
-  // Fetch the image sequence for Android devices with improved error handling
-  const { 
-    data: imageUrls = [], 
-    isLoading: imagesLoading, 
-    isError: imageError, 
-    refetch: refetchImages 
-  } = useContentfulImageSequence({
-    tag: "heroSequence",
-    prefix: "LS_HeroSequence",
-    retry: 5 // Increased retry count for better reliability
-  });
-  
   // Get video source from Contentful
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
-    
-  // Log image sequence status
-  useEffect(() => {
-    if (isAndroid) {
-      if (imagesLoading) {
-        console.log("Loading image sequence for Android device...");
-        
-        // Show loading toast for better user feedback
-        toast({
-          title: "Loading Image Sequence",
-          description: "We're preparing a smooth scrolling experience for your device.",
-          variant: "default",
-        });
-      } else if (imageUrls.length > 0) {
-        console.log(`Image sequence loaded: ${imageUrls.length} frames`);
-        console.log(`First image URL: ${imageUrls[0]}`);
-        console.log(`Last image URL: ${imageUrls[imageUrls.length - 1]}`);
-      } else if (imageError || imageUrls.length === 0) {
-        // Auto-retry on error
-        if (retryCount < 3) {
-          console.log(`Auto-retrying image sequence fetch (attempt ${retryCount + 1}/3)`);
-          setRetryCount(prev => prev + 1);
-          refetchImages();
-          
-          toast({
-            title: "Retrying Image Sequence",
-            description: "We're trying to load the image sequence again.",
-            variant: "default",
-            action: (
-              <button 
-                className="bg-white text-black px-3 py-1 rounded"
-                onClick={() => {
-                  setRetryCount(0); // Reset retry count
-                  refetchImages();
-                }}
-              >
-                Retry Now
-              </button>
-            ),
-          });
-        }
-      }
-    }
-  }, [isAndroid, imageUrls, imagesLoading, imageError, retryCount, refetchImages]);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -111,7 +50,7 @@ const Index = () => {
     return () => clearTimeout(forceCompleteTimeout);
   }, []);
   
-  // Simulate loading progress - improved to reach 100% when video is ready
+  // Simulate loading progress for testing - improved to reach 100% when video is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -129,7 +68,7 @@ const Index = () => {
           return Math.min(95, newProgress);
         });
       }, 200);
-    }, 300);
+    }, 300); // Reduced from 500ms to 300ms for faster initial loading
     
     return () => {
       clearTimeout(startDelay);
@@ -154,13 +93,12 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("User Agent:", navigator.userAgent);
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
-      console.log("Image sequence URLs count:", imageUrls.length);
     }
-  }, [isIOS, isAndroid, imageUrls]);
+  }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
+  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -168,19 +106,8 @@ const Index = () => {
       const markerElement = document.getElementById('chladni-transition-marker');
       
       if (!markerElement) {
-        console.log("Transition marker element not found, creating it");
-        // Create a marker element at a specific point in the page
-        const marker = document.createElement('div');
-        marker.id = 'chladni-transition-marker';
-        marker.style.position = 'absolute';
-        marker.style.top = '200vh'; // Position it 2 viewport heights down
-        marker.style.height = '1px';
-        marker.style.width = '100%';
-        marker.style.visibility = 'hidden';
-        document.body.appendChild(marker);
-        
-        // Try again with the newly created marker
-        setTimeout(setupObserver, 100);
+        console.log("Transition marker element not found, retrying in 500ms");
+        setTimeout(setupObserver, 500);
         return;
       }
       
@@ -226,12 +153,6 @@ const Index = () => {
         observerRef.current.disconnect();
         observerRef.current = null;
       }
-      
-      // Also remove the marker if we created it
-      const existingMarker = document.getElementById('chladni-transition-marker');
-      if (existingMarker) {
-        document.body.removeChild(existingMarker);
-      }
     };
   }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
   
@@ -244,39 +165,9 @@ const Index = () => {
   };
   
   const handleVideoReady = () => {
-    console.log("Video or image sequence is ready to display");
+    console.log("Video is ready to display");
     setVideoReady(true);
   };
-  
-  // Debug information for Android image sequence
-  console.log("Android device detected:", isAndroid);
-  console.log("Using image sequence instead of video:", isAndroid);
-  
-  // Create a marker element for the transition point
-  useEffect(() => {
-    // Check if marker already exists
-    if (!document.getElementById('chladni-transition-marker')) {
-      // Create a marker element at a specific point in the page
-      const marker = document.createElement('div');
-      marker.id = 'chladni-transition-marker';
-      marker.style.position = 'absolute';
-      marker.style.top = '200vh'; // Position it 2 viewport heights down
-      marker.style.height = '1px';
-      marker.style.width = '100%';
-      marker.style.visibility = 'hidden';
-      document.body.appendChild(marker);
-      
-      console.log("Created chladni transition marker element");
-      
-      return () => {
-        // Clean up marker on component unmount
-        const existingMarker = document.getElementById('chladni-transition-marker');
-        if (existingMarker) {
-          document.body.removeChild(existingMarker);
-        }
-      };
-    }
-  }, []);
   
   return (
     <>
@@ -285,32 +176,27 @@ const Index = () => {
         className="fixed inset-0 w-full h-full" 
         style={{ 
           zIndex: 10,
-          backgroundColor: "black", 
+          backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with instant transition - Android gets image sequence instead */}
+        {/* Video with instant transition */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s",
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 10
           }}
         >
           {isAndroid ? (
-            <ImageSequenceScrubber
-              imageUrls={imageUrls}
-              onReady={handleVideoReady}
-            />
-          ) : isIOS ? (
             <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
             <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
         
-        {/* Chladni pattern with instant transition - covers all content */}
+        {/* Chladni pattern with instant transition - now covers all content */}
         <div 
           style={{
             position: 'fixed',
@@ -319,7 +205,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s",
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 11
           }}
           className="chladni-container"
