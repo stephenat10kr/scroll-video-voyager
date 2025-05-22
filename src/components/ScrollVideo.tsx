@@ -1,10 +1,10 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useIsAndroid } from "../hooks/use-android";
+import colors from "../lib/theme";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -327,7 +327,8 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden bg-black"
+      className="relative w-full min-h-screen overflow-hidden"
+      style={{ backgroundColor: colors.darkGreen }}
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -349,10 +350,10 @@ const ScrollVideo: React.FC<{
           loop={false} 
           muted 
           tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none" 
           style={{
             minHeight: "100vh",
-            backgroundColor: "black",
+            backgroundColor: colors.darkGreen,
             display: "block",
             visibility: isInViewport ? "visible" : "hidden",
             opacity: isInViewport ? 1 : 0,

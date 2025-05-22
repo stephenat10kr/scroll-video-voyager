@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -176,7 +177,7 @@ const Index = () => {
         className="fixed inset-0 w-full h-full" 
         style={{ 
           zIndex: 10,
-          backgroundColor: "black", // Ensure black background 
+          backgroundColor: colors.darkGreen, // Changed from black to darkGreen
         }}
       >
         {/* Video with instant transition */}

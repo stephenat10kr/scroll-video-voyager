@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsIOS } from "@/hooks/useIsIOS";
 import { useIsAndroid } from "@/hooks/use-android";
+import colors from "@/lib/theme";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -308,7 +309,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           ref={videoRef}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
-            backgroundColor: 'black',
+            backgroundColor: colors.darkGreen,
             willChange: 'transform',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
