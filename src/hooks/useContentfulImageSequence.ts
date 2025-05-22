@@ -25,7 +25,7 @@ export function useContentfulImageSequence(options: ImageSequenceOptions = {}) {
         
         // Query assets with the given tag - using array for tag parameter as expected by Contentful API
         const response = await contentfulClient.getAssets({
-          'metadata.tags.sys.id[in]': tag,
+          'metadata.tags.sys.id[in]': [tag], // Fixed: Changed from string to array of strings
           limit,
           // Pass an array for the order parameter
           order: ['fields.file.fileName']
