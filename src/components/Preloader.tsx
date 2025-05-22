@@ -91,7 +91,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       className="fixed inset-0 flex flex-col items-center justify-center bg-darkGreen"
       style={{ 
         backgroundColor: colors.darkGreen, 
-        zIndex: 5, // Lower than video (which will be 10) but higher than Chladni (which is 0)
+        zIndex: 25, // Updated from 5 to 25 to be above all content
       }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
