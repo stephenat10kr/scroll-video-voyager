@@ -7,6 +7,8 @@ export function useIsAndroid() {
   React.useEffect(() => {
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroidDevice = userAgent.indexOf("android") > -1;
+    console.log("useIsAndroid - User agent:", userAgent);
+    console.log("useIsAndroid - Is Android device:", isAndroidDevice);
     setIsAndroid(isAndroidDevice);
   }, []);
 

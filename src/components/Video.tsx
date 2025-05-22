@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
+import ImageSequenceScrubber from "./ImageSequenceScrubber";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
 import Preloader from "./Preloader";
@@ -113,7 +113,7 @@ const Video = () => {
   // Set up video loading detection
   useEffect(() => {
     // If we don't have a video source yet, don't attempt to track loading
-    if (!videoSrc) return;
+    if (!videoSrc && !isAndroid) return;
     
     console.log('Video - Starting loading sequence');
     console.log('Video - Using asset ID:', videoAssetId);
@@ -124,6 +124,47 @@ const Video = () => {
     // Reset progress history
     progressValuesRef.current = [];
     
+    // For Android, we'll skip the video loading and just show progress based on time
+    if (isAndroid) {
+      // Set up timer to simulate progress
+      loadingTimerRef.current = setInterval(() => {
+        const elapsedTime = Date.now() - loadStartTimeRef.current;
+        // Calculate time-based progress (0-100% over MIN_LOADING_TIME)
+        const timeBasedProgress = Math.min(100, (elapsedTime / MIN_LOADING_TIME) * 100);
+        
+        setLoadProgress(Math.min(95, timeBasedProgress));
+        
+        // After minimum time, accelerate toward completion
+        if (elapsedTime > MIN_LOADING_TIME) {
+          setLoadProgress(100);
+          if (loadingTimerRef.current) {
+            clearInterval(loadingTimerRef.current);
+            loadingTimerRef.current = null;
+          }
+        }
+      }, 100);
+      
+      // Final fallback timer for Android
+      const finalFallbackTimer = setTimeout(() => {
+        console.log('Final fallback timer triggered for Android - forcing completion');
+        setLoadProgress(100);
+        
+        if (loadingTimerRef.current) {
+          clearInterval(loadingTimerRef.current);
+          loadingTimerRef.current = null;
+        }
+      }, MAX_LOADING_TIME);
+      
+      return () => {
+        if (loadingTimerRef.current) {
+          clearInterval(loadingTimerRef.current);
+          loadingTimerRef.current = null;
+        }
+        clearTimeout(finalFallbackTimer);
+      };
+    }
+    
+    // For non-Android devices, continue with video loading logic
     // Create a temporary video element to track loading
     const tempVideo = document.createElement('video');
     // Specifically disable Safari auto-play prevention by adding attributes
@@ -248,7 +289,7 @@ const Video = () => {
       tempVideo.load();
       videoRef.current = null;
     };
-  }, [videoSrc, loadProgress]);
+  }, [videoSrc, loadProgress, isAndroid, videoAssetId]);
   
   // Disable scrolling while preloader is active
   useEffect(() => {
@@ -265,6 +306,14 @@ const Video = () => {
     console.log('Preloader - Complete handler called');
     setShowPreloader(false);
     document.body.style.overflow = 'auto'; // Re-enable scrolling
+  };
+
+  const handleVideoReady = () => {
+    console.log('Video or image sequence ready');
+    // For Android, ensure we have a high progress when ready
+    if (isAndroid) {
+      setLoadProgress(100);
+    }
   };
 
   // Log for debugging
@@ -285,9 +334,9 @@ const Video = () => {
         />
       )}
       {isAndroid ? (
-        <ImprovedScrollVideo src={videoSrc} />
+        <ImageSequenceScrubber onReady={handleVideoReady} />
       ) : (
-        <ScrollVideo src={videoSrc} />
+        <ScrollVideo src={videoSrc} onReady={handleVideoReady} />
       )}
     </>
   );
