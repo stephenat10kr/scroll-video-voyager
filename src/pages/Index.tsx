@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -25,8 +26,9 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
+  const [hasPassedMarker, setHasPassedMarker] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const revealTextObserverRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -98,7 +100,6 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -146,12 +147,66 @@ const Index = () => {
     // Start setting up the observer
     setupObserver();
     
+    // Setup reveal text observer to hide video when top of RevealText reaches top of viewport
+    const setupRevealTextObserver = () => {
+      // Find the RevealText component by its section element
+      const revealTextSection = document.querySelector('section:has(#revealText-section)') || 
+                               document.querySelector('section:nth-child(3)'); // Fallback selector
+      
+      if (!revealTextSection) {
+        console.log("RevealText section not found, retrying in 500ms");
+        setTimeout(setupRevealTextObserver, 500);
+        return;
+      }
+      
+      console.log("Setting up Intersection Observer for RevealText section");
+      
+      // Create new Intersection Observer specifically for RevealText
+      revealTextObserverRef.current = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          
+          // When the top of RevealText reaches the top of the screen
+          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+            if (entry.boundingClientRect.top <= 1) { // Almost at top of screen
+              console.log("RevealText reached top of viewport - hiding video");
+              setShowChladniPattern(true);
+              setHasPassedMarker(true);
+            }
+          } else if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+            // When scrolling back up and RevealText is below viewport
+            console.log("Scrolled above RevealText - showing video again");
+            setShowChladniPattern(false);
+            setHasPassedMarker(false);
+          }
+        },
+        {
+          // The rootMargin top value creates a trigger line just at/above the top of the viewport
+          rootMargin: "-1px 0px 0px 0px",
+          threshold: [0, 0.05, 0.1, 0.2]
+        }
+      );
+      
+      // Start observing the RevealText section
+      revealTextObserverRef.current.observe(revealTextSection);
+      console.log("Intersection Observer started watching RevealText section");
+    };
+    
+    // Start setting up the RevealText observer
+    setupRevealTextObserver();
+    
     // Cleanup function
     return () => {
       if (observerRef.current) {
-        console.log("Cleaning up Intersection Observer");
+        console.log("Cleaning up marker Intersection Observer");
         observerRef.current.disconnect();
         observerRef.current = null;
+      }
+      
+      if (revealTextObserverRef.current) {
+        console.log("Cleaning up RevealText Intersection Observer");
+        revealTextObserverRef.current.disconnect();
+        revealTextObserverRef.current = null;
       }
     };
   }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
@@ -241,7 +296,7 @@ const Index = () => {
         </section>
         
         {/* RevealText component now includes the red spacer */}
-        <section>
+        <section id="revealText-section">
           <RevealText />
         </section>
         
@@ -276,3 +331,4 @@ const Index = () => {
 };
 
 export default Index;
+

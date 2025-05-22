@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -15,6 +16,7 @@ const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);  // Add ref for the section element
   const markerRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const {
@@ -66,6 +68,7 @@ const RevealText = () => {
       }
     }
   });
+  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -108,6 +111,7 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
@@ -120,9 +124,10 @@ const RevealText = () => {
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+  
   return (
     <>
-      <div className="w-full py-24 pb-36" style={{
+      <div ref={sectionRef} className="w-full py-24 pb-36" style={{
         backgroundColor: colors.darkGreen,
         marginBottom: 0,
         paddingBottom: 0,
