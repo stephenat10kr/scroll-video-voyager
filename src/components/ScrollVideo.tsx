@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -14,11 +15,9 @@ const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 const ScrollVideo: React.FC<{
   src?: string;
   onReady?: () => void;
-  onProgress?: (progress: number) => void;
 }> = ({
   src,
-  onReady,
-  onProgress
+  onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,12 +75,7 @@ const ScrollVideo: React.FC<{
       }
     }
     setLastProgress(progress);
-    
-    // Call the onProgress callback if provided
-    if (onProgress) {
-      onProgress(progress);
-    }
-  }, [progress, onProgress]);
+  }, [progress]);
 
   useEffect(() => {
     const video = videoRef.current;

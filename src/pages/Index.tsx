@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -27,7 +26,6 @@ const Index = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
-  const [videoProgress, setVideoProgress] = useState(0); // New state to track video progress
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
@@ -171,15 +169,6 @@ const Index = () => {
     setVideoReady(true);
   };
   
-  // New handler for video progress
-  const handleVideoProgress = (progress: number) => {
-    setVideoProgress(progress);
-    console.log(`Video progress: ${progress.toFixed(2)}`);
-  };
-  
-  // Determine if video should be visible based on progress
-  const isVideoVisible = showVideo && !showChladniPattern && videoProgress < 0.99; // Hide video when progress is ≥ 0.99
-  
   return (
     <>
       {/* Background container that switches between video and Chladni pattern */}
@@ -190,24 +179,24 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with transition */}
+        {/* Video with instant transition */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: isVideoVisible ? 1 : 0,
-            transition: "opacity 0.1s ease", // Add smooth transition
+            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 10
           }}
         >
           {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} onProgress={handleVideoProgress} src={videoSrc} />
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
-            <ScrollVideo onReady={handleVideoReady} onProgress={handleVideoProgress} src={videoSrc} />
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
         
-        {/* Chladni pattern with transition */}
+        {/* Chladni pattern with instant transition - now covers all content */}
         <div 
           style={{
             position: 'fixed',
@@ -215,8 +204,8 @@ const Index = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            opacity: showChladniPattern || videoProgress >= 0.99 ? 1 : 0,
-            transition: "opacity 0.1s ease", // Add smooth transition
+            opacity: showChladniPattern ? 1 : 0,
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 11
           }}
           className="chladni-container"
@@ -287,4 +276,3 @@ const Index = () => {
 };
 
 export default Index;
-

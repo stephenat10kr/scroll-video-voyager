@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -13,14 +14,9 @@ gsap.registerPlugin(ScrollTrigger);
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
   onReady?: () => void; // Add onReady callback
-  onProgress?: (progress: number) => void; // Add onProgress callback
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ 
-  src: externalSrc, 
-  onReady,
-  onProgress
-}) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,7 +24,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
-  const lastProgressRef = useRef(0);
   
   // For debugging
   useEffect(() => {
@@ -166,16 +161,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
         // Use a much lower scrub value for Android devices to reduce lag
         scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
         markers: false, // Set to true for debugging
-        onUpdate: (self) => {
-          // Report progress to parent component
-          if (onProgress) {
-            const currentProgress = self.progress;
-            if (Math.abs(currentProgress - lastProgressRef.current) > 0.005) {
-              lastProgressRef.current = currentProgress;
-              onProgress(currentProgress);
-            }
-          }
-        }
       }
     });
     
@@ -222,7 +207,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, onProgress]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
