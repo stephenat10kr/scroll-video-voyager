@@ -7,17 +7,17 @@ import { Facebook, Instagram, Linkedin } from "lucide-react";
 const Footer = () => {
   return (
     <footer 
-      className="w-full py-8 px-4 md:px-8" 
+      className="w-full py-8 px-8" 
       style={{ backgroundColor: colors.darkGreen }}
     >
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div className="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         {/* Logo section */}
         <div className="w-[150px] md:w-[180px]">
           <Logo />
         </div>
         
         {/* Right container with icons and copyright */}
-        <div className="flex flex-col items-center md:items-end gap-4">
+        <div className="flex flex-col items-start md:items-end gap-4">
           {/* Social icons */}
           <div className="flex gap-6">
             <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
