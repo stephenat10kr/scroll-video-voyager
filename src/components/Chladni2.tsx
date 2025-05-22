@@ -7,7 +7,7 @@ interface Chladni2Props {
 
 const Chladni2: React.FC<Chladni2Props> = ({ className = '' }) => {
   return (
-    <div className={`fixed inset-0 w-full h-full ${className}`} style={{ zIndex: 15 }}>
+    <div className={`w-full h-full ${className}`} style={{ zIndex: 15 }}>
       {/* Spacer div - 600vh height */}
       <div 
         className="w-full" 
