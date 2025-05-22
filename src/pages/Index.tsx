@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -179,13 +180,13 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with instant transition */}
+        {/* Video with fade transition of 0.1s */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0.1s ease", // Changed from 0s to 0.1s for fade transition
             zIndex: 10
           }}
         >
@@ -196,7 +197,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Chladni pattern with instant transition - now covers all content */}
+        {/* Chladni pattern with fade transition of 0.1s - now covers all content */}
         <div 
           style={{
             position: 'fixed',
@@ -205,7 +206,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0.1s ease", // Changed from 0s to 0.1s for fade transition
             zIndex: 11
           }}
           className="chladni-container"
