@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -17,6 +18,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [showWelcome, setShowWelcome] = useState(false);
   const [displayedProgress, setDisplayedProgress] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
   
   // For debugging
   useEffect(() => {
@@ -70,6 +72,12 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       // This will trigger the video to start fading in
       console.log("Preloader - Calling onComplete");
       onComplete();
+      
+      // Start fade out animation after a short delay (700ms)
+      setTimeout(() => {
+        console.log("Preloader - Starting fade out animation");
+        setFadeOut(true);
+      }, 700);
     }
   }, [displayedProgress, onComplete]);
 
@@ -92,6 +100,9 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       style={{ 
         backgroundColor: colors.darkGreen, 
         zIndex: 25, // Updated from 5 to 25 to be above all content
+        opacity: fadeOut ? 0 : 1,
+        transition: "opacity 0.8s ease-out",
+        pointerEvents: fadeOut ? 'none' : 'auto',
       }}
     >
       <div className="flex flex-col items-center justify-center gap-8 px-4 text-center">
