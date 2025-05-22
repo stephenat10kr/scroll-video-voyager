@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -16,10 +17,12 @@ import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
+import { useScrollHeight } from "../hooks/useScrollHeight";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
+  const scrollHeight = useScrollHeight();
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
@@ -89,20 +92,25 @@ const Index = () => {
     if (isIOS) {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
-      console.log("Using iOS-specific scroll trigger at 4600px");
     }
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
-  }, [isIOS, isAndroid]);
+
+    console.log("Current scroll height calculation:", scrollHeight);
+  }, [isIOS, isAndroid, scrollHeight]);
   
-  // Use different scroll positions for iOS devices
-  const SCROLL_TRANSITION_POSITION = isIOS ? 4600 : 4200;
+  // Calculate scroll transition position based on the same logic as the scroll height
+  // This ensures the video and hero text sections transition at the same time
+  const SCROLL_TRANSITION_POSITION = Math.round(scrollHeight * 0.8); // 80% of total scroll height
+  
+  useEffect(() => {
+    console.log(`Setting up transition with calculated position at ${SCROLL_TRANSITION_POSITION}px`);
+  }, [SCROLL_TRANSITION_POSITION]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -158,7 +166,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, [hasPassedMarker, SCROLL_TRANSITION_POSITION]); // Added SCROLL_TRANSITION_POSITION to dependency array
+  }, [hasPassedMarker, SCROLL_TRANSITION_POSITION]); 
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -227,6 +235,14 @@ const Index = () => {
         <section>
           <HeroText skipLogoSection={false} />
         </section>
+        
+        {/* Add a marker element for the transition point */}
+        <div id="chladni-transition-marker" style={{ 
+          position: 'relative', 
+          height: '1px', 
+          width: '100%',
+          backgroundColor: 'transparent'
+        }}></div>
         
         {/* RevealText component now includes the red spacer */}
         <section>

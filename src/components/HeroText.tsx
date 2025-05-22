@@ -4,6 +4,7 @@ import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import { AspectRatio } from "./ui/aspect-ratio";
+import { useScrollHeight } from "../hooks/useScrollHeight";
 
 interface HeroTextProps {
   skipLogoSection?: boolean;
@@ -13,6 +14,8 @@ const HeroText: React.FC<HeroTextProps> = ({
   skipLogoSection = false
 }) => {
   const isMobile = useIsMobile();
+  const scrollHeight = useScrollHeight();
+  
   const {
     data: heroTextItems,
     isLoading,
@@ -35,7 +38,11 @@ const HeroText: React.FC<HeroTextProps> = ({
       </div>;
   }
   
-  return <div className="w-full bg-transparent h-[4000px]">
+  return <div 
+    className="w-full bg-transparent" 
+    style={{ height: `${scrollHeight}px` }}
+    id="hero-text-container"
+  >
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
@@ -84,7 +91,7 @@ const HeroText: React.FC<HeroTextProps> = ({
         </div>
       </div>
 
-      {/* Additional spacing to fill the 500vh height */}
+      {/* Additional spacing to fill the calculated height */}
       
     </div>;
 };
