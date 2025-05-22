@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -8,6 +9,7 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
+import Chladni2 from "../components/Chladni2"; // Import the new Chladni2 component
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
@@ -213,6 +215,9 @@ const Index = () => {
           <ChladniPattern className="fixed inset-0" />
         </div>
       </div>
+      
+      {/* Add Chladni2 component between background and content */}
+      <Chladni2 />
       
       {/* Content overlay on top of everything */}
       <div 
