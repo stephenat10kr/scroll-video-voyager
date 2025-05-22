@@ -10,14 +10,14 @@ const Footer = () => {
       className="w-full py-8 px-8" 
       style={{ backgroundColor: colors.darkGreen }}
     >
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        {/* Logo section */}
+      <div className="container mx-auto flex justify-between items-start gap-6">
+        {/* Logo section - always on the left */}
         <div className="w-[150px] md:w-[180px]">
           <Logo />
         </div>
         
-        {/* Right container with icons and copyright */}
-        <div className="flex flex-col items-center md:items-end gap-4">
+        {/* Right container with icons and copyright - always on right side */}
+        <div className="flex flex-col items-end gap-4">
           {/* Social icons */}
           <div className="flex gap-6">
             <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
