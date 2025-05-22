@@ -25,15 +25,15 @@ export const useScrollHeight = (): number => {
       // Device-specific adjustments
       if (isIOS) {
         // iOS needs additional space for reliable scrolling
-        calculatedHeight = viewportHeight * (numberOfSections + 0.4);
+        calculatedHeight = viewportHeight * (numberOfSections + 0.2);
         console.log(`iOS detected: Setting scroll height to ${calculatedHeight}px`);
       } else if (isAndroid) {
         // Android may need different adjustments
-        calculatedHeight = viewportHeight * (numberOfSections + 0.2);
+        calculatedHeight = viewportHeight * (numberOfSections + 0.1);
         console.log(`Android detected: Setting scroll height to ${calculatedHeight}px`);
       } else {
         // Desktop or other devices
-        calculatedHeight = viewportHeight * (numberOfSections + 0.1);
+        calculatedHeight = viewportHeight * numberOfSections;
         console.log(`Desktop/other detected: Setting scroll height to ${calculatedHeight}px`);
       }
       

@@ -90,9 +90,6 @@ const HeroText: React.FC<HeroTextProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Additional spacing to fill the calculated height */}
-      
     </div>;
 };
 

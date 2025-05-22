@@ -102,9 +102,9 @@ const Index = () => {
     console.log("Current scroll height calculation:", scrollHeight);
   }, [isIOS, isAndroid, scrollHeight]);
   
-  // Calculate scroll transition position based on the same logic as the scroll height
-  // This ensures the video and hero text sections transition at the same time
-  const SCROLL_TRANSITION_POSITION = Math.round(scrollHeight * 0.8); // 80% of total scroll height
+  // Use exactly the same scrollHeight for transition position
+  // This ensures the video and Chladni pattern transition at exactly the same point where the video ends
+  const SCROLL_TRANSITION_POSITION = scrollHeight; 
   
   useEffect(() => {
     console.log(`Setting up transition with calculated position at ${SCROLL_TRANSITION_POSITION}px`);
@@ -231,17 +231,18 @@ const Index = () => {
         className="content-container relative z-20"
         style={{ backgroundColor: 'transparent', position: 'relative' }}
       >
-        {/* Content sections - Removed redundant Logo section */}
+        {/* Content sections */}
         <section>
           <HeroText skipLogoSection={false} />
         </section>
         
-        {/* Add a marker element for the transition point */}
+        {/* Add a marker element for the transition point - positioned exactly at the end of HeroText */}
         <div id="chladni-transition-marker" style={{ 
           position: 'relative', 
           height: '1px', 
           width: '100%',
-          backgroundColor: 'transparent'
+          backgroundColor: 'transparent',
+          marginTop: '-1px' // Position exactly at the end of HeroText
         }}></div>
         
         {/* RevealText component now includes the red spacer */}

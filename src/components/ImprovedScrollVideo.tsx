@@ -20,7 +20,7 @@ interface ImprovedScrollVideoProps {
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ 
   src: externalSrc, 
   onReady,
-  scrollTransitionPosition = 4200 // Default to 4200px if not provided
+  scrollTransitionPosition // Use the provided scroll transition position
 }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
@@ -31,20 +31,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // Define scroll distance from props (allowing customization for iOS)
-  const SCROLL_EXTRA_PX = scrollTransitionPosition;
+  // Use provided scrollTransitionPosition or default to a value
+  const SCROLL_EXTRA_PX = scrollTransitionPosition || 4000;
   
   // For debugging
   useEffect(() => {
-    if (isIOS) {
-      console.log("iOS device detected in ImprovedScrollVideo component");
-      console.log(`Using iOS-specific scroll distance: ${SCROLL_EXTRA_PX}px`);
-    }
-    if (isAndroid) {
-      console.log("Android device detected in ImprovedScrollVideo component");
-      console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
-    }
-  }, [isIOS, isAndroid, SCROLL_EXTRA_PX]);
+    console.log(`Using scroll distance: ${SCROLL_EXTRA_PX}px`);
+  }, [SCROLL_EXTRA_PX]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -152,11 +145,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
       // Show video when scroll position is <= SCROLL_EXTRA_PX, hide it when beyond
       setIsVisible(scrollPosition <= SCROLL_EXTRA_PX);
       
-      if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
-      } else {
-        console.log(`Hiding video (scroll position > ${SCROLL_EXTRA_PX}px)`);
-      }
+      console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
     };
     
     window.addEventListener('scroll', handleScroll);
