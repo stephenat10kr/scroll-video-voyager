@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -39,26 +40,27 @@ const ScrollVideo: React.FC<{
   // Calculate segment count - increase for Android for smoother transitions
   const segmentCount = isAndroid ? 8 : 5;
 
-  // Add intersection observer to detect when video exits viewport
+  // Add scroll event listener to detect when to hide/show video
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInViewport(entry.isIntersecting);
-      },
-      { 
-        threshold: 0.01,
-        rootMargin: "0px"
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      // Show video when scroll position is 0-4000px, hide it when beyond 4000px
+      setIsInViewport(scrollPosition <= SCROLL_EXTRA_PX);
+      
+      if (scrollPosition <= SCROLL_EXTRA_PX) {
+        console.log("Showing video (scroll position <= 4000px)");
+      } else {
+        console.log("Hiding video (scroll position > 4000px)");
       }
-    );
-
-    observer.observe(containerRef.current);
-
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial check
+    handleScroll();
+    
     return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -337,6 +339,7 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
+        isInViewport={isInViewport}
       >
         <video 
           ref={videoRef} 
@@ -351,7 +354,9 @@ const ScrollVideo: React.FC<{
             minHeight: "100vh",
             backgroundColor: "black",
             display: "block",
-            visibility: "visible"
+            visibility: isInViewport ? "visible" : "hidden",
+            opacity: isInViewport ? 1 : 0,
+            transition: "opacity 0.3s ease-out"
           }} 
         />
       </ScrollVideoPlayer>

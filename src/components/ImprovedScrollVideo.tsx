@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -18,6 +19,7 @@ interface ImprovedScrollVideoProps {
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
@@ -137,6 +139,30 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     );
   };
   
+  // Add scroll event listener to hide/show video based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      // Show video when scroll position is 0-4000px, hide it when beyond 4000px
+      setIsVisible(scrollPosition <= SCROLL_EXTRA_PX);
+      
+      if (scrollPosition <= SCROLL_EXTRA_PX) {
+        console.log("Showing video (scroll position <= 4000px)");
+      } else {
+        console.log("Hiding video (scroll position > 4000px)");
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial check
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [SCROLL_EXTRA_PX]);
+  
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isVideoLoaded) return;
@@ -199,25 +225,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       handleMetadataLoaded();
     } else {
       video.addEventListener('loadedmetadata', handleMetadataLoaded);
-    }
-
-    // Add ScrollTrigger to control visibility based on RevealText component position
-    const revealTextSection = document.getElementById('revealText-section');
-    if (revealTextSection) {
-      console.log("RevealText section found for video visibility trigger");
-      ScrollTrigger.create({
-        trigger: revealTextSection,
-        start: "top top", // This fires when the top of RevealText reaches the top of viewport
-        onEnter: () => {
-          console.log("Hiding video (scrolling down)");
-        },
-        onLeaveBack: () => {
-          console.log("Showing video (scrolling up)");
-        },
-        markers: false
-      });
-    } else {
-      console.warn("RevealText section not found for video visibility trigger");
     }
     
     // Clean up
@@ -305,7 +312,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             backgroundColor: 'black',
             willChange: 'transform',
             transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden'
+            backfaceVisibility: 'hidden',
+            opacity: isVisible ? 1 : 0,
+            transition: 'opacity 0.3s ease-out',
+            visibility: isVisible ? 'visible' : 'hidden'
           }}
           playsInline={true}
           webkit-playsinline="true" 

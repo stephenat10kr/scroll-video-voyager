@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,6 +17,7 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
+  isInViewport: boolean; // Add new prop for video visibility
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -29,6 +31,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
+  isInViewport, // Receive visibility state from parent
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -386,6 +389,18 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       isInterpolatingRef.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
+
+  // Apply visibility changes when isInViewport prop changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      // Adjust visibility and opacity based on isInViewport prop
+      video.style.visibility = isInViewport ? 'visible' : 'hidden';
+      video.style.opacity = isInViewport ? '1' : '0';
+      
+      console.log(`Video visibility set to: ${isInViewport ? 'visible' : 'hidden'} (scroll-based)`);
+    }
+  }, [isInViewport]);
 
   return <>{children}</>;
 };
