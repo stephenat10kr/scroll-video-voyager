@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -195,7 +196,7 @@ const Index = () => {
         >
           {isAndroid ? (
             <ImageSequenceScrubber
-              baseUrl=""  {/* This is no longer used in test mode */}
+              baseUrl="" /* This is no longer used in test mode */
               startFrame={0}
               endFrame={236}
               filePrefix="LS_HeroSequence"
