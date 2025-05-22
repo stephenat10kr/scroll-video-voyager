@@ -1,8 +1,8 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Spinner from "./Spinner";
+import { ANDROID_TEST_IMAGE_URL } from "@/hooks/use-android";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -30,8 +30,11 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   const [loadProgress, setLoadProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const totalFrames = endFrame - startFrame + 1;
   const readyCalledRef = useRef(false);
+  
+  // For now, we'll just use a single test image
+  const testMode = true;
+  const totalFrames = testMode ? 1 : (endFrame - startFrame + 1);
 
   // Preload all images in the sequence
   useEffect(() => {
@@ -41,17 +44,23 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
     const loadImage = (frameNum: number) => {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
-        const paddedFrame = String(frameNum).padStart(3, '0');
-        const imgSrc = `${baseUrl}/${filePrefix}${paddedFrame}.${fileExtension}`;
+        
+        // Use the test image URL directly for now
+        const imgSrc = testMode 
+          ? ANDROID_TEST_IMAGE_URL 
+          : `${baseUrl}/${filePrefix}${String(frameNum).padStart(3, '0')}.${fileExtension}`;
+        
+        console.log(`Loading image from: ${imgSrc}`);
         
         img.onload = () => {
           loadedCount++;
           setLoadProgress(Math.floor((loadedCount / totalFrames) * 100));
+          console.log(`Image loaded successfully: ${imgSrc}`);
           resolve(img);
         };
         
         img.onerror = (err) => {
-          console.error(`Failed to load image frame ${paddedFrame}:`, err);
+          console.error(`Failed to load image: ${imgSrc}`, err);
           reject(err);
         };
         
@@ -60,18 +69,20 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
       });
     };
 
-    console.log(`Starting to load ${totalFrames} image frames`);
+    console.log(`Starting to load ${totalFrames} image frame(s) in ${testMode ? 'TEST MODE' : 'normal mode'}`);
     
     const loadAllImages = async () => {
       try {
         const imagePromises = [];
         
-        // Load first frame immediately for quick display
-        imagePromises.push(loadImage(startFrame));
-        
-        // Then load the rest of the frames
-        for (let i = startFrame + 1; i <= endFrame; i++) {
-          imagePromises.push(loadImage(i));
+        // In test mode, just load one image
+        if (testMode) {
+          imagePromises.push(loadImage(startFrame));
+        } else {
+          // Load all frames as before
+          for (let i = startFrame; i <= endFrame; i++) {
+            imagePromises.push(loadImage(i));
+          }
         }
         
         await Promise.all(imagePromises);
@@ -110,7 +121,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
       // Clear any references to images to help with garbage collection
       setLoadedImages([]);
     };
-  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady]);
+  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, testMode]);
 
   // Draw the current image on canvas
   const drawImageOnCanvas = (img: HTMLImageElement) => {

@@ -172,7 +172,6 @@ const Index = () => {
   // Debug information for Android image sequence
   console.log("Android device detected:", isAndroid);
   console.log("Using image sequence instead of video:", isAndroid);
-  console.log("Image sequence base URL:", ANDROID_IMAGE_SEQUENCE_BASE_URL);
   
   return (
     <>
@@ -196,7 +195,7 @@ const Index = () => {
         >
           {isAndroid ? (
             <ImageSequenceScrubber
-              baseUrl={ANDROID_IMAGE_SEQUENCE_BASE_URL}
+              baseUrl=""  {/* This is no longer used in test mode */}
               startFrame={0}
               endFrame={236}
               filePrefix="LS_HeroSequence"
