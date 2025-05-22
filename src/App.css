@@ -39,6 +39,16 @@ html, body {
   z-index: 10; /* Below Chladni pattern (15) but above preloader (5) */
 }
 
+/* Image sequence container styles - match video container */
+.image-sequence-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+}
+
 /* Chladni pattern container - ensure it stretches to full content height */
 .chladni-container {
   height: 100%;

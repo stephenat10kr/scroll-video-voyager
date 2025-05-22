@@ -8,7 +8,7 @@ import Gallery from "../components/Gallery";
 import Questions from "../components/Questions";
 import Footer from "../components/Footer";
 import ChladniPattern from "../components/ChladniPattern";
-import { useIsAndroid } from "../hooks/use-android";
+import { useIsAndroid, ANDROID_IMAGE_SEQUENCE_BASE_URL } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
@@ -16,6 +16,7 @@ import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
+import ImageSequenceScrubber from "@/components/ImageSequenceScrubber";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -25,7 +26,7 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
+  const [hasPassedMarker, setHasPassedMarker] = useState(false); 
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
@@ -98,7 +99,6 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -169,6 +169,11 @@ const Index = () => {
     setVideoReady(true);
   };
   
+  // Debug information for Android image sequence
+  console.log("Android device detected:", isAndroid);
+  console.log("Using image sequence instead of video:", isAndroid);
+  console.log("Image sequence base URL:", ANDROID_IMAGE_SEQUENCE_BASE_URL);
+  
   return (
     <>
       {/* Background container that switches between video and Chladni pattern */}
@@ -176,20 +181,29 @@ const Index = () => {
         className="fixed inset-0 w-full h-full" 
         style={{ 
           zIndex: 10,
-          backgroundColor: "black", // Ensure black background 
+          backgroundColor: "black", 
         }}
       >
-        {/* Video with instant transition */}
+        {/* Video with instant transition - Android gets image sequence instead */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0s",
             zIndex: 10
           }}
         >
           {isAndroid ? (
+            <ImageSequenceScrubber
+              baseUrl={ANDROID_IMAGE_SEQUENCE_BASE_URL}
+              startFrame={0}
+              endFrame={236}
+              filePrefix="LS_HeroSequence"
+              fileExtension="jpg"
+              onReady={handleVideoReady}
+            />
+          ) : isIOS ? (
             <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
             <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
@@ -205,7 +219,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0s",
             zIndex: 11
           }}
           className="chladni-container"
@@ -271,6 +285,9 @@ const Index = () => {
       
       {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
+      
+      {/* Add a hidden marker for the transition to Chladni pattern */}
+      <div id="chladni-transition-marker" style={{ position: 'absolute', visibility: 'hidden' }}></div>
     </>
   );
 };
