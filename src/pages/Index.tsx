@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -98,7 +99,7 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to trigger sooner when scrolling down
+  // UPDATED: Modified to trigger much sooner when scrolling down
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -141,9 +142,9 @@ const Index = () => {
           // Do nothing when scrolling down past the marker - keep pattern visible
         },
         {
-          // Lower threshold to trigger sooner
-          threshold: 0.05, // Reduced from 0.1 to 0.05 to trigger sooner
-          rootMargin: '0px 0px -10% 0px', // Negative bottom margin makes it trigger earlier when scrolling down
+          // Even lower threshold to trigger much sooner
+          threshold: 0.01, // Reduced from 0.05 to 0.01 to trigger much sooner
+          rootMargin: '0px 0px -25% 0px', // Increased negative bottom margin to trigger even earlier when scrolling down
           // Use the viewport as the root
           root: null
         }
@@ -151,7 +152,7 @@ const Index = () => {
       
       // Start observing the marker element
       observerRef.current.observe(markerElement);
-      console.log("Intersection Observer started watching marker element with earlier trigger settings");
+      console.log("Intersection Observer started watching marker element with much earlier trigger settings");
     };
     
     // Start setting up the observer
