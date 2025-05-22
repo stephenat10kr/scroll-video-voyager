@@ -2,15 +2,28 @@
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 import { colors } from "@/lib/theme";
+import { useIsIOS } from "@/hooks/useIsIOS";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Footer = () => {
+  const isIOS = useIsIOS();
+  const isMobile = useIsMobile();
+
   return (
     <footer className="h-[128px] w-full flex justify-between items-center px-8" style={{ backgroundColor: colors.darkGreen }}>
-      <div className="w-auto">
-        <div className="w-auto h-14">
+      {/* Logo container with explicit width and positioning for iOS compatibility */}
+      <div className={`flex items-center ${isIOS ? "pl-0" : ""}`} style={{ width: isIOS ? "auto" : "auto" }}>
+        <div className="h-14 w-auto" style={{ 
+          maxWidth: "100px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "flex-start" 
+        }}>
           <Logo />
         </div>
       </div>
+      
+      {/* Right side content - stacked icons and copyright */}
       <div className="flex-1 flex flex-col items-end gap-4">
         <div className="flex gap-6">
           <Link to="https://facebook.com" target="_blank" rel="noopener noreferrer">
