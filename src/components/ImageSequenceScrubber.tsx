@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Spinner from "./Spinner";
 import { getFallbackImageUrl } from "@/hooks/useContentfulImageSequence";
+import { toast } from "@/components/ui/use-toast";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -32,9 +33,11 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [loadedImages, setLoadedImages] = useState<HTMLImageElement[]>([]);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [loadError, setLoadError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readyCalledRef = useRef(false);
+  const initialLoadAttempt = useRef(false);
   
   // Determine if we're using direct image URLs or the old approach
   const usingDirectUrls = imageUrls && imageUrls.length > 0;
@@ -44,53 +47,33 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   console.log(`Total frames to load: ${totalFrames}`);
   
   // Fallback to a single image if no images are provided
-  const useFallback = totalFrames <= 0;
+  const useFallback = totalFrames <= 0 || loadError;
   console.log(`Using fallback: ${useFallback}`);
 
   // Preload all images in the sequence
   useEffect(() => {
     console.log("Starting image sequence loading process");
-    const images: HTMLImageElement[] = [];
-    let loadedCount = 0;
     
-    // Use a single fallback image if no images are provided
+    // Early exit for fallback mode
     if (useFallback) {
-      console.log("No images provided, using fallback image");
-      const img = new Image();
-      const fallbackUrl = getFallbackImageUrl();
-      
-      img.onload = () => {
-        setLoadProgress(100);
-        setLoadedImages([img]);
-        setIsLoading(false);
-        
-        console.log("Using fallback image:", fallbackUrl);
-        
-        if (canvasRef.current) {
-          drawImageOnCanvas(img);
-        }
-        
-        if (onReady && !readyCalledRef.current) {
-          console.log("Calling onReady callback with fallback image");
-          onReady();
-          readyCalledRef.current = true;
-        }
-      };
-      
-      img.onerror = (err) => {
-        console.error("Failed to load fallback image:", err);
-        
-        if (onReady && !readyCalledRef.current) {
-          onReady();
-          readyCalledRef.current = true;
-        }
-      };
-      
-      console.log("Loading fallback image:", fallbackUrl);
-      img.src = fallbackUrl;
+      handleFallbackImage();
       return;
     }
-
+    
+    // Set a timeout to ensure we don't wait forever for images to load
+    const loadTimeout = setTimeout(() => {
+      if (isLoading && !initialLoadAttempt.current) {
+        console.error("Image loading timed out after 10 seconds");
+        setLoadError(true);
+        handleFallbackImage();
+      }
+    }, 10000); // 10 second timeout
+    
+    const images: HTMLImageElement[] = [];
+    let loadedCount = 0;
+    let errorCount = 0;
+    initialLoadAttempt.current = true;
+    
     // Function to load a single image
     const loadImage = (index: number) => {
       return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -99,11 +82,19 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         let imgSrc: string;
         
         if (usingDirectUrls) {
+          if (!imageUrls[index]) {
+            console.error(`Image URL at index ${index} is undefined`);
+            reject(new Error(`Image URL at index ${index} is undefined`));
+            return;
+          }
           imgSrc = imageUrls[index];
         } else {
           const frameNum = index + startFrame;
           imgSrc = `${baseUrl}/${filePrefix}${String(frameNum).padStart(3, '0')}.${fileExtension}`;
         }
+        
+        // Debug the URL we're trying to load
+        console.log(`Trying to load image ${index + 1}/${totalFrames}: ${imgSrc.substring(0, 100)}...`);
         
         img.onload = () => {
           loadedCount++;
@@ -112,10 +103,19 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         };
         
         img.onerror = (err) => {
+          errorCount++;
           console.error(`Failed to load image at index ${index}:`, imgSrc, err);
+          
+          // If more than 25% of images fail to load, use fallback
+          if (errorCount > totalFrames * 0.25) {
+            console.error(`Too many image load failures (${errorCount}/${index+1} attempted). Using fallback.`);
+            setLoadError(true);
+          }
+          
           reject(err);
         };
         
+        img.crossOrigin = "anonymous"; // For CORS issues
         img.src = imgSrc;
         images[index] = img;
       });
@@ -128,40 +128,43 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         const imagePromises = [];
         
         for (let i = 0; i < totalFrames; i++) {
-          imagePromises.push(loadImage(i));
+          imagePromises.push(loadImage(i).catch(err => {
+            console.warn(`Image ${i} failed to load:`, err);
+            return null; // Return null for failed images
+          }));
         }
         
-        // Use Promise.allSettled to continue even if some images fail
         const results = await Promise.allSettled(imagePromises);
-        const successCount = results.filter(result => result.status === 'fulfilled').length;
+        const successCount = results.filter(result => 
+          result.status === 'fulfilled' && result.value !== null
+        ).length;
         
         console.log(`Successfully loaded ${successCount} of ${totalFrames} image frames`);
         
         if (successCount === 0) {
           // If no images loaded successfully, use fallback
-          console.log("No images loaded successfully, using fallback");
-          const fallbackImg = new Image();
-          fallbackImg.onload = () => {
-            setLoadedImages([fallbackImg]);
-            setIsLoading(false);
-            if (canvasRef.current) {
-              drawImageOnCanvas(fallbackImg);
-            }
-            if (onReady && !readyCalledRef.current) {
-              onReady();
-              readyCalledRef.current = true;
-            }
-          };
-          fallbackImg.src = getFallbackImageUrl();
+          console.error("No images loaded successfully, using fallback");
+          setLoadError(true);
+          handleFallbackImage();
           return;
+        } else if (successCount < totalFrames * 0.5) {
+          // If less than 50% of images loaded successfully, show warning toast
+          console.warn(`Only ${successCount} of ${totalFrames} images loaded successfully`);
+          toast({
+            title: "Limited Image Quality",
+            description: `Only ${successCount} of ${totalFrames} frames loaded. Sequence may appear choppy.`,
+            variant: "warning",
+          });
         }
         
-        setLoadedImages(images.filter(img => img && img.complete));
+        // Filter out failed images (nulls) and set the loaded images
+        const validImages = images.filter(img => img && img.complete);
+        setLoadedImages(validImages);
         setIsLoading(false);
         
         // Draw the first frame on canvas
-        if (canvasRef.current && images[0]) {
-          drawImageOnCanvas(images[0]);
+        if (canvasRef.current && validImages[0]) {
+          drawImageOnCanvas(validImages[0]);
         }
         
         // Notify parent that image sequence is ready
@@ -172,37 +175,48 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         
       } catch (error) {
         console.error("Error loading image sequence:", error);
-        
-        // Use fallback on error
-        const fallbackImg = new Image();
-        fallbackImg.onload = () => {
-          setLoadedImages([fallbackImg]);
-          setIsLoading(false);
-          if (canvasRef.current) {
-            drawImageOnCanvas(fallbackImg);
-          }
-          if (onReady && !readyCalledRef.current) {
-            onReady();
-            readyCalledRef.current = true;
-          }
-        };
-        fallbackImg.src = getFallbackImageUrl();
-        
-        // Still call ready callback even on error to prevent getting stuck
-        if (onReady && !readyCalledRef.current) {
-          onReady();
-          readyCalledRef.current = true;
-        }
+        setLoadError(true);
+        handleFallbackImage();
       }
     };
 
     loadAllImages();
 
-    // Cleanup function
     return () => {
+      clearTimeout(loadTimeout);
       setLoadedImages([]);
     };
   }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, usingDirectUrls, imageUrls, useFallback]);
+
+  const handleFallbackImage = () => {
+    console.log("Using fallback image");
+    const fallbackImg = new Image();
+    fallbackImg.onload = () => {
+      setLoadedImages([fallbackImg]);
+      setIsLoading(false);
+      if (canvasRef.current) {
+        drawImageOnCanvas(fallbackImg);
+      }
+      if (onReady && !readyCalledRef.current) {
+        onReady();
+        readyCalledRef.current = true;
+      }
+    };
+    fallbackImg.onerror = () => {
+      console.error("Even fallback image failed to load!");
+      // Try a different fallback from Unsplash
+      const backupFallback = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80&w=1470";
+      fallbackImg.src = backupFallback;
+    };
+    fallbackImg.src = getFallbackImageUrl();
+    
+    // Notify user about fallback
+    toast({
+      title: "Using Fallback Image",
+      description: "Could not load all image frames. Using a static image instead.",
+      variant: "destructive",
+    });
+  };
 
   // Draw the current image on canvas
   const drawImageOnCanvas = (img: HTMLImageElement) => {

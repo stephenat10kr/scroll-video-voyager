@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -30,16 +29,18 @@ const Index = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [hasPassedMarker, setHasPassedMarker] = useState(false); 
+  const [retryCount, setRetryCount] = useState(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
-  // Fetch the image sequence for Android devices
-  const { data: imageUrls = [], isLoading: imagesLoading, isError: imageError } = useContentfulImageSequence({
+  // Fetch the image sequence for Android devices with retry logic
+  const { data: imageUrls = [], isLoading: imagesLoading, isError: imageError, refetch: refetchImages } = useContentfulImageSequence({
     tag: "heroSequence",
-    prefix: "LS_HeroSequence"
+    prefix: "LS_HeroSequence",
+    retry: 3
   });
   
   // Get video source from Contentful
@@ -47,7 +48,7 @@ const Index = () => {
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
     
-  // Log image sequence status
+  // Log image sequence status and handle errors
   useEffect(() => {
     if (isAndroid) {
       if (imagesLoading) {
@@ -55,17 +56,41 @@ const Index = () => {
       } else {
         console.log(`Image sequence loaded: ${imageUrls.length} frames`);
         
-        // Show error toast if no images were found
-        if (imageUrls.length === 0 || imageError) {
+        // Show error toast if no images were found and offer retry option
+        if ((imageUrls.length === 0 || imageError) && retryCount < 3) {
           toast({
-            title: "Warning",
-            description: "Could not load all image frames. Using fallback image.",
+            title: "Image Loading Issue",
+            description: "Trouble loading image frames. Retrying...",
             variant: "destructive",
+            action: (
+              <button 
+                className="bg-white text-black px-3 py-1 rounded"
+                onClick={() => {
+                  setRetryCount(prev => prev + 1);
+                  refetchImages();
+                }}
+              >
+                Retry Now
+              </button>
+            ),
           });
         }
       }
     }
-  }, [isAndroid, imageUrls.length, imagesLoading, imageError]);
+  }, [isAndroid, imageUrls.length, imagesLoading, imageError, retryCount, refetchImages]);
+  
+  // Auto-retry on error up to 3 times
+  useEffect(() => {
+    if (imageError && retryCount < 3) {
+      const retryTimer = setTimeout(() => {
+        console.log(`Auto-retrying image sequence fetch (attempt ${retryCount + 1}/3)`);
+        setRetryCount(prev => prev + 1);
+        refetchImages();
+      }, 3000); // Wait 3s between retries
+      
+      return () => clearTimeout(retryTimer);
+    }
+  }, [imageError, retryCount, refetchImages]);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -141,8 +166,19 @@ const Index = () => {
       const markerElement = document.getElementById('chladni-transition-marker');
       
       if (!markerElement) {
-        console.log("Transition marker element not found, retrying in 500ms");
-        setTimeout(setupObserver, 500);
+        console.log("Transition marker element not found, creating it");
+        // Create a marker element at a specific point in the page
+        const marker = document.createElement('div');
+        marker.id = 'chladni-transition-marker';
+        marker.style.position = 'absolute';
+        marker.style.top = '200vh'; // Position it 2 viewport heights down
+        marker.style.height = '1px';
+        marker.style.width = '100%';
+        marker.style.visibility = 'hidden';
+        document.body.appendChild(marker);
+        
+        // Try again with the newly created marker
+        setTimeout(setupObserver, 100);
         return;
       }
       
@@ -187,6 +223,12 @@ const Index = () => {
         console.log("Cleaning up Intersection Observer");
         observerRef.current.disconnect();
         observerRef.current = null;
+      }
+      
+      // Also remove the marker if we created it
+      const existingMarker = document.getElementById('chladni-transition-marker');
+      if (existingMarker) {
+        document.body.removeChild(existingMarker);
       }
     };
   }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
