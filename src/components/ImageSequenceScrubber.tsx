@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useImageSequence } from '../hooks/useImageSequence';
 import Spinner from './Spinner';
 
 // Register GSAP plugins
@@ -13,7 +12,9 @@ interface ImageSequenceScrubberProps {
 }
 
 const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }) => {
-  const { images, isLoading, loadProgress } = useImageSequence();
+  const [images, setImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -22,9 +23,25 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   const [isReady, setIsReady] = useState(false);
   const readyCalledRef = useRef(false);
   
+  // Generate image paths for the sequence
+  useEffect(() => {
+    const imageUrls: string[] = [];
+    // Generate paths for images 0-236 (based on the files in the folder)
+    for (let i = 0; i <= 236; i++) {
+      const paddedIndex = i.toString().padStart(3, '0');
+      imageUrls.push(`/image-sequence/LS_HeroSequence${paddedIndex}.jpg`);
+    }
+    setImages(imageUrls);
+  }, []);
+  
   // Initialize canvas and images
   useEffect(() => {
-    if (isLoading || images.length === 0) return;
+    if (isLoading && images.length > 0) {
+      // Start loading images
+      setIsLoading(true);
+    }
+    
+    if (images.length === 0) return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -52,6 +69,9 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
         loadedImages.current[index] = true;
         loadedCount++;
         
+        // Update loading progress
+        setLoadProgress((loadedCount / images.length) * 100);
+        
         // Draw the first image once it's loaded
         if (index === 0) {
           drawImageToCanvas(img);
@@ -60,6 +80,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
         // Once all images are loaded, set ready state
         if (loadedCount === images.length) {
           console.log('All images loaded, sequence ready');
+          setIsLoading(false);
           setIsReady(true);
           
           if (onReady && !readyCalledRef.current) {
@@ -76,7 +97,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [isLoading, images, onReady]);
+  }, [images, onReady]);
   
   // Draw the current image to canvas, maintaining aspect ratio and covering the viewport
   const drawImageToCanvas = (img: HTMLImageElement) => {
@@ -156,22 +177,19 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     };
   }, [isReady, currentImageIndex]);
 
-  if (isLoading) {
-    return (
-      <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
-        <div className="text-center">
-          <Spinner />
-          <p className="text-white mt-4">Loading Image Sequence: {Math.round(loadProgress)}%</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div 
       ref={containerRef} 
       className="video-container w-full h-screen bg-black"
     >
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+          <div className="text-center">
+            <Spinner />
+            <p className="text-white mt-4">Loading Image Sequence: {Math.round(loadProgress)}%</p>
+          </div>
+        </div>
+      )}
       <canvas 
         ref={canvasRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
