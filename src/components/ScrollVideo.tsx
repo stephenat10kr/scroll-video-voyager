@@ -8,16 +8,17 @@ import colors from "../lib/theme";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Standardize scroll distance to 4200px for all devices
-const SCROLL_EXTRA_PX = 4200;
+// Default scroll distance is 4200px but can be overridden
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
   onReady?: () => void;
+  scrollTransitionPosition?: number; // Add prop for customizing scroll transition position
 }> = ({
   src,
-  onReady
+  onReady,
+  scrollTransitionPosition = 4200 // Default to 4200px if not provided
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,7 +30,10 @@ const ScrollVideo: React.FC<{
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
   
-  console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
+  // Use the provided scroll transition position
+  const SCROLL_EXTRA_PX = scrollTransitionPosition;
+  
+  console.log(`Using scroll distance: ${SCROLL_EXTRA_PX}px`);
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -44,13 +48,13 @@ const ScrollVideo: React.FC<{
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is 0-4200px, hide it when beyond 4200px
+      // Show video when scroll position is <= SCROLL_EXTRA_PX, hide it when beyond
       setIsInViewport(scrollPosition <= SCROLL_EXTRA_PX);
       
       if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log("Showing video (scroll position <= 4200px)");
+        console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
       } else {
-        console.log("Hiding video (scroll position > 4200px)");
+        console.log(`Hiding video (scroll position > ${SCROLL_EXTRA_PX}px)`);
       }
     };
     
@@ -62,7 +66,7 @@ const ScrollVideo: React.FC<{
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [SCROLL_EXTRA_PX]);
 
   // Update progress state and determine scroll direction
   useEffect(() => {

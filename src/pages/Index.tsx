@@ -90,6 +90,7 @@ const Index = () => {
     if (isIOS) {
       console.log("iOS device detected in Index component");
       console.log("User Agent:", navigator.userAgent);
+      console.log("Using iOS-specific scroll trigger at 4600px");
     }
     
     if (isAndroid) {
@@ -97,6 +98,9 @@ const Index = () => {
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
   }, [isIOS, isAndroid]);
+  
+  // Use different scroll positions for iOS devices
+  const SCROLL_TRANSITION_POSITION = isIOS ? 4600 : 4200;
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
   // UPDATED: Modified to keep pattern visible after scrolling past marker
@@ -112,7 +116,7 @@ const Index = () => {
         return;
       }
       
-      console.log("Setting up Intersection Observer for transition marker");
+      console.log(`Setting up Intersection Observer for transition marker with threshold at ${SCROLL_TRANSITION_POSITION}px`);
       
       // Create new Intersection Observer
       observerRef.current = new IntersectionObserver(
@@ -155,7 +159,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
+  }, [hasPassedMarker, SCROLL_TRANSITION_POSITION]); // Added SCROLL_TRANSITION_POSITION to dependency array
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -191,9 +195,9 @@ const Index = () => {
           }}
         >
           {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} scrollTransitionPosition={SCROLL_TRANSITION_POSITION} />
           ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} scrollTransitionPosition={SCROLL_TRANSITION_POSITION} />
           )}
         </div>
         

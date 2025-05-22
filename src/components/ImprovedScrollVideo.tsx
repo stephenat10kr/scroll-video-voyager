@@ -14,9 +14,14 @@ gsap.registerPlugin(ScrollTrigger);
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
   onReady?: () => void; // Add onReady callback
+  scrollTransitionPosition?: number; // Add new prop for scroll transition position
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ 
+  src: externalSrc, 
+  onReady,
+  scrollTransitionPosition = 4200 // Default to 4200px if not provided
+}) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -26,19 +31,20 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // Define a fixed scroll distance of 4200px for all devices
-  const SCROLL_EXTRA_PX = 4200;
+  // Define scroll distance from props (allowing customization for iOS)
+  const SCROLL_EXTRA_PX = scrollTransitionPosition;
   
   // For debugging
   useEffect(() => {
     if (isIOS) {
       console.log("iOS device detected in ImprovedScrollVideo component");
+      console.log(`Using iOS-specific scroll distance: ${SCROLL_EXTRA_PX}px`);
     }
     if (isAndroid) {
       console.log("Android device detected in ImprovedScrollVideo component");
       console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
     }
-  }, [isIOS, isAndroid]);
+  }, [isIOS, isAndroid, SCROLL_EXTRA_PX]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -143,13 +149,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      // Show video when scroll position is 0-4200px, hide it when beyond 4200px
+      // Show video when scroll position is <= SCROLL_EXTRA_PX, hide it when beyond
       setIsVisible(scrollPosition <= SCROLL_EXTRA_PX);
       
       if (scrollPosition <= SCROLL_EXTRA_PX) {
-        console.log("Showing video (scroll position <= 4200px)");
+        console.log(`Showing video (scroll position <= ${SCROLL_EXTRA_PX}px)`);
       } else {
-        console.log("Hiding video (scroll position > 4200px)");
+        console.log(`Hiding video (scroll position > ${SCROLL_EXTRA_PX}px)`);
       }
     };
     
