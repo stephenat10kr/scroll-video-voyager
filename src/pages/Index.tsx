@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -18,6 +19,7 @@ import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/conte
 import colors from "../lib/theme";
 import ImageSequenceScrubber from "@/components/ImageSequenceScrubber";
 import { useContentfulImageSequence } from "@/hooks/useContentfulImageSequence";
+import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
@@ -35,7 +37,7 @@ const Index = () => {
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
   // Fetch the image sequence for Android devices
-  const { data: imageUrls = [], isLoading: imagesLoading } = useContentfulImageSequence({
+  const { data: imageUrls = [], isLoading: imagesLoading, isError: imageError } = useContentfulImageSequence({
     tag: "heroSequence",
     prefix: "LS_HeroSequence"
   });
@@ -52,9 +54,18 @@ const Index = () => {
         console.log("Loading image sequence for Android device...");
       } else {
         console.log(`Image sequence loaded: ${imageUrls.length} frames`);
+        
+        // Show error toast if no images were found
+        if (imageUrls.length === 0 || imageError) {
+          toast({
+            title: "Warning",
+            description: "Could not load all image frames. Using fallback image.",
+            variant: "destructive",
+          });
+        }
       }
     }
-  }, [isAndroid, imageUrls.length, imagesLoading]);
+  }, [isAndroid, imageUrls.length, imagesLoading, imageError]);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -112,9 +123,15 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
+      console.log("User Agent:", navigator.userAgent);
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+      console.log("Image sequence URLs count:", imageUrls.length);
+      if (imageUrls.length > 0) {
+        console.log("First image URL:", imageUrls[0]);
+        console.log("Last image URL:", imageUrls[imageUrls.length - 1]);
+      }
     }
-  }, [isIOS, isAndroid]);
+  }, [isIOS, isAndroid, imageUrls]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
   useEffect(() => {
@@ -190,6 +207,32 @@ const Index = () => {
   // Debug information for Android image sequence
   console.log("Android device detected:", isAndroid);
   console.log("Using image sequence instead of video:", isAndroid);
+  
+  // Create a marker element for the transition point
+  useEffect(() => {
+    // Check if marker already exists
+    if (!document.getElementById('chladni-transition-marker')) {
+      // Create a marker element at a specific point in the page
+      const marker = document.createElement('div');
+      marker.id = 'chladni-transition-marker';
+      marker.style.position = 'absolute';
+      marker.style.top = '200vh'; // Position it 2 viewport heights down
+      marker.style.height = '1px';
+      marker.style.width = '100%';
+      marker.style.visibility = 'hidden';
+      document.body.appendChild(marker);
+      
+      console.log("Created chladni transition marker element");
+      
+      return () => {
+        // Clean up marker on component unmount
+        const existingMarker = document.getElementById('chladni-transition-marker');
+        if (existingMarker) {
+          document.body.removeChild(existingMarker);
+        }
+      };
+    }
+  }, []);
   
   return (
     <>
@@ -298,9 +341,6 @@ const Index = () => {
       
       {/* Preloader (lowest z-index) - always rendered */}
       <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
-      
-      {/* Add a hidden marker for the transition to Chladni pattern */}
-      <div id="chladni-transition-marker" style={{ position: 'absolute', visibility: 'hidden' }}></div>
     </>
   );
 };

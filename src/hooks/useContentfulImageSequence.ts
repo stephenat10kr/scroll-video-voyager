@@ -34,7 +34,7 @@ export function useContentfulImageSequence(options: ImageSequenceOptions = {}) {
         console.log(`Found ${response.items.length} images in sequence`);
         
         if (response.items.length === 0) {
-          console.warn('No images found for the sequence');
+          console.warn('No images found for the sequence. Check your tag and prefix values.');
           return [];
         }
         
@@ -42,7 +42,13 @@ export function useContentfulImageSequence(options: ImageSequenceOptions = {}) {
         const imageUrls = response.items
           .filter(asset => {
             const fileName = asset.fields.file.fileName;
-            return fileName && fileName.startsWith(prefix);
+            const startsWithPrefix = fileName && fileName.startsWith(prefix);
+            
+            if (!startsWithPrefix) {
+              console.log(`Filtering out asset: ${fileName} - doesn't match prefix ${prefix}`);
+            }
+            
+            return startsWithPrefix;
           })
           .sort((a, b) => {
             // Extract numbers from filenames for proper sorting
@@ -61,13 +67,22 @@ export function useContentfulImageSequence(options: ImageSequenceOptions = {}) {
           });
         
         console.log(`Processed ${imageUrls.length} image URLs`);
+        
+        // If no images were processed, return the fallback
+        if (imageUrls.length === 0) {
+          console.warn('After filtering, no images matched the prefix. Using fallback image.');
+          return [getFallbackImageUrl()];
+        }
+        
         return imageUrls;
       } catch (error) {
         console.error("Error fetching image sequence from Contentful:", error);
-        throw error;
+        // Return fallback image on error
+        return [getFallbackImageUrl()];
       }
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 2, // Retry failed requests twice
   });
 }
 

@@ -38,18 +38,24 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   
   // Determine if we're using direct image URLs or the old approach
   const usingDirectUrls = imageUrls && imageUrls.length > 0;
+  console.log(`Using direct URLs: ${usingDirectUrls}, URL count: ${imageUrls.length}`);
+  
   const totalFrames = usingDirectUrls ? imageUrls.length : (endFrame - startFrame + 1);
+  console.log(`Total frames to load: ${totalFrames}`);
   
   // Fallback to a single image if no images are provided
   const useFallback = totalFrames <= 0;
+  console.log(`Using fallback: ${useFallback}`);
 
   // Preload all images in the sequence
   useEffect(() => {
+    console.log("Starting image sequence loading process");
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
     
     // Use a single fallback image if no images are provided
     if (useFallback) {
+      console.log("No images provided, using fallback image");
       const img = new Image();
       const fallbackUrl = getFallbackImageUrl();
       
@@ -65,6 +71,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         }
         
         if (onReady && !readyCalledRef.current) {
+          console.log("Calling onReady callback with fallback image");
           onReady();
           readyCalledRef.current = true;
         }
@@ -79,6 +86,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         }
       };
       
+      console.log("Loading fallback image:", fallbackUrl);
       img.src = fallbackUrl;
       return;
     }
@@ -129,6 +137,25 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         
         console.log(`Successfully loaded ${successCount} of ${totalFrames} image frames`);
         
+        if (successCount === 0) {
+          // If no images loaded successfully, use fallback
+          console.log("No images loaded successfully, using fallback");
+          const fallbackImg = new Image();
+          fallbackImg.onload = () => {
+            setLoadedImages([fallbackImg]);
+            setIsLoading(false);
+            if (canvasRef.current) {
+              drawImageOnCanvas(fallbackImg);
+            }
+            if (onReady && !readyCalledRef.current) {
+              onReady();
+              readyCalledRef.current = true;
+            }
+          };
+          fallbackImg.src = getFallbackImageUrl();
+          return;
+        }
+        
         setLoadedImages(images.filter(img => img && img.complete));
         setIsLoading(false);
         
@@ -145,6 +172,21 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         
       } catch (error) {
         console.error("Error loading image sequence:", error);
+        
+        // Use fallback on error
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          setLoadedImages([fallbackImg]);
+          setIsLoading(false);
+          if (canvasRef.current) {
+            drawImageOnCanvas(fallbackImg);
+          }
+          if (onReady && !readyCalledRef.current) {
+            onReady();
+            readyCalledRef.current = true;
+          }
+        };
+        fallbackImg.src = getFallbackImageUrl();
         
         // Still call ready callback even on error to prevent getting stuck
         if (onReady && !readyCalledRef.current) {
@@ -165,10 +207,16 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   // Draw the current image on canvas
   const drawImageOnCanvas = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      console.error("Canvas ref is null, cannot draw image");
+      return;
+    }
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.error("Could not get 2D context from canvas");
+      return;
+    }
     
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -201,8 +249,12 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
 
   // Set up scroll trigger for image sequence
   useEffect(() => {
-    if (isLoading || !containerRef.current || loadedImages.length === 0) return;
+    if (isLoading || !containerRef.current || loadedImages.length === 0) {
+      console.log("Not setting up scroll trigger yet: loading=", isLoading, "container=", !!containerRef.current, "images=", loadedImages.length);
+      return;
+    }
     
+    console.log("Setting up scroll trigger with", loadedImages.length, "images");
     const container = containerRef.current;
     
     // Create timeline for scroll scrubbing
@@ -234,13 +286,15 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
     });
     
     timeline.to({}, { duration: 1 });
+    console.log("Scroll trigger setup complete");
     
     // Resize the canvas when the window resizes
     const handleResize = () => {
-      if (canvasRef.current) {
+      if (canvasRef.current && containerRef.current) {
+        console.log("Resizing canvas to match container dimensions");
         // Set canvas dimensions to match container
-        canvasRef.current.width = container.clientWidth;
-        canvasRef.current.height = container.clientHeight;
+        canvasRef.current.width = containerRef.current.clientWidth;
+        canvasRef.current.height = containerRef.current.clientHeight;
         
         // Redraw current image at new size
         if (loadedImages[currentFrame]) {
@@ -267,8 +321,12 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
 
   // Initialize canvas size when component mounts
   useEffect(() => {
-    if (!canvasRef.current || !containerRef.current) return;
+    if (!canvasRef.current || !containerRef.current) {
+      console.log("Canvas or container ref is null during initialization");
+      return;
+    }
     
+    console.log("Initializing canvas dimensions");
     // Set initial canvas dimensions
     canvasRef.current.width = containerRef.current.clientWidth;
     canvasRef.current.height = containerRef.current.clientHeight;
@@ -276,6 +334,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
 
   // Add a fallback timer to ensure we always trigger onReady
   useEffect(() => {
+    console.log("Setting up fallback timer for onReady callback");
     const fallbackTimer = setTimeout(() => {
       if (onReady && !readyCalledRef.current) {
         console.log("Fallback: calling onReady callback after timeout for image sequence");
@@ -290,7 +349,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   }, [onReady]);
 
   return (
-    <div ref={containerRef} className="image-sequence-container w-full h-screen">
+    <div ref={containerRef} className="image-sequence-container w-full h-screen bg-black">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <div className="text-center">
