@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Spinner from "./Spinner";
-import { getFallbackImageUrl } from "@/hooks/useContentfulImageSequence";
 import { toast } from "@/components/ui/use-toast";
 
 // Register GSAP plugins
@@ -33,7 +32,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [loadedImages, setLoadedImages] = useState<HTMLImageElement[]>([]);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [loadError, setLoadError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readyCalledRef = useRef(false);
@@ -45,29 +43,22 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
   
   const totalFrames = usingDirectUrls ? imageUrls.length : (endFrame - startFrame + 1);
   console.log(`Total frames to load: ${totalFrames}`);
-  
-  // Fallback to a single image if no images are provided
-  const useFallback = totalFrames <= 0 || loadError;
-  console.log(`Using fallback: ${useFallback}`);
 
   // Preload all images in the sequence
   useEffect(() => {
     console.log("Starting image sequence loading process");
     
-    // Early exit for fallback mode
-    if (useFallback) {
-      handleFallbackImage();
-      return;
-    }
-    
     // Set a timeout to ensure we don't wait forever for images to load
     const loadTimeout = setTimeout(() => {
       if (isLoading && !initialLoadAttempt.current) {
-        console.error("Image loading timed out after 10 seconds");
-        setLoadError(true);
-        handleFallbackImage();
+        console.error("Image loading timed out after 15 seconds");
+        toast({
+          title: "Image Loading Error",
+          description: "Could not load images within the time limit. Please check your network connection and try again.",
+          variant: "destructive",
+        });
       }
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout
     
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
@@ -105,13 +96,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         img.onerror = (err) => {
           errorCount++;
           console.error(`Failed to load image at index ${index}:`, imgSrc, err);
-          
-          // If more than 25% of images fail to load, use fallback
-          if (errorCount > totalFrames * 0.25) {
-            console.error(`Too many image load failures (${errorCount}/${index+1} attempted). Using fallback.`);
-            setLoadError(true);
-          }
-          
           reject(err);
         };
         
@@ -141,22 +125,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         
         console.log(`Successfully loaded ${successCount} of ${totalFrames} image frames`);
         
-        if (successCount === 0) {
-          // If no images loaded successfully, use fallback
-          console.error("No images loaded successfully, using fallback");
-          setLoadError(true);
-          handleFallbackImage();
-          return;
-        } else if (successCount < totalFrames * 0.5) {
-          // If less than 50% of images loaded successfully, show warning toast
-          console.warn(`Only ${successCount} of ${totalFrames} images loaded successfully`);
-          toast({
-            title: "Limited Image Quality",
-            description: `Only ${successCount} of ${totalFrames} frames loaded. Sequence may appear choppy.`,
-            variant: "warning",
-          });
-        }
-        
         // Filter out failed images (nulls) and set the loaded images
         const validImages = images.filter(img => img && img.complete);
         setLoadedImages(validImages);
@@ -175,8 +143,11 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
         
       } catch (error) {
         console.error("Error loading image sequence:", error);
-        setLoadError(true);
-        handleFallbackImage();
+        toast({
+          title: "Error Loading Images",
+          description: "There was a problem loading the image sequence. Please check your connection and try again.",
+          variant: "destructive",
+        });
       }
     };
 
@@ -186,37 +157,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({
       clearTimeout(loadTimeout);
       setLoadedImages([]);
     };
-  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, usingDirectUrls, imageUrls, useFallback]);
-
-  const handleFallbackImage = () => {
-    console.log("Using fallback image");
-    const fallbackImg = new Image();
-    fallbackImg.onload = () => {
-      setLoadedImages([fallbackImg]);
-      setIsLoading(false);
-      if (canvasRef.current) {
-        drawImageOnCanvas(fallbackImg);
-      }
-      if (onReady && !readyCalledRef.current) {
-        onReady();
-        readyCalledRef.current = true;
-      }
-    };
-    fallbackImg.onerror = () => {
-      console.error("Even fallback image failed to load!");
-      // Try a different fallback from Unsplash
-      const backupFallback = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80&w=1470";
-      fallbackImg.src = backupFallback;
-    };
-    fallbackImg.src = getFallbackImageUrl();
-    
-    // Notify user about fallback
-    toast({
-      title: "Using Fallback Image",
-      description: "Could not load all image frames. Using a static image instead.",
-      variant: "destructive",
-    });
-  };
+  }, [baseUrl, startFrame, endFrame, filePrefix, fileExtension, totalFrames, onReady, usingDirectUrls, imageUrls]);
 
   // Draw the current image on canvas
   const drawImageOnCanvas = (img: HTMLImageElement) => {

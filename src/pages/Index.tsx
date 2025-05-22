@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -36,11 +37,16 @@ const Index = () => {
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
-  // Fetch the image sequence for Android devices with retry logic
-  const { data: imageUrls = [], isLoading: imagesLoading, isError: imageError, refetch: refetchImages } = useContentfulImageSequence({
+  // Fetch the image sequence for Android devices with improved error handling
+  const { 
+    data: imageUrls = [], 
+    isLoading: imagesLoading, 
+    isError: imageError, 
+    refetch: refetchImages 
+  } = useContentfulImageSequence({
     tag: "heroSequence",
     prefix: "LS_HeroSequence",
-    retry: 3
+    retry: 5 // Increased retry count for better reliability
   });
   
   // Get video source from Contentful
@@ -48,25 +54,38 @@ const Index = () => {
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
     
-  // Log image sequence status and handle errors
+  // Log image sequence status
   useEffect(() => {
     if (isAndroid) {
       if (imagesLoading) {
         console.log("Loading image sequence for Android device...");
-      } else {
-        console.log(`Image sequence loaded: ${imageUrls.length} frames`);
         
-        // Show error toast if no images were found and offer retry option
-        if ((imageUrls.length === 0 || imageError) && retryCount < 3) {
+        // Show loading toast for better user feedback
+        toast({
+          title: "Loading Image Sequence",
+          description: "We're preparing a smooth scrolling experience for your device.",
+          variant: "default",
+        });
+      } else if (imageUrls.length > 0) {
+        console.log(`Image sequence loaded: ${imageUrls.length} frames`);
+        console.log(`First image URL: ${imageUrls[0]}`);
+        console.log(`Last image URL: ${imageUrls[imageUrls.length - 1]}`);
+      } else if (imageError || imageUrls.length === 0) {
+        // Auto-retry on error
+        if (retryCount < 3) {
+          console.log(`Auto-retrying image sequence fetch (attempt ${retryCount + 1}/3)`);
+          setRetryCount(prev => prev + 1);
+          refetchImages();
+          
           toast({
-            title: "Image Loading Issue",
-            description: "Trouble loading image frames. Retrying...",
-            variant: "destructive",
+            title: "Retrying Image Sequence",
+            description: "We're trying to load the image sequence again.",
+            variant: "default",
             action: (
               <button 
                 className="bg-white text-black px-3 py-1 rounded"
                 onClick={() => {
-                  setRetryCount(prev => prev + 1);
+                  setRetryCount(0); // Reset retry count
                   refetchImages();
                 }}
               >
@@ -77,20 +96,7 @@ const Index = () => {
         }
       }
     }
-  }, [isAndroid, imageUrls.length, imagesLoading, imageError, retryCount, refetchImages]);
-  
-  // Auto-retry on error up to 3 times
-  useEffect(() => {
-    if (imageError && retryCount < 3) {
-      const retryTimer = setTimeout(() => {
-        console.log(`Auto-retrying image sequence fetch (attempt ${retryCount + 1}/3)`);
-        setRetryCount(prev => prev + 1);
-        refetchImages();
-      }, 3000); // Wait 3s between retries
-      
-      return () => clearTimeout(retryTimer);
-    }
-  }, [imageError, retryCount, refetchImages]);
+  }, [isAndroid, imageUrls, imagesLoading, imageError, retryCount, refetchImages]);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -105,7 +111,7 @@ const Index = () => {
     return () => clearTimeout(forceCompleteTimeout);
   }, []);
   
-  // Simulate loading progress for testing - improved to reach 100% when video is ready
+  // Simulate loading progress - improved to reach 100% when video is ready
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
@@ -123,7 +129,7 @@ const Index = () => {
           return Math.min(95, newProgress);
         });
       }, 200);
-    }, 300); // Reduced from 500ms to 300ms for faster initial loading
+    }, 300);
     
     return () => {
       clearTimeout(startDelay);
@@ -151,10 +157,6 @@ const Index = () => {
       console.log("User Agent:", navigator.userAgent);
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
       console.log("Image sequence URLs count:", imageUrls.length);
-      if (imageUrls.length > 0) {
-        console.log("First image URL:", imageUrls[0]);
-        console.log("Last image URL:", imageUrls[imageUrls.length - 1]);
-      }
     }
   }, [isIOS, isAndroid, imageUrls]);
   
@@ -308,7 +310,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Chladni pattern with instant transition - now covers all content */}
+        {/* Chladni pattern with instant transition - covers all content */}
         <div 
           style={{
             position: 'fixed',
