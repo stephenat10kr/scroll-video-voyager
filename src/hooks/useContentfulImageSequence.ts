@@ -23,11 +23,12 @@ export function useContentfulImageSequence(options: ImageSequenceOptions = {}) {
       try {
         console.log(`Fetching image sequence with tag: ${tag}, prefix: ${prefix}`);
         
-        // Query assets with the given tag
+        // Query assets with the given tag - using array for tag parameter as expected by Contentful API
         const response = await contentfulClient.getAssets({
           'metadata.tags.sys.id[in]': tag,
           limit,
-          order: 'fields.file.fileName'
+          // Pass an array for the order parameter
+          order: ['fields.file.fileName']
         });
         
         console.log(`Found ${response.items.length} images in sequence`);
