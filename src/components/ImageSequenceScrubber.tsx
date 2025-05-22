@@ -142,14 +142,23 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     
     console.log('Setting up image sequence scrubbing');
     
-    // Create timeline for scroll scrubbing
+    // Create a container for scrolling
+    const scrollContainer = document.createElement('div');
+    scrollContainer.style.height = '500vh'; // Make it 5x the viewport height for scrolling
+    scrollContainer.style.position = 'absolute';
+    scrollContainer.style.width = '100%';
+    scrollContainer.style.top = '0';
+    scrollContainer.style.zIndex = '-1';
+    document.body.appendChild(scrollContainer);
+    
+    // Create timeline for scroll scrubbing with improved configuration
     const timeline = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "bottom+=600% bottom",
-        scrub: 0.5, // Low value for responsive scrubbing
-        markers: false,
+        trigger: document.body, // Use body as trigger to capture all scrolling
+        start: "top top", 
+        end: "bottom bottom",
+        scrub: true, // Smooth scrubbing effect
+        markers: true, // Show markers for debugging (can remove in production)
         onUpdate: self => {
           // Calculate the image index based on scroll progress
           const imageIndex = Math.min(
@@ -170,12 +179,26 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     });
     
     return () => {
+      // Clean up
       if (timeline.scrollTrigger) {
         timeline.scrollTrigger.kill();
       }
       timeline.kill();
+      if (scrollContainer && scrollContainer.parentNode) {
+        document.body.removeChild(scrollContainer);
+      }
     };
   }, [isReady, currentImageIndex]);
+
+  // Add scroll-based debug info
+  useEffect(() => {
+    const handleScroll = () => {
+      console.log('Scroll position:', window.scrollY, 'Page height:', document.body.scrollHeight);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div 
