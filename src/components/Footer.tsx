@@ -7,7 +7,7 @@ import { Facebook, Instagram, Linkedin } from "lucide-react";
 const Footer = () => {
   return (
     <footer 
-      className="w-full py-8 px-4 md:px-8" 
+      className="w-full py-8 px-8" 
       style={{ backgroundColor: colors.darkGreen }}
     >
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
