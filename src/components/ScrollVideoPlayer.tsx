@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,7 +16,6 @@ type ScrollVideoPlayerProps = {
   SCROLL_EXTRA_PX: number;
   AFTER_VIDEO_EXTRA_HEIGHT: number;
   isMobile: boolean;
-  isInViewport: boolean; // Add new prop for video visibility
 };
 
 const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
@@ -31,7 +29,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   SCROLL_EXTRA_PX,
   AFTER_VIDEO_EXTRA_HEIGHT,
   isMobile,
-  isInViewport, // Receive visibility state from parent
 }) => {
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -113,7 +110,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     console.log("Android detection:", isAndroid);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
-    console.log("Using standardized scroll distance:", SCROLL_EXTRA_PX + "px");
 
     // Optimize video element
     video.controls = false;
@@ -208,7 +204,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        // Always use the fixed SCROLL_EXTRA_PX value regardless of device
         container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };
@@ -309,7 +304,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        // Use the standardized fixed SCROLL_EXTRA_PX value for all devices
         end: `+=${SCROLL_EXTRA_PX}`,
         scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
@@ -389,18 +383,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       isInterpolatingRef.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
-
-  // Apply visibility changes when isInViewport prop changes
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      // Adjust visibility and opacity based on isInViewport prop
-      video.style.visibility = isInViewport ? 'visible' : 'hidden';
-      video.style.opacity = isInViewport ? '1' : '0';
-      
-      console.log(`Video visibility set to: ${isInViewport ? 'visible' : 'hidden'} (scroll-based)`);
-    }
-  }, [isInViewport]);
 
   return <>{children}</>;
 };

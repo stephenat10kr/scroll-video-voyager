@@ -1,24 +1,23 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useIsAndroid } from "../hooks/use-android";
-import colors from "../lib/theme";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Default scroll distance is 4200px but can be overridden
+// Increase scroll distance from 2000 to 4000
+const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
   src?: string;
   onReady?: () => void;
-  scrollTransitionPosition?: number; // Add prop for customizing scroll transition position
 }> = ({
   src,
-  onReady,
-  scrollTransitionPosition = 4200 // Default to 4200px if not provided
+  onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,11 +29,6 @@ const ScrollVideo: React.FC<{
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
   
-  // Use the provided scroll transition position
-  const SCROLL_EXTRA_PX = scrollTransitionPosition;
-  
-  console.log(`ScrollVideo: Using scroll distance: ${SCROLL_EXTRA_PX}px`);
-  
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
   
@@ -44,29 +38,28 @@ const ScrollVideo: React.FC<{
   // Calculate segment count - increase for Android for smoother transitions
   const segmentCount = isAndroid ? 8 : 5;
 
-  // Enhanced scroll event listener to detect when to hide/show video
+  // Add intersection observer to detect when video exits viewport
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const isAtOrBeforeTransition = scrollPosition <= SCROLL_EXTRA_PX;
-      
-      // Only update if there's a change in visibility state
-      if (isInViewport !== isAtOrBeforeTransition) {
-        setIsInViewport(isAtOrBeforeTransition);
-        console.log(`ScrollVideo: ${isAtOrBeforeTransition ? "Showing" : "Hiding"} video (scroll: ${scrollPosition}px, threshold: ${SCROLL_EXTRA_PX}px)`);
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      { 
+        threshold: 0.01,
+        rootMargin: "0px"
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
       }
     };
-    
-    // Use passive event listener for better scroll performance
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [SCROLL_EXTRA_PX, isInViewport]);
+  }, []);
 
   // Update progress state and determine scroll direction
   useEffect(() => {
@@ -331,8 +324,7 @@ const ScrollVideo: React.FC<{
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden"
-      style={{ backgroundColor: colors.darkGreen }}
+      className="relative w-full min-h-screen overflow-hidden bg-black"
     >
       <ScrollVideoPlayer 
         src={secureVideoSrc} 
@@ -344,7 +336,6 @@ const ScrollVideo: React.FC<{
         SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
         AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
         isMobile={isMobile}
-        isInViewport={isInViewport}
       >
         <video 
           ref={videoRef} 
@@ -354,17 +345,13 @@ const ScrollVideo: React.FC<{
           loop={false} 
           muted 
           tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none" 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
           style={{
             minHeight: "100vh",
-            backgroundColor: colors.darkGreen,
+            backgroundColor: "black",
             display: "block",
-            visibility: isInViewport ? "visible" : "hidden",
-            opacity: isInViewport ? 1 : 0,
-            // Use instant transition for perfect synchronization
-            transition: "opacity 0s"
-          }}
-          data-scroll-threshold={SCROLL_EXTRA_PX} /* Add data attribute for debugging */
+            visibility: "visible"
+          }} 
         />
       </ScrollVideoPlayer>
     </div>

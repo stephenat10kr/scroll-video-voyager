@@ -37,7 +37,6 @@ html, body {
   width: 100vw;
   height: 100vh;
   z-index: 10; /* Below Chladni pattern (15) but above preloader (5) */
-  background-color: var(--dark-green); /* Add dark green background to video container */
 }
 
 /* Chladni pattern container - ensure it stretches to full content height */
@@ -52,7 +51,7 @@ html, body {
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  background-color: var(--dark-green); /* Change from black to dark green background behind video */
+  background-color: black; /* Ensure black background behind video */
 }
 
 /* Text flip animation styles */

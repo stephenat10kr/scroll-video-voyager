@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -6,7 +7,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsIOS } from "@/hooks/useIsIOS";
 import { useIsAndroid } from "@/hooks/use-android";
-import colors from "@/lib/theme";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -14,30 +14,26 @@ gsap.registerPlugin(ScrollTrigger);
 interface ImprovedScrollVideoProps {
   src?: string; // Make the src prop optional
   onReady?: () => void; // Add onReady callback
-  scrollTransitionPosition?: number; // Add new prop for scroll transition position
 }
 
-const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ 
-  src: externalSrc, 
-  onReady,
-  scrollTransitionPosition // Use the provided scroll transition position
-}) => {
+const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // Use provided scrollTransitionPosition or default to a value
-  const SCROLL_EXTRA_PX = scrollTransitionPosition || 4000;
-  
   // For debugging
   useEffect(() => {
-    console.log(`ImprovedScrollVideo: Using scroll distance: ${SCROLL_EXTRA_PX}px`);
-  }, [SCROLL_EXTRA_PX]);
+    if (isIOS) {
+      console.log("iOS device detected in ImprovedScrollVideo component");
+    }
+    if (isAndroid) {
+      console.log("Android device detected in ImprovedScrollVideo component");
+    }
+  }, [isIOS, isAndroid]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -138,30 +134,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     );
   };
   
-  // Enhanced scroll event handler - more sensitive to the exact transition point
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const isAtOrBeforeTransition = scrollPosition <= SCROLL_EXTRA_PX;
-      
-      // Only update if there's a change in visibility state
-      if (isVisible !== isAtOrBeforeTransition) {
-        setIsVisible(isAtOrBeforeTransition);
-        console.log(`ImprovedScrollVideo: ${isAtOrBeforeTransition ? "Showing" : "Hiding"} video (scroll: ${scrollPosition}px, threshold: ${SCROLL_EXTRA_PX}px)`);
-      }
-    };
-    
-    // Use passive event listener for better scroll performance
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [SCROLL_EXTRA_PX, isVisible]);
-  
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isVideoLoaded) return;
@@ -179,32 +151,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
       });
     }
     
-    // Update container height to match the scroll distance
-    if (containerRef.current) {
-      containerRef.current.style.height = `${window.innerHeight + SCROLL_EXTRA_PX}px`;
-      
-      // Add resize event listener to maintain the height on window resize
-      const handleResize = () => {
-        if (containerRef.current) {
-          containerRef.current.style.height = `${window.innerHeight + SCROLL_EXTRA_PX}px`;
-        }
-      };
-      
-      window.addEventListener('resize', handleResize);
-      console.log("Container height set to:", window.innerHeight + SCROLL_EXTRA_PX + "px");
-      
-      // Clean up resize listener
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }
-    
     // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `bottom bottom`, // Use the container's bottom
+        // Increase the end value to extend the scrolling length
+        end: "bottom+=600% bottom", // Keep extended scrolling length
         // Use a much lower scrub value for Android devices to reduce lag
         scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
         markers: false, // Set to true for debugging
@@ -225,6 +178,25 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
     } else {
       video.addEventListener('loadedmetadata', handleMetadataLoaded);
     }
+
+    // Add ScrollTrigger to control visibility based on RevealText component position
+    const revealTextSection = document.getElementById('revealText-section');
+    if (revealTextSection) {
+      console.log("RevealText section found for video visibility trigger");
+      ScrollTrigger.create({
+        trigger: revealTextSection,
+        start: "top top", // This fires when the top of RevealText reaches the top of viewport
+        onEnter: () => {
+          console.log("Hiding video (scrolling down)");
+        },
+        onLeaveBack: () => {
+          console.log("Showing video (scrolling up)");
+        },
+        markers: false
+      });
+    } else {
+      console.warn("RevealText section not found for video visibility trigger");
+    }
     
     // Clean up
     return () => {
@@ -235,7 +207,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
       timeline.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, SCROLL_EXTRA_PX]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
@@ -308,14 +280,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
           ref={videoRef}
           className="w-full h-full object-cover pointer-events-none"
           style={{ 
-            backgroundColor: colors.darkGreen,
+            backgroundColor: 'black',
             willChange: 'transform',
             transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            opacity: isVisible ? 1 : 0,
-            // Use instant transition for better synchronization
-            transition: 'opacity 0s',
-            visibility: isVisible ? 'visible' : 'hidden'
+            backfaceVisibility: 'hidden'
           }}
           playsInline={true}
           webkit-playsinline="true" 
@@ -324,7 +292,6 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({
           autoPlay={isIOS ? true : false}
           controls={false}
           onLoadedData={handleVideoLoaded}
-          data-scroll-threshold={SCROLL_EXTRA_PX} /* Add data attribute for debugging */
         >
           <source src={videoSrc} type="video/mp4" />
           Your browser does not support HTML5 video.

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -17,12 +16,10 @@ import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
-import { useScrollHeight } from "../hooks/useScrollHeight";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
-  const scrollHeight = useScrollHeight();
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
@@ -98,19 +95,10 @@ const Index = () => {
       console.log("Android device detected in Index component");
       console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
-
-    console.log("Current scroll height calculation:", scrollHeight);
-  }, [isIOS, isAndroid, scrollHeight]);
-  
-  // Use exactly the same scrollHeight for transition position
-  // This ensures the video and Chladni pattern transition at exactly the same point where the video ends
-  const SCROLL_TRANSITION_POSITION = scrollHeight; 
-  
-  useEffect(() => {
-    console.log(`Setting up transition with calculated position at ${SCROLL_TRANSITION_POSITION}px`);
-  }, [SCROLL_TRANSITION_POSITION]);
+  }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
+  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -123,7 +111,7 @@ const Index = () => {
         return;
       }
       
-      console.log(`Setting up Intersection Observer for transition marker with threshold at ${SCROLL_TRANSITION_POSITION}px`);
+      console.log("Setting up Intersection Observer for transition marker");
       
       // Create new Intersection Observer
       observerRef.current = new IntersectionObserver(
@@ -166,7 +154,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, [hasPassedMarker, SCROLL_TRANSITION_POSITION]); 
+  }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -188,7 +176,7 @@ const Index = () => {
         className="fixed inset-0 w-full h-full" 
         style={{ 
           zIndex: 10,
-          backgroundColor: colors.darkGreen,
+          backgroundColor: "black", // Ensure black background 
         }}
       >
         {/* Video with instant transition */}
@@ -197,14 +185,14 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s",
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 10
           }}
         >
           {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} scrollTransitionPosition={SCROLL_TRANSITION_POSITION} />
+            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
           ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} scrollTransitionPosition={SCROLL_TRANSITION_POSITION} />
+            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
         
@@ -217,7 +205,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s",
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 11
           }}
           className="chladni-container"
@@ -231,19 +219,26 @@ const Index = () => {
         className="content-container relative z-20"
         style={{ backgroundColor: 'transparent', position: 'relative' }}
       >
-        {/* Content sections */}
-        <section>
-          <HeroText skipLogoSection={false} />
+        {/* Logo section at the top */}
+        <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
+          <div className="w-full max-w-[90%] mx-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <div className="aspect-w-444 aspect-h-213 w-full">
+                    <Logo />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
         
-        {/* Add a marker element for the transition point - positioned exactly at the end of HeroText */}
-        <div id="chladni-transition-marker" style={{ 
-          position: 'relative', 
-          height: '1px', 
-          width: '100%',
-          backgroundColor: 'transparent',
-          marginTop: '-1px' // Position exactly at the end of HeroText
-        }}></div>
+        {/* Content sections */}
+        <section>
+          <HeroText skipLogoSection={true} />
+        </section>
         
         {/* RevealText component now includes the red spacer */}
         <section>

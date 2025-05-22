@@ -1,34 +1,24 @@
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import { AspectRatio } from "./ui/aspect-ratio";
-import { useScrollHeight } from "../hooks/useScrollHeight";
 
 interface HeroTextProps {
   skipLogoSection?: boolean;
 }
 
-const HeroText: React.FC<HeroTextProps> = ({
-  skipLogoSection = false
-}) => {
+const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
-  const scrollHeight = useScrollHeight();
-  
   const {
     data: heroTextItems,
     isLoading,
     error
   } = useHeroText();
-  
+
   const firstHeroText = heroTextItems?.find(item => item.fields.orderNumber === 1);
   const secondHeroText = heroTextItems?.find(item => item.fields.orderNumber === 2);
-  
-  // Log height information for debugging
-  useEffect(() => {
-    console.log(`HeroText component using scroll height: ${scrollHeight}px`);
-  }, [scrollHeight]);
   
   if (isLoading) {
     return <div className="w-full flex items-center justify-center py-12">
@@ -43,32 +33,25 @@ const HeroText: React.FC<HeroTextProps> = ({
       </div>;
   }
   
-  return <div 
-    className="w-full bg-transparent" 
-    style={{ 
-      height: `${scrollHeight}px`,
-      // Force the component to take exactly the calculated height
-      minHeight: `${scrollHeight}px`,
-      maxHeight: `${scrollHeight}px`
-    }}
-    id="hero-text-container"
-    data-scroll-height={scrollHeight} /* Add data attribute for debugging */
-  >
+  return (
+    <div className="w-full bg-transparent h-[500vh]">
       {/* First section - Logo section (only show if not skipped) */}
-      {!skipLogoSection && <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      {!skipLogoSection && (
+        <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
               <div className="flex justify-center items-center mt-12 w-full">
                 <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                  <AspectRatio ratio={444 / 213} className="w-full">
+                  <AspectRatio ratio={444/213} className="w-full">
                     <Logo />
                   </AspectRatio>
                 </div>
               </div>
             </div>
           </div>
-        </div>}
+        </div>
+      )}
 
       {/* Second section - First hero text */}
       <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
@@ -101,7 +84,11 @@ const HeroText: React.FC<HeroTextProps> = ({
           </div>
         </div>
       </div>
-    </div>;
+
+      {/* Additional spacing to fill the 500vh height */}
+      <div className="h-[400vh]"></div>
+    </div>
+  );
 };
 
 export default HeroText;
