@@ -1,3 +1,4 @@
+
 import React, { useRef } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -30,7 +31,7 @@ const HeroText: React.FC<HeroTextProps> = ({
   }
   return <div className="w-full bg-transparent">
       {/* First section - Logo section (only show if not skipped) */}
-      {!skipLogoSection && <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
+      {!skipLogoSection && <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
