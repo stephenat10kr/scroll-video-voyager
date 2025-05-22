@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -99,7 +98,7 @@ const Index = () => {
   }, [isIOS, isAndroid]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to trigger much sooner when scrolling down
+  // UPDATED: Modified to keep pattern visible after scrolling past marker
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -119,32 +118,21 @@ const Index = () => {
         (entries) => {
           const entry = entries[0];
           
-          // Determine scroll direction - true if scrolling down
-          const isScrollingDown = entry.boundingClientRect.top <= 0;
-          
           if (entry.isIntersecting && !hasPassedMarker) {
             console.log("Marker intersecting viewport - showing Chladni pattern");
             setShowChladniPattern(true);
             setHasPassedMarker(true); // Set flag to remember we've passed the marker
-          } else if (!entry.isIntersecting) {
-            if (entry.boundingClientRect.top > 0) {
-              // Only hide pattern if we're scrolling UP past the marker (top > 0)
-              console.log("Scrolled above marker - showing video again");
-              setShowChladniPattern(false);
-              setHasPassedMarker(false); // Reset our marker flag
-            } else if (isScrollingDown && !hasPassedMarker) {
-              // If scrolling down and we're about to pass the marker, trigger early
-              console.log("Approaching marker while scrolling down - showing Chladni pattern early");
-              setShowChladniPattern(true);
-              setHasPassedMarker(true);
-            }
+          } else if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+            // Only hide pattern if we're scrolling UP past the marker (top > 0)
+            console.log("Scrolled above marker - showing video again");
+            setShowChladniPattern(false);
+            setHasPassedMarker(false); // Reset our marker flag
           }
           // Do nothing when scrolling down past the marker - keep pattern visible
         },
         {
-          // Even lower threshold to trigger much sooner
-          threshold: 0.01, // Reduced from 0.05 to 0.01 to trigger much sooner
-          rootMargin: '0px 0px -25% 0px', // Increased negative bottom margin to trigger even earlier when scrolling down
+          // Adjust threshold to fine-tune when the transition happens
+          threshold: 0.1,
           // Use the viewport as the root
           root: null
         }
@@ -152,7 +140,7 @@ const Index = () => {
       
       // Start observing the marker element
       observerRef.current.observe(markerElement);
-      console.log("Intersection Observer started watching marker element with much earlier trigger settings");
+      console.log("Intersection Observer started watching marker element");
     };
     
     // Start setting up the observer
@@ -191,13 +179,13 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with short fade transition */}
+        {/* Video with instant transition */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0.1s ease", // Keep short fade transition
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 10
           }}
         >
@@ -208,7 +196,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Chladni pattern with short fade transition - now covers all content */}
+        {/* Chladni pattern with instant transition - now covers all content */}
         <div 
           style={{
             position: 'fixed',
@@ -217,7 +205,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0.1s ease", // Keep short fade transition
+            transition: "opacity 0s", // Keep instant transition
             zIndex: 11
           }}
           className="chladni-container"
