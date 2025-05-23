@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -28,7 +27,8 @@ const Index = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [hasPassedMarker, setHasPassedMarker] = useState(false); // Track if marker was passed
-  const [fadeProgress, setFadeProgress] = useState(0); // New state for fade progress (0-1)
+  const [fadeProgress, setFadeProgress] = useState(0); // State for fade progress (0-0.95)
+  const [videoVisible, setVideoVisible] = useState(true); // New state for video visibility toggle
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
@@ -100,7 +100,7 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // Set up scroll listener for video fade effect
+  // Set up scroll listener for video fade effect and visibility toggle
   useEffect(() => {
     const handleScroll = () => {
       const revealTextElement = document.getElementById('reveal-text-section');
@@ -108,6 +108,10 @@ const Index = () => {
       
       // Get position of RevealText element
       const rect = revealTextElement.getBoundingClientRect();
+      
+      // Toggle video visibility based on RevealText position
+      // Hide video when RevealText top reaches screen top (rect.top <= 0)
+      setVideoVisible(rect.top > 0);
       
       // Calculate fade progress: start at halfway up screen, complete when top reaches screen top
       const viewportHeight = window.innerHeight;
@@ -236,14 +240,15 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with instant transition */}
+        {/* Video with instant transition - now also controlled by videoVisible state */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
-            zIndex: 10
+            opacity: (showVideo && !showChladniPattern && videoVisible) ? 1 : 0,
+            transition: "opacity 0.2s ease-out", // Add small transition for smoother toggle
+            zIndex: 10,
+            pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
           {isAndroid ? (
@@ -253,12 +258,12 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay with opacity controlled by fade progress */}
+        {/* Dark green overlay with opacity controlled by fade progress and videoVisible */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
-            opacity: fadeProgress,
+            opacity: videoVisible ? fadeProgress : 0,
             transition: "opacity 0.2s ease-out",
             zIndex: 12  // Above video but below Chladni
           }}
@@ -273,7 +278,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
+            transition: "opacity 0.2s ease-out", // Add small transition
             zIndex: 13  // Above dark green overlay
           }}
           className="chladni-container"
