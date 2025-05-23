@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -327,47 +326,50 @@ const ScrollVideo: React.FC<{
   }, [isMobile, isAndroid]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="relative w-full min-h-screen overflow-hidden bg-black"
-    >
-      <ScrollVideoPlayer 
-        src={secureVideoSrc} 
-        segmentCount={segmentCount} 
-        onAfterVideoChange={setIsAfterVideo}
-        onProgressChange={(progress) => {
-          setProgress(progress);
-          setScrollProgress(progress * 100);
-        }}
-        videoRef={videoRef} 
-        containerRef={containerRef} 
-        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
-        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
-        isMobile={isMobile}
+    <>
+      {/* CLEAN VIDEO CONTAINER - NO DEBUG MARKERS */}
+      <div 
+        ref={containerRef} 
+        className="relative w-full min-h-screen overflow-hidden bg-black"
       >
-        <video 
-          ref={videoRef} 
+        <ScrollVideoPlayer 
           src={secureVideoSrc} 
-          playsInline 
-          preload="auto" 
-          loop={false} 
-          muted 
-          tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
-          style={{
-            minHeight: "100vh",
-            backgroundColor: "black",
-            display: "block",
-            visibility: "visible",
-            zIndex: 1 // Much lower z-index than markers
-          }} 
-        />
-      </ScrollVideoPlayer>
+          segmentCount={segmentCount} 
+          onAfterVideoChange={setIsAfterVideo}
+          onProgressChange={(progress) => {
+            setProgress(progress);
+            setScrollProgress(progress * 100);
+          }}
+          videoRef={videoRef} 
+          containerRef={containerRef} 
+          SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
+          AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
+          isMobile={isMobile}
+        >
+          <video 
+            ref={videoRef} 
+            src={secureVideoSrc} 
+            playsInline 
+            preload="auto" 
+            loop={false} 
+            muted 
+            tabIndex={-1} 
+            className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
+            style={{
+              minHeight: "100vh",
+              backgroundColor: "black",
+              display: "block",
+              visibility: "visible",
+              zIndex: 1
+            }} 
+          />
+        </ScrollVideoPlayer>
+      </div>
 
-      {/* DEBUG MARKERS - POSITIONED OUTSIDE THE ScrollVideoPlayer TO AVOID INTERFERENCE */}
+      {/* DEBUG MARKERS - COMPLETELY SEPARATE FROM VIDEO CONTAINER */}
       {!isAndroid && (
-        <>
-          {/* Progress indicators - FIXED POSITION with extremely high z-index */}
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 999999 }}>
+          {/* Progress indicators - FIXED POSITION */}
           <div 
             className="fixed top-4 left-4 bg-red-600 text-white p-4 rounded font-mono text-sm border-4 border-yellow-400"
             style={{ zIndex: 999999, pointerEvents: 'none' }}
@@ -379,7 +381,7 @@ const ScrollVideo: React.FC<{
             <div>Z-INDEX: 999999</div>
           </div>
           
-          {/* Visual markers at key points - ABSOLUTE POSITIONING with extremely high z-index */}
+          {/* Visual markers at key points - ABSOLUTE POSITIONING */}
           <div 
             className="absolute top-0 left-0 w-full h-16 bg-green-500 flex items-center justify-center border-4 border-white"
             style={{ zIndex: 999998, pointerEvents: 'none' }}
@@ -421,9 +423,9 @@ const ScrollVideo: React.FC<{
           >
             <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID VIDEO END (500vh) - Z: 999993</span>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 
