@@ -227,7 +227,7 @@ const Index = () => {
       <div 
         className="fixed inset-0 w-full h-full" 
         style={{ 
-          zIndex: 10,
+          zIndex: videoVisible ? 10 : 5, // CHANGED: Lower z-index when video should be hidden
           backgroundColor: "black", // Ensure black background 
         }}
       >
