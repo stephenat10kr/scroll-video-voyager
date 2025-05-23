@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
+import Video from "../components/Video";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
 import Values from "../components/Values";
@@ -12,86 +12,21 @@ import ChladniPattern from "../components/ChladniPattern";
 import { useIsAndroid } from "../hooks/use-android";
 import { useIsIOS } from "../hooks/useIsIOS";
 import Logo from "../components/Logo";
-import Preloader from "../components/Preloader";
-import ScrollVideo from "../components/ScrollVideo";
-import { useContentfulAsset } from "@/hooks/useContentfulAsset";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
 
 const Index = () => {
   const isAndroid = useIsAndroid();
   const isIOS = useIsIOS();
-  const [loading, setLoading] = useState(true);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [videoReady, setVideoReady] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
-  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // State for z-index switching
+  const [isAboveRevealText, setIsAboveRevealText] = useState(true);
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
   const spacerElementRef = useRef<HTMLElement | null>(null);
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastScrollTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
-  
-  // Use appropriate video asset ID based on device
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
-  const { data: videoAsset } = useContentfulAsset(videoAssetId);
-  
-  // Get video source from Contentful
-  const videoSrc = videoAsset?.fields?.file?.url 
-    ? `https:${videoAsset.fields.file.url}`
-    : undefined;
-  
-  // Force complete preloader after maximum time
-  useEffect(() => {
-    const maxLoadingTime = 8000; // 8 seconds max loading time
-    const forceCompleteTimeout = setTimeout(() => {
-      if (loadProgress < 100) {
-        console.log("Force completing preloader after timeout");
-        setLoadProgress(100);
-      }
-    }, maxLoadingTime);
-    
-    return () => clearTimeout(forceCompleteTimeout);
-  }, []);
-  
-  // Simulate loading progress for testing - improved to reach 100% when video is ready
-  useEffect(() => {
-    let progressInterval: NodeJS.Timeout;
-    
-    // Start with a small delay
-    const startDelay = setTimeout(() => {
-      progressInterval = setInterval(() => {
-        setLoadProgress(prev => {
-          // If video is ready, jump directly to 100%
-          if (videoReady) {
-            clearInterval(progressInterval);
-            return 100;
-          }
-          // Otherwise continue normal progress, but cap at 95%
-          const newProgress = prev + Math.random() * 5;
-          return Math.min(95, newProgress);
-        });
-      }, 200);
-    }, 300); // Reduced from 500ms to 300ms for faster initial loading
-    
-    return () => {
-      clearTimeout(startDelay);
-      if (progressInterval) clearInterval(progressInterval);
-    };
-  }, [videoReady]);
-  
-  // When video is ready, immediately set progress to 100%
-  useEffect(() => {
-    if (videoReady) {
-      console.log("Video is ready, immediately setting progress to 100%");
-      setLoadProgress(100);
-    }
-  }, [videoReady]);
+  const lastScrollTimeRef = useRef<number>(0);
   
   // Enhanced debugging
   useEffect(() => {
@@ -102,7 +37,6 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
   }, [isIOS, isAndroid]);
   
@@ -215,25 +149,10 @@ const Index = () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-      }
     };
   }, [throttledScrollHandler]);
   
-  const handlePreloaderComplete = () => {
-    console.log("Preloader complete, fading in video");
-    setLoading(false);
-    // Start fading in the video
-    setShowVideo(true);
-    document.body.style.overflow = 'auto'; // Ensure scrolling is enabled
-  };
-  
-  const handleVideoReady = () => {
-    console.log("Video is ready to display");
-    setVideoReady(true);
-  };
+  console.log("Index component - Using Video component for video display");
   
   return (
     <>
@@ -269,17 +188,13 @@ const Index = () => {
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: (showVideo && videoVisible) ? 1 : 0,
+            opacity: videoVisible ? 1 : 0,
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
             zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
-          {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          )}
+          <Video />
         </div>
         
         {/* Dark green overlay with opacity controlled by fade progress */}
@@ -352,9 +267,6 @@ const Index = () => {
       
       {/* We no longer need this spacer since the Chladni pattern will cover all content */}
       <div className="w-full h-0" style={{ backgroundColor: colors.darkGreen }} />
-      
-      {/* Preloader (lowest z-index) - always rendered */}
-      <Preloader progress={loadProgress} onComplete={handlePreloaderComplete} />
     </>
   );
 };

@@ -8,7 +8,7 @@ import { ContentfulAsset } from "@/types/contentful";
  */
 export const useContentfulAsset = (assetId: string) => {
   return useQuery({
-    queryKey: ['contentfulAsset', assetId],
+    queryKey: ['contentfulAsset', assetId, Date.now()], // Add timestamp to force fresh data
     queryFn: async () => {
       try {
         console.log(`Fetching Contentful asset with ID: ${assetId}`);
@@ -17,6 +17,8 @@ export const useContentfulAsset = (assetId: string) => {
         
         if (asset?.fields?.file?.url) {
           console.log(`Successfully loaded asset: ${asset.fields.file.url}`);
+          console.log(`Asset title: ${asset.fields.title || 'No title'}`);
+          console.log(`Asset description: ${asset.fields.description || 'No description'}`);
         } else {
           console.warn('Asset loaded but URL might be missing');
         }
@@ -28,6 +30,7 @@ export const useContentfulAsset = (assetId: string) => {
       }
     },
     enabled: !!assetId,
-    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0 // Don't cache the results
   });
 };

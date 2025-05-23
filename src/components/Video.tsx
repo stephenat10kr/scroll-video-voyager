@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
@@ -12,13 +11,27 @@ const Video = () => {
   const isAndroid = useIsAndroid();
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   
+  console.log("Video component - Device detection:");
+  console.log("- Is Android:", isAndroid);
+  console.log("- Using asset ID:", videoAssetId);
+  console.log("- Asset ID mappings:");
+  console.log("  - HERO_VIDEO_ASSET_ID (landscape):", HERO_VIDEO_ASSET_ID);
+  console.log("  - HERO_VIDEO_PORTRAIT_ASSET_ID (portrait):", HERO_VIDEO_PORTRAIT_ASSET_ID);
+  
   // Use the appropriate video asset ID based on device type
   const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
   
-  // Only use Contentful video source, no fallback URLs
+  // Only use Contentful video source, with cache-busting parameter
   const videoSrc = videoAsset?.fields?.file?.url 
-    ? `https:${videoAsset.fields.file.url}`
+    ? `https:${videoAsset.fields.file.url}?t=${Date.now()}`
     : undefined;
+  
+  console.log("Video component - Asset data:");
+  console.log("- Video asset:", videoAsset);
+  console.log("- Raw URL:", videoAsset?.fields?.file?.url);
+  console.log("- Final video source:", videoSrc);
+  console.log("- Loading state:", isLoading);
+  console.log("- Error state:", error);
   
   const [loadProgress, setLoadProgress] = useState(0);
   const [showPreloader, setShowPreloader] = useState(true);
@@ -113,9 +126,13 @@ const Video = () => {
   // Set up video loading detection
   useEffect(() => {
     // If we don't have a video source yet, don't attempt to track loading
-    if (!videoSrc) return;
+    if (!videoSrc) {
+      console.log('Video - No video source available yet');
+      return;
+    }
     
     console.log('Video - Starting loading sequence');
+    console.log('Video - Video source URL:', videoSrc);
     console.log('Video - Using asset ID:', videoAssetId);
     console.log('Video - Is Android device:', isAndroid);
     
@@ -267,14 +284,15 @@ const Video = () => {
     document.body.style.overflow = 'auto'; // Re-enable scrolling
   };
 
-  // Log for debugging
-  console.log('Video component - videoSrc:', videoSrc);
-  console.log('Video component - asset data:', videoAsset);
-  console.log('Video component - loading:', isLoading);
-  console.log('Video component - error:', error);
-  console.log('Video component - progress:', loadProgress);
-  console.log('Video component - isAndroid:', isAndroid);
-  console.log('Video component - using asset ID:', videoAssetId);
+  // Enhanced debugging logs
+  console.log('Video component - Current state:');
+  console.log('- videoSrc:', videoSrc);
+  console.log('- asset data:', videoAsset);
+  console.log('- loading:', isLoading);
+  console.log('- error:', error);
+  console.log('- progress:', loadProgress);
+  console.log('- isAndroid:', isAndroid);
+  console.log('- using asset ID:', videoAssetId);
 
   return (
     <>
