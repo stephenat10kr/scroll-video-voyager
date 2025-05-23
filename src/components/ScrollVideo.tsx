@@ -331,6 +331,12 @@ const ScrollVideo: React.FC<{
       <div 
         ref={containerRef} 
         className="relative w-full min-h-screen overflow-hidden bg-black"
+        style={{
+          // Ensure container has proper stacking context
+          isolation: 'isolate',
+          // Remove any potential transform that could affect ScrollTrigger
+          transform: 'none'
+        }}
       >
         <ScrollVideoPlayer 
           src={secureVideoSrc} 
@@ -368,7 +374,14 @@ const ScrollVideo: React.FC<{
 
       {/* DEBUG MARKERS - COMPLETELY SEPARATE FROM VIDEO CONTAINER */}
       {!isAndroid && (
-        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 999999 }}>
+        <div 
+          className="fixed inset-0 pointer-events-none" 
+          style={{ 
+            zIndex: 999999,
+            // Ensure markers don't create stacking context issues
+            isolation: 'isolate'
+          }}
+        >
           {/* Progress indicators - FIXED POSITION */}
           <div 
             className="fixed top-4 left-4 bg-red-600 text-white p-4 rounded font-mono text-sm border-4 border-yellow-400"
