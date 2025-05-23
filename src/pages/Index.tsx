@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -228,11 +227,11 @@ const Index = () => {
       <div 
         className="fixed inset-0 w-full h-full" 
         style={{ 
-          zIndex: videoVisible ? 10 : 5, // CHANGED: Lower z-index when video should be hidden
+          zIndex: 10, // Base z-index, stays consistent
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern positioned BEHIND the video with lower z-index */}
+        {/* Chladni pattern positioned to show when video is hidden */}
         <div 
           style={{
             position: 'fixed',
@@ -241,9 +240,9 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
-            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
-            zIndex: 11,  // CHANGED: Now below video (was 13)
+            visibility: showChladniPattern ? 'visible' : 'hidden',
+            transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
+            zIndex: 12, // Always above video (11)
             pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
           }}
           className="chladni-container"
@@ -257,8 +256,8 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
-            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 12, // CHANGED: Now above Chladni (was 11)
+            transition: "opacity 0.3s ease-out", // Smooth CSS transition
+            zIndex: 11, // Below Chladni (12), but above base (10)
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -269,14 +268,14 @@ const Index = () => {
           )}
         </div>
         
-        {/* Red overlay with opacity controlled by fade progress directly */}
+        {/* Red overlay with opacity controlled by fade progress */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
-            backgroundColor: "red", // CHANGED: From colors.darkGreen to red
-            opacity: fadeProgress, // Directly use fadeProgress, not dependent on videoVisible
-            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 13  // CHANGED: Now highest layer (was 12)
+            backgroundColor: "red",
+            opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
+            transition: "opacity 0.3s ease-out", // Smooth CSS transition
+            zIndex: 13  // Highest layer for overlay
           }}
         />
         
@@ -286,7 +285,7 @@ const Index = () => {
       <div 
         className="content-container relative z-20"
         style={{ 
-          backgroundColor: videoVisible ? 'transparent' : colors.darkGreen, // CHANGED: Add solid background when video should be hidden
+          backgroundColor: 'transparent', // Always transparent to let Chladni pattern show through
           position: 'relative' 
         }}
       >
