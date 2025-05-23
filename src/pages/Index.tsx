@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -15,7 +14,7 @@ import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
 
 const Index = () => {
@@ -37,8 +36,8 @@ const Index = () => {
   const lastScrollTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
   
-  // Use appropriate video asset ID based on device
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  // Use the same video asset for all devices
+  const videoAssetId = HERO_VIDEO_ASSET_ID; // Always use the new Hero Video Final
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
   // Get video source from Contentful

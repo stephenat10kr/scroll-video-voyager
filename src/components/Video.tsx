@@ -5,14 +5,14 @@ import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
 import Preloader from "./Preloader";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
-  // Use different video asset IDs based on device type
+  // Use the same video asset for all devices
   const isAndroid = useIsAndroid();
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  const videoAssetId = HERO_VIDEO_ASSET_ID; // Always use the new Hero Video Final
   
-  // Use the appropriate video asset ID based on device type
+  // Use the Hero Video Final asset for all devices
   const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
   
   // Only use Contentful video source, no fallback URLs
