@@ -140,6 +140,11 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   useEffect(() => {
     if (isLoading || !containerRef.current) return;
     
+    // Ensure at least the first frame is visible
+    if (imagesRef.current[0]) {
+      drawImageToCanvas(imagesRef.current[0]);
+    }
+    
     // Create timeline for scroll scrubbing - adjust to work with sticky positioning
     const timeline = gsap.timeline({
       scrollTrigger: {
@@ -161,6 +166,26 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
             if (imagesRef.current[frameIndex]) {
               drawImageToCanvas(imagesRef.current[frameIndex]);
             }
+          }
+        },
+        // Add these event callbacks to handle end of scrolling
+        onLeave: () => {
+          // Make sure last frame is drawn when scrolling beyond the end
+          const lastFrameIndex = totalFrames - 1;
+          if (imagesRef.current[lastFrameIndex]) {
+            drawImageToCanvas(imagesRef.current[lastFrameIndex]);
+          }
+        },
+        onLeaveBack: () => {
+          // Make sure first frame is drawn when scrolling back to the top
+          if (imagesRef.current[0]) {
+            drawImageToCanvas(imagesRef.current[0]);
+          }
+        },
+        onRefresh: () => {
+          // Ensure current frame is redrawn when ScrollTrigger refreshes (e.g., on resize)
+          if (imagesRef.current[currentFrame]) {
+            drawImageToCanvas(imagesRef.current[currentFrame]);
           }
         }
       }
