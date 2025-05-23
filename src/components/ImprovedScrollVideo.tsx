@@ -27,15 +27,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // For debugging
+  // For debugging - log when component mounts
   useEffect(() => {
-    if (isIOS) {
-      console.log("iOS device detected in ImprovedScrollVideo component");
-    }
-    if (isAndroid) {
-      console.log("Android device detected in ImprovedScrollVideo component - disabling scroll scrubbing");
-    }
-  }, [isIOS, isAndroid]);
+    console.log("=== ImprovedScrollVideo mounted ===");
+    console.log("isAndroid:", isAndroid);
+    console.log("isIOS:", isIOS);
+  }, []);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -427,8 +424,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     };
   }, [isAndroid, isVideoLoaded]);
 
+  console.log("=== RENDER DEBUG ===");
+  console.log("Component rendering, isAndroid:", isAndroid);
+  console.log("Should show markers:", !isAndroid);
+
   return (
-    <div ref={containerRef} className="video-container w-full relative" style={{ minHeight: '500vh' }}>
+    <div ref={containerRef} className="video-container w-full relative" style={{ minHeight: '500vh', backgroundColor: 'black' }}>
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -436,39 +437,61 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         </div>
       )}
       
-      {/* Debug markers */}
+      {/* Debug markers - ALWAYS VISIBLE for non-Android, with higher z-index */}
       {!isAndroid && (
         <>
-          {/* Progress indicators */}
-          <div className="fixed top-4 left-4 z-50 bg-black bg-opacity-75 text-white p-4 rounded font-mono text-sm">
+          {/* Progress indicators - FIXED POSITION */}
+          <div 
+            className="fixed top-4 left-4 bg-black text-white p-4 rounded font-mono text-sm border-2 border-white"
+            style={{ zIndex: 9999 }}
+          >
             <div>Scroll Progress: {scrollProgress.toFixed(1)}%</div>
             <div>Video Progress: {videoProgress.toFixed(1)}%</div>
             <div>Container Height: 500vh</div>
+            <div>Markers Visible: TRUE</div>
           </div>
           
-          {/* Visual markers at key points */}
-          <div className="absolute top-0 left-0 w-full h-4 bg-green-500 z-40">
-            <span className="text-white text-xs">VIDEO START (0vh)</span>
+          {/* Visual markers at key points - ABSOLUTE POSITIONING with high z-index */}
+          <div 
+            className="absolute top-0 left-0 w-full h-8 bg-green-500 flex items-center justify-center"
+            style={{ zIndex: 9998 }}
+          >
+            <span className="text-white text-sm font-bold">VIDEO START (0vh)</span>
           </div>
           
-          <div className="absolute top-[100vh] left-0 w-full h-4 bg-yellow-500 z-40">
-            <span className="text-black text-xs">100vh MARK</span>
+          <div 
+            className="absolute left-0 w-full h-8 bg-yellow-500 flex items-center justify-center"
+            style={{ top: '100vh', zIndex: 9998 }}
+          >
+            <span className="text-black text-sm font-bold">100vh MARK</span>
           </div>
           
-          <div className="absolute top-[200vh] left-0 w-full h-4 bg-orange-500 z-40">
-            <span className="text-white text-xs">200vh MARK</span>
+          <div 
+            className="absolute left-0 w-full h-8 bg-orange-500 flex items-center justify-center"
+            style={{ top: '200vh', zIndex: 9998 }}
+          >
+            <span className="text-white text-sm font-bold">200vh MARK</span>
           </div>
           
-          <div className="absolute top-[300vh] left-0 w-full h-4 bg-red-500 z-40">
-            <span className="text-white text-xs">300vh MARK</span>
+          <div 
+            className="absolute left-0 w-full h-8 bg-red-500 flex items-center justify-center"
+            style={{ top: '300vh', zIndex: 9998 }}
+          >
+            <span className="text-white text-sm font-bold">300vh MARK - VIDEO SHOULD CONTINUE</span>
           </div>
           
-          <div className="absolute top-[400vh] left-0 w-full h-4 bg-purple-500 z-40">
-            <span className="text-white text-xs">400vh MARK</span>
+          <div 
+            className="absolute left-0 w-full h-8 bg-purple-500 flex items-center justify-center"
+            style={{ top: '400vh', zIndex: 9998 }}
+          >
+            <span className="text-white text-sm font-bold">400vh MARK</span>
           </div>
           
-          <div className="absolute bottom-0 left-0 w-full h-4 bg-red-800 z-40">
-            <span className="text-white text-xs">VIDEO END (500vh)</span>
+          <div 
+            className="absolute bottom-0 left-0 w-full h-8 bg-red-800 flex items-center justify-center"
+            style={{ zIndex: 9998 }}
+          >
+            <span className="text-white text-sm font-bold">VIDEO END (500vh)</span>
           </div>
         </>
       )}
@@ -482,7 +505,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             willChange: 'transform',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
-            pointerEvents: 'none' // Disable controls interaction for all devices
+            pointerEvents: 'none', // Disable controls interaction for all devices
+            zIndex: 1 // Lower z-index than markers
           }}
           playsInline={true}
           webkit-playsinline="true" 
