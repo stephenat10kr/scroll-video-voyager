@@ -125,9 +125,9 @@ const Index = () => {
         revealTextElementRef.current = document.getElementById('reveal-text-section');
       }
       
-      // Update to look for hero-text-spacer instead
+      // Update to look for reveal-text-spacer instead of hero-text-spacer
       if (!spacerElementRef.current) {
-        spacerElementRef.current = document.getElementById('hero-text-spacer');
+        spacerElementRef.current = document.getElementById('reveal-text-spacer');
       }
       
       const revealTextElement = revealTextElementRef.current;
