@@ -25,7 +25,8 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
+  const [hasPassedMarker, setHasPassedMarker] = useState(false); // Track if marker was passed
+  const [fadeProgress, setFadeProgress] = useState(0); // New state for fade progress (0-1)
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Use appropriate video asset ID based on device
@@ -97,8 +98,60 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
+  // Set up scroll listener for video fade effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const revealTextElement = document.getElementById('reveal-text-section');
+      if (!revealTextElement) return;
+      
+      // Get position of RevealText element
+      const rect = revealTextElement.getBoundingClientRect();
+      
+      // Calculate when RevealText is halfway up the screen
+      // Viewport height - top position of RevealText
+      const viewportHeight = window.innerHeight;
+      const halfwayThreshold = viewportHeight / 2;
+      
+      if (rect.top < halfwayThreshold) {
+        // Calculate fade progress based on how far the element has passed the threshold
+        // Map rect.top from [halfwayThreshold, -rect.height] to [0, 1]
+        const rawProgress = 1 - (rect.top / halfwayThreshold);
+        const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
+        
+        // Apply the fade
+        setFadeProgress(clampedProgress);
+        console.log("Fade progress:", clampedProgress);
+        
+        // If we're fully faded in, we can set the Chladni pattern to show
+        if (clampedProgress >= 0.95 && !showChladniPattern) {
+          setShowChladniPattern(true);
+          setHasPassedMarker(true);
+        }
+      } else {
+        // Reset fade when scrolling back up
+        setFadeProgress(0);
+        
+        // Only hide Chladni pattern if we're scrolling back above the halfway point
+        if (showChladniPattern && !hasPassedMarker) {
+          setShowChladniPattern(false);
+        }
+      }
+    };
+    
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial call to set correct state on page load
+    handleScroll();
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [showChladniPattern, hasPassedMarker]);
+  
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to keep pattern visible after scrolling past marker
+  // This is a backup to the scroll listener above
   useEffect(() => {
     // Wait for the component to be fully mounted
     const setupObserver = () => {
@@ -196,6 +249,17 @@ const Index = () => {
           )}
         </div>
         
+        {/* Dark green overlay with opacity controlled by fade progress */}
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            backgroundColor: colors.darkGreen,
+            opacity: fadeProgress,
+            transition: "opacity 0.2s ease-out",
+            zIndex: 12  // Above video but below Chladni
+          }}
+        />
+        
         {/* Chladni pattern with instant transition - now covers all content */}
         <div 
           style={{
@@ -206,7 +270,7 @@ const Index = () => {
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
             transition: "opacity 0s", // Keep instant transition
-            zIndex: 11
+            zIndex: 13  // Above dark green overlay
           }}
           className="chladni-container"
         >

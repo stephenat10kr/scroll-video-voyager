@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -66,6 +67,7 @@ const RevealText = () => {
       }
     }
   });
+  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -108,6 +110,7 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full min-h-screen py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
@@ -117,12 +120,14 @@ const RevealText = () => {
         </div>
       </div>;
   }
+  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+  
   return (
     <>
-      <div className="w-full min-h-screen py-24 pb-36" style={{
+      <div id="reveal-text-section" className="w-full min-h-screen py-24 pb-36" style={{
         backgroundColor: colors.darkGreen,
         marginBottom: 0,
         paddingBottom: 0,
