@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -242,7 +243,7 @@ const Index = () => {
             opacity: showChladniPattern ? 1 : 0,
             visibility: showChladniPattern ? 'visible' : 'hidden',
             transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
-            zIndex: 12, // Always above video (11)
+            zIndex: 30, // INCREASED: Much higher z-index than video (11)
             pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
           }}
           className="chladni-container"
@@ -257,7 +258,7 @@ const Index = () => {
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 11, // Below Chladni (12), but above base (10)
+            zIndex: 11, // Below Chladni (30), but above base (10)
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -275,7 +276,7 @@ const Index = () => {
             backgroundColor: "red",
             opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 13  // Highest layer for overlay
+            zIndex: 20  // ADJUSTED: Between Chladni (30) and video (11)
           }}
         />
         
@@ -283,7 +284,7 @@ const Index = () => {
       
       {/* Content overlay on top of everything */}
       <div 
-        className="content-container relative z-20"
+        className="content-container relative z-40" // INCREASED: Content z-index highest of all (was 20)
         style={{ 
           backgroundColor: 'transparent', // Always transparent to let Chladni pattern show through
           position: 'relative' 
