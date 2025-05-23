@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -284,7 +285,10 @@ const Index = () => {
       {/* Content overlay on top of everything */}
       <div 
         className="content-container relative z-20"
-        style={{ backgroundColor: 'transparent', position: 'relative' }}
+        style={{ 
+          backgroundColor: videoVisible ? 'transparent' : colors.darkGreen, // CHANGED: Add solid background when video should be hidden
+          position: 'relative' 
+        }}
       >
         {/* Logo section at the top */}
         <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
