@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -26,10 +25,16 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); // Track if marker was passed
-  const [fadeProgress, setFadeProgress] = useState(0); // State for fade progress (0-0.95)
-  const [videoVisible, setVideoVisible] = useState(true); // New state for video visibility toggle
+  const [hasPassedMarker, setHasPassedMarker] = useState(false);
+  const [fadeProgress, setFadeProgress] = useState(0);
+  const [videoVisible, setVideoVisible] = useState(true);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  // Cache DOM element reference and throttling state
+  const revealTextElementRef = useRef<HTMLElement | null>(null);
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -100,63 +105,100 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // Set up scroll listener for video fade effect and visibility toggle
-  useEffect(() => {
-    const handleScroll = () => {
-      const revealTextElement = document.getElementById('reveal-text-section');
+  // Throttled scroll handler using requestAnimationFrame for optimal performance
+  const throttledScrollHandler = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastScrollTimeRef.current;
+      
+      // Throttle to maximum 60fps (16ms between updates)
+      if (timeSinceLastUpdate < 16) return;
+      
+      lastScrollTimeRef.current = now;
+      
+      // Use cached element reference
+      if (!revealTextElementRef.current) {
+        revealTextElementRef.current = document.getElementById('reveal-text-section');
+      }
+      
+      const revealTextElement = revealTextElementRef.current;
       if (!revealTextElement) return;
       
       // Get position of RevealText element
       const rect = revealTextElement.getBoundingClientRect();
       
-      // Toggle video visibility based on RevealText position
-      // Hide video when RevealText top reaches screen top (rect.top <= 0)
-      setVideoVisible(rect.top > 0);
-      
-      // Calculate fade progress: start at halfway up screen, complete when top reaches screen top
+      // Calculate all values first to batch state updates
+      const newVideoVisible = rect.top > 0;
       const viewportHeight = window.innerHeight;
       const halfwayThreshold = viewportHeight / 2;
       
+      let newFadeProgress = 0;
+      let newShowChladniPattern = showChladniPattern;
+      let newHasPassedMarker = hasPassedMarker;
+      
       if (rect.top <= halfwayThreshold) {
         // Calculate fade progress from halfway point to top of screen
-        // Map rect.top from [halfwayThreshold, 0] to [0, 0.95] (95% max)
         const rawProgress = 1 - (rect.top / halfwayThreshold);
         const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
+        newFadeProgress = clampedProgress * 0.95; // Scale to 95% maximum
         
-        // Scale to 95% maximum
-        const scaledProgress = clampedProgress * 0.95;
-        
-        // Apply the fade
-        setFadeProgress(scaledProgress);
-        console.log("Fade progress:", scaledProgress);
-        
-        // If we're at 90% or more of the scaled progress, we can set the Chladni pattern to show
-        if (scaledProgress >= 0.9 && !showChladniPattern) {
-          setShowChladniPattern(true);
-          setHasPassedMarker(true);
+        // If we're at 90% or more of the scaled progress, show Chladni pattern
+        if (newFadeProgress >= 0.9 && !showChladniPattern) {
+          newShowChladniPattern = true;
+          newHasPassedMarker = true;
         }
       } else {
         // Reset fade when scrolling back up
-        setFadeProgress(0);
+        newFadeProgress = 0;
         
         // Only hide Chladni pattern if we're scrolling back above the halfway point
         if (showChladniPattern && !hasPassedMarker) {
-          setShowChladniPattern(false);
+          newShowChladniPattern = false;
         }
       }
-    };
+      
+      // Batch state updates to reduce re-renders
+      setVideoVisible(newVideoVisible);
+      setFadeProgress(newFadeProgress);
+      
+      if (newShowChladniPattern !== showChladniPattern) {
+        setShowChladniPattern(newShowChladniPattern);
+      }
+      
+      if (newHasPassedMarker !== hasPassedMarker) {
+        setHasPassedMarker(newHasPassedMarker);
+      }
+    });
+  }, [showChladniPattern, hasPassedMarker]);
+  
+  // Set up optimized scroll listener
+  useEffect(() => {
+    // Cache the RevealText element on mount
+    revealTextElementRef.current = document.getElementById('reveal-text-section');
     
-    // Add scroll listener
-    window.addEventListener('scroll', handleScroll);
+    // Add throttled scroll listener
+    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
     
     // Initial call to set correct state on page load
-    handleScroll();
+    throttledScrollHandler();
     
     // Cleanup function
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttledScrollHandler);
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+      }
     };
-  }, [showChladniPattern, hasPassedMarker]);
+  }, [throttledScrollHandler]);
   
   // Set up Intersection Observer for reliable transition between video and Chladni pattern
   // This is a backup to the scroll listener above
@@ -215,7 +257,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
+  }, [hasPassedMarker]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -240,13 +282,13 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with instant transition - now also controlled by videoVisible state */}
+        {/* Video with smooth transition - now also controlled by videoVisible state */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && !showChladniPattern && videoVisible) ? 1 : 0,
-            transition: "opacity 0.2s ease-out", // Add small transition for smoother toggle
+            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
             zIndex: 10,
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
@@ -264,12 +306,12 @@ const Index = () => {
           style={{
             backgroundColor: colors.darkGreen,
             opacity: videoVisible ? fadeProgress : 0,
-            transition: "opacity 0.2s ease-out",
+            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
             zIndex: 12  // Above video but below Chladni
           }}
         />
         
-        {/* Chladni pattern with instant transition - now covers all content */}
+        {/* Chladni pattern with smooth transition - now covers all content */}
         <div 
           style={{
             position: 'fixed',
@@ -278,7 +320,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0.2s ease-out", // Add small transition
+            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
             zIndex: 13  // Above dark green overlay
           }}
           className="chladni-container"
