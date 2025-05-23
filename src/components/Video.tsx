@@ -1,44 +1,24 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
 import Preloader from "./Preloader";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
-  // Use different video asset IDs based on device type
+  // Use the same video asset for all devices
   const isAndroid = useIsAndroid();
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
+  const videoAssetId = HERO_VIDEO_ASSET_ID; // Always use the new Hero Video Final
   
-  console.log("Video component - Device detection:");
-  console.log("- Is Android:", isAndroid);
-  console.log("- Using asset ID:", videoAssetId);
-  console.log("- Asset ID mappings:");
-  console.log("  - HERO_VIDEO_ASSET_ID (landscape):", HERO_VIDEO_ASSET_ID);
-  console.log("  - HERO_VIDEO_PORTRAIT_ASSET_ID (portrait):", HERO_VIDEO_PORTRAIT_ASSET_ID);
-  
-  // Use the appropriate video asset ID based on device type
+  // Use the Hero Video Final asset for all devices
   const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
   
-  // Add detailed debugging for the asset data
-  console.log("Video component - Detailed asset debugging:");
-  console.log("- videoAsset raw:", videoAsset);
-  console.log("- videoAsset fields:", videoAsset?.fields);
-  console.log("- videoAsset file:", videoAsset?.fields?.file);
-  console.log("- videoAsset url:", videoAsset?.fields?.file?.url);
-  
-  // Only use Contentful video source, with cache-busting parameter
+  // Only use Contentful video source, no fallback URLs
   const videoSrc = videoAsset?.fields?.file?.url 
-    ? `https:${videoAsset.fields.file.url}?v=${Date.now()}`
+    ? `https:${videoAsset.fields.file.url}`
     : undefined;
-  
-  console.log("Video component - Asset data:");
-  console.log("- Video asset:", videoAsset);
-  console.log("- Raw URL:", videoAsset?.fields?.file?.url);
-  console.log("- Final video source:", videoSrc);
-  console.log("- Loading state:", isLoading);
-  console.log("- Error state:", error);
   
   const [loadProgress, setLoadProgress] = useState(0);
   const [showPreloader, setShowPreloader] = useState(true);
@@ -133,13 +113,9 @@ const Video = () => {
   // Set up video loading detection
   useEffect(() => {
     // If we don't have a video source yet, don't attempt to track loading
-    if (!videoSrc) {
-      console.log('Video - No video source available yet');
-      return;
-    }
+    if (!videoSrc) return;
     
     console.log('Video - Starting loading sequence');
-    console.log('Video - Video source URL:', videoSrc);
     console.log('Video - Using asset ID:', videoAssetId);
     console.log('Video - Is Android device:', isAndroid);
     
@@ -291,36 +267,14 @@ const Video = () => {
     document.body.style.overflow = 'auto'; // Re-enable scrolling
   };
 
-  // Enhanced debugging logs
-  console.log('Video component - Current state:');
-  console.log('- videoSrc:', videoSrc);
-  console.log('- asset data:', videoAsset);
-  console.log('- loading:', isLoading);
-  console.log('- error:', error);
-  console.log('- progress:', loadProgress);
-  console.log('- isAndroid:', isAndroid);
-  console.log('- using asset ID:', videoAssetId);
-
-  // Don't render video components until we have a valid source
-  if (isLoading) {
-    console.log("Video component - Still loading, showing preloader only");
-    return (
-      <Preloader 
-        progress={0} 
-        onComplete={() => {}} 
-      />
-    );
-  }
-
-  if (error) {
-    console.error("Video component - Error loading asset:", error);
-    return <div>Error loading video</div>;
-  }
-
-  if (!videoSrc) {
-    console.warn("Video component - No video source available");
-    return <div>No video source available</div>;
-  }
+  // Log for debugging
+  console.log('Video component - videoSrc:', videoSrc);
+  console.log('Video component - asset data:', videoAsset);
+  console.log('Video component - loading:', isLoading);
+  console.log('Video component - error:', error);
+  console.log('Video component - progress:', loadProgress);
+  console.log('Video component - isAndroid:', isAndroid);
+  console.log('Video component - using asset ID:', videoAssetId);
 
   return (
     <>
