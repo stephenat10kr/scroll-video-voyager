@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -178,12 +179,12 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   useEffect(() => {
     const video = videoRef.current;
     const container = containerRef.current;
-    if (!video || !isVideoLoaded) return;
+    if (!video || !isVideoLoaded || !container) return;
     
-    // Set container height to 500vh to match other video component
-    if (container) {
-      container.style.height = `${window.innerHeight * 5}px`;
-    }
+    // Set container height first, before setting up ScrollTrigger
+    const scrollHeight = window.innerHeight * 5; // 500vh
+    container.style.height = `${scrollHeight}px`;
+    console.log("Container height set to:", scrollHeight, "px (500vh)");
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -223,59 +224,64 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     
     // Create timeline for scroll scrubbing - only for non-Android devices
     if (!isAndroid) {
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          // Set scroll distance to exactly 500vh to match other video component
-          end: `+=${window.innerHeight * 5}`, // 5 viewport heights for 500vh total
-          scrub: 3.5,
-          markers: false, // Set to true for debugging
-        }
-      });
-      
-      // Wait until video metadata is loaded before creating the animation
-      const handleMetadataLoaded = () => {
-        if (video.duration) {
-          timeline.to(video, { currentTime: video.duration });
-          console.log("Video scroll animation set up with duration:", video.duration, "for 500vh scroll");
-        }
-      };
-      
-      if (video.readyState >= 2) {
-        handleMetadataLoaded();
-      } else {
-        video.addEventListener('loadedmetadata', handleMetadataLoaded);
-      }
-
-      // Add ScrollTrigger to control visibility based on RevealText component position
-      const revealTextSection = document.getElementById('revealText-section');
-      if (revealTextSection) {
-        console.log("RevealText section found for video visibility trigger");
-        ScrollTrigger.create({
-          trigger: revealTextSection,
-          start: "top top", // This fires when the top of RevealText reaches the top of viewport
-          onEnter: () => {
-            console.log("Hiding video (scrolling down)");
-          },
-          onLeaveBack: () => {
-            console.log("Showing video (scrolling up)");
-          },
-          markers: false
+      // Wait a frame to ensure container height is applied
+      requestAnimationFrame(() => {
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: container,
+            start: "top top",
+            end: "bottom top", // This will use the container's full height (500vh)
+            scrub: 3.5,
+            markers: false, // Set to true for debugging
+            onUpdate: (self) => {
+              console.log("Scroll progress:", self.progress);
+            }
+          }
         });
-      } else {
-        console.warn("RevealText section not found for video visibility trigger");
-      }
-      
-      // Clean up
-      return () => {
-        video.removeEventListener('loadedmetadata', handleMetadataLoaded);
-        if (timeline.scrollTrigger) {
-          timeline.scrollTrigger.kill();
+        
+        // Wait until video metadata is loaded before creating the animation
+        const handleMetadataLoaded = () => {
+          if (video.duration) {
+            timeline.to(video, { currentTime: video.duration });
+            console.log("Video scroll animation set up with duration:", video.duration, "for full container height");
+          }
+        };
+        
+        if (video.readyState >= 2) {
+          handleMetadataLoaded();
+        } else {
+          video.addEventListener('loadedmetadata', handleMetadataLoaded);
         }
-        timeline.kill();
-        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-      };
+
+        // Add ScrollTrigger to control visibility based on RevealText component position
+        const revealTextSection = document.getElementById('revealText-section');
+        if (revealTextSection) {
+          console.log("RevealText section found for video visibility trigger");
+          ScrollTrigger.create({
+            trigger: revealTextSection,
+            start: "top top", // This fires when the top of RevealText reaches the top of viewport
+            onEnter: () => {
+              console.log("Hiding video (scrolling down)");
+            },
+            onLeaveBack: () => {
+              console.log("Showing video (scrolling up)");
+            },
+            markers: false
+          });
+        } else {
+          console.warn("RevealText section not found for video visibility trigger");
+        }
+        
+        // Clean up
+        return () => {
+          video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+          if (timeline.scrollTrigger) {
+            timeline.scrollTrigger.kill();
+          }
+          timeline.kill();
+          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+        };
+      });
     }
   }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, playAttempted]);
 
@@ -372,7 +378,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   }, [isAndroid, isVideoLoaded]);
 
   return (
-    <div ref={containerRef} className="video-container w-full h-screen">
+    <div ref={containerRef} className="video-container w-full" style={{ minHeight: '500vh' }}>
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -383,7 +389,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       {videoSrc && (
         <video 
           ref={videoRef}
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-screen object-cover pointer-events-none fixed top-0 left-0"
           style={{ 
             backgroundColor: 'black',
             willChange: 'transform',
