@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,8 +7,8 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Change scroll distance to 100vh
-const SCROLL_EXTRA_PX = typeof window !== 'undefined' ? 100 * window.innerHeight : 100 * 1080; // Fallback for SSR
+// Change scroll distance to 6vh
+const SCROLL_EXTRA_PX = typeof window !== 'undefined' ? 6 * window.innerHeight : 6 * 1080; // Fallback for SSR
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
