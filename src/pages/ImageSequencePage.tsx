@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import ImageSequenceScrubber from '@/components/ImageSequenceScrubber';
 
 const ImageSequencePage = () => {
-  // Add some content to make the page scrollable
+  // Add content to make the page scrollable for the image sequence
   useEffect(() => {
     document.body.style.height = '500vh'; // Make body 5x viewport height
     document.body.style.overflow = 'auto'; // Ensure scrolling is enabled

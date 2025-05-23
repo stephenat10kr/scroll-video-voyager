@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Spinner from './Spinner';
+import { Progress } from './ui/progress';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -12,16 +12,15 @@ interface ImageSequenceScrubberProps {
 }
 
 const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedImages = useRef<boolean[]>([]);
   const totalFrames = 237; // Total number of frames (0-236)
-  const initialLoadCount = 24; // Load just enough images to start
-  const readyCalledRef = useRef(false);
+  const initialLoadCount = 24; // Initial frames to load before showing content
   
   // Set up canvas and initial loading
   useEffect(() => {
@@ -42,11 +41,11 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     imagesRef.current = new Array(totalFrames);
     loadedImages.current = new Array(totalFrames).fill(false);
 
-    // First, load key frames (every 10th frame initially)
+    // Load key frames first (first frame and every 10th frame)
     const loadKeyFrames = async () => {
       const keyFramesToLoad = [];
       
-      // Load just first frame and every 10th frame up to initialLoadCount
+      // Load first frame and every 10th frame up to initialLoadCount
       keyFramesToLoad.push(0);
       for (let i = 10; i < Math.min(initialLoadCount, totalFrames); i += 10) {
         keyFramesToLoad.push(i);
@@ -57,7 +56,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       for (const index of keyFramesToLoad) {
         await loadImage(index);
         loadedCount++;
-        setLoadProgress((loadedCount / initialLoadCount) * 50); // First 50% of progress bar
+        setLoadProgress((loadedCount / initialLoadCount) * 40); // First 40% of progress bar
       }
       
       // Once initial key frames are loaded, show the first frame
@@ -66,9 +65,8 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
         setIsLoading(false);
         
         // Notify ready if callback provided
-        if (onReady && !readyCalledRef.current) {
+        if (onReady) {
           onReady();
-          readyCalledRef.current = true;
         }
         
         // Load remaining frames in the background
@@ -101,7 +99,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       };
       
       img.onerror = () => {
-        console.error(`Failed to load image: ${paddedIndex}`);
         resolve(); // Resolve anyway to continue loading other images
       };
       
@@ -116,7 +113,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     let loadedCount = initialLoadCount;
     
     // Generate a loading sequence that prioritizes frames near the current frame
-    // Start with frames immediately around current frame, then expand outward
     const loadingSequence = generateLoadingSequence(currentFrame, totalFrames);
     
     // Load frames in batches to not overwhelm the browser
@@ -125,18 +121,16 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       const batch = loadingSequence.slice(i, i + batchSize);
       await Promise.all(batch.map(index => loadImage(index)));
       
-      // Update progress for the remaining 50%
+      // Update progress for the remaining 60%
       loadedCount += batch.length;
-      setLoadProgress(50 + ((loadedCount - initialLoadCount) / remainingFrames) * 50);
+      setLoadProgress(40 + ((loadedCount - initialLoadCount) / remainingFrames) * 60);
       
       // Allow a small break between batches
       await new Promise(resolve => setTimeout(resolve, 10));
     }
-    
-    console.log('All frames loaded');
   };
   
-  // Generate a loading sequence that prioritizes frames near the current frame
+  // Generate a sequence that prioritizes frames near the current frame
   const generateLoadingSequence = (current: number, total: number): number[] => {
     const sequence: number[] = [];
     const alreadyAdded = new Set<number>();
@@ -171,7 +165,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     return sequence;
   };
   
-  // Draw the current image to canvas, maintaining aspect ratio and covering the viewport
+  // Draw the current image to canvas, maintaining aspect ratio
   const drawImageToCanvas = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -212,9 +206,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   useEffect(() => {
     if (isLoading || !containerRef.current) return;
     
-    console.log('Setting up image sequence scrubbing');
-    
-    // Create timeline for scroll scrubbing with improved configuration
+    // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: document.body,
@@ -283,20 +275,21 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       distance++;
     }
     
-    return -1; // No loaded frame found (shouldn't happen if at least one frame is loaded)
+    return -1; // No loaded frame found
   };
 
   return (
     <div 
       ref={containerRef} 
-      className="video-container w-full h-screen bg-black"
+      className="w-full h-screen bg-black relative"
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
-          <div className="text-center">
-            <Spinner />
-            <p className="text-white mt-4">Loading Image Sequence: {Math.round(loadProgress)}%</p>
-          </div>
+          <Progress 
+            value={loadProgress} 
+            className="w-[80%] max-w-md" 
+            indicatorClassName="bg-white"
+          />
         </div>
       )}
       <canvas 
