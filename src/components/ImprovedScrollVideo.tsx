@@ -74,6 +74,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     setPlayAttempted(true);
     console.log("Android device - attempting to play video");
     
+    // Set loop attribute for Android
+    video.loop = true;
+    
     // Force play on Android
     const playPromise = video.play();
     
@@ -186,6 +189,9 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       
       // Disable controls for Android users
       video.controls = false;
+      
+      // Enable looping for Android
+      video.loop = true;
       
       // Try to play video normally
       if (!playAttempted) {
@@ -384,6 +390,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
           preload="auto"
           muted={!isAndroid} // Only mute for non-Android
           autoPlay={isAndroid} // Auto play on Android
+          loop={isAndroid} // Loop for Android devices
           controls={false} // Never show controls
           onLoadedData={handleVideoLoaded}
         >

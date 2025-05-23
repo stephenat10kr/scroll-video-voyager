@@ -19,6 +19,9 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
     if (isVideo && isAndroid && videoRef.current) {
       console.log("Android MediaItem - attempting to play video");
       
+      // Set loop on Android
+      videoRef.current.loop = true;
+      
       // Force play on Android
       const playPromise = videoRef.current.play();
       
@@ -50,7 +53,7 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
           playsInline
           autoPlay={isAndroid} // Auto play on Android
           muted={!isAndroid} // Only mute on non-Android
-          loop
+          loop={true} // Always loop videos
           preload="auto"
           className="object-cover w-full h-full rounded-lg"
         />
