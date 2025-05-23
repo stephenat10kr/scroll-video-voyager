@@ -33,7 +33,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
@@ -223,7 +222,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Allow video to play to its COMPLETE duration - no cutoffs
+      // FIXED: Allow video to play to its COMPLETE duration - let the 10fps video play fully
       const newTime = progress * video.duration;
       
       // Enhanced logging for debugging
@@ -245,17 +244,17 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           video.currentTime = newTime;
         }
         
-        // FIXED: Only trigger "after video" when scroll progress is actually complete (>= 0.999)
-        // AND we're at or very near the end of the video duration
+        // FIXED: Only show "after video" when we've actually reached the very end
+        // Don't trigger early - let the video play to completion
+        const videoAtEnd = video.currentTime >= (video.duration - 0.1); // Small buffer for precision
         const scrollComplete = progress >= 0.999;
-        const videoNearEnd = video.currentTime >= (video.duration - 0.05); // Very small buffer
-        const shouldShowAfterVideo = scrollComplete && videoNearEnd;
         
-        onAfterVideoChange(shouldShowAfterVideo);
+        // Only show after video when BOTH conditions are met
+        onAfterVideoChange(videoAtEnd && scrollComplete);
         
         // Enhanced logging for debugging end behavior
         if (progress > 0.95) {
-          console.log(`End detection - Scroll progress: ${progress.toFixed(4)}, Scroll complete: ${scrollComplete}, Video time: ${video.currentTime.toFixed(3)}, Video duration: ${video.duration.toFixed(3)}, Video near end: ${videoNearEnd}, Show after: ${shouldShowAfterVideo}`);
+          console.log(`End detection - Progress: ${progress.toFixed(4)}, Video time: ${video.currentTime.toFixed(3)}, Duration: ${video.duration.toFixed(3)}, Video at end: ${videoAtEnd}, Scroll complete: ${scrollComplete}`);
         }
       });
     };
@@ -309,6 +308,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setupCompleted.current = true;
       
       console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
+      
+      // Log video info once it's set up
+      if (video.duration) {
+        console.log(`Video info - Duration: ${video.duration.toFixed(2)}s, Ready state: ${video.readyState}`);
+      }
     };
 
     // Request high priority loading for the video
