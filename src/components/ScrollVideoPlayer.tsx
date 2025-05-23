@@ -204,8 +204,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        // Changed from dynamic SCROLL_EXTRA_PX to fixed 4000px
-        container.style.height = `${window.innerHeight + 4000 + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        // Set container height to 500vh (5 times viewport height) to match HeroText
+        container.style.height = `${window.innerHeight * 5 + AFTER_VIDEO_EXTRA_HEIGHT}px`;
       }
     };
     resizeSection();
@@ -305,8 +305,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        // Changed from dynamic SCROLL_EXTRA_PX to fixed 4000px
-        end: `+=4000`,
+        // Set scroll distance to 500vh to match HeroText component height
+        end: `+=${window.innerHeight * 4}`, // 4 additional viewport heights (since start is at top)
         scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
@@ -321,7 +321,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
       setupCompleted.current = true;
       
-      console.log("ScrollTrigger setup completed with 4000px scroll distance and scrub value:", scrubValue);
+      console.log("ScrollTrigger setup completed with 500vh scroll distance and scrub value:", scrubValue);
     };
 
     // Request high priority loading for the video
