@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -66,6 +67,7 @@ const RevealText = () => {
       }
     }
   });
+  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -107,6 +109,7 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
+  
   if (isLoading) {
     return <div className="w-full min-h-screen py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
@@ -116,10 +119,21 @@ const RevealText = () => {
         </div>
       </div>;
   }
+  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
+  
   return <>
+      {/* Added spacer above RevealText component - matches the one below */}
+      <div style={{
+      height: "256px",
+      backgroundColor: colors.darkGreen,
+      margin: 0,
+      padding: 0,
+      display: 'block'
+    }}></div>
+      
       <div id="reveal-text-section" style={{
       backgroundColor: colors.darkGreen,
       marginBottom: 0,
@@ -149,7 +163,6 @@ const RevealText = () => {
       {/* Dark green spacer directly attached to RevealText - now included in the RevealText component */}
       <div style={{
       height: "256px",
-      // Changed from "128px" to "256px" (doubled the height)
       backgroundColor: colors.darkGreen,
       margin: 0,
       padding: 0,
@@ -162,4 +175,5 @@ const RevealText = () => {
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
     </>;
 };
+
 export default RevealText;
