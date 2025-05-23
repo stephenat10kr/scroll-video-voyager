@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -99,7 +98,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
       className="fixed inset-0 flex flex-col items-center justify-center bg-darkGreen"
       style={{ 
         backgroundColor: colors.darkGreen, 
-        zIndex: 25, // Updated from 5 to 25 to be above all content
+        zIndex: 40, // Updated from 25 to 40 to be above all content but below navigation (z-50)
         opacity: fadeOut ? 0 : 1,
         transition: "opacity 0.8s ease-out",
         pointerEvents: fadeOut ? 'none' : 'auto',
