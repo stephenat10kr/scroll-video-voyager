@@ -8,8 +8,8 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance to 12000px for longer video duration
-const SCROLL_EXTRA_PX = 12000;
+// Increase scroll distance from 2000 to 4000
+const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{
@@ -61,21 +61,21 @@ const ScrollVideo: React.FC<{
     };
   }, []);
 
-  // COMMENTED OUT: Update progress state and determine scroll direction
-  // useEffect(() => {
-  //   if (progress > lastProgress) {
-  //     // Scrolling down - set immediate transition
-  //     if (videoRef.current) {
-  //       videoRef.current.style.transition = "opacity 0s";
-  //     }
-  //   } else {
-  //     // Scrolling up - set smooth transition
-  //     if (videoRef.current) {
-  //       videoRef.current.style.transition = "opacity 0.3s ease-in-out";
-  //     }
-  //   }
-  //   setLastProgress(progress);
-  // }, [progress]);
+  // Update progress state and determine scroll direction
+  useEffect(() => {
+    if (progress > lastProgress) {
+      // Scrolling down - set immediate transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0s";
+      }
+    } else {
+      // Scrolling up - set smooth transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+      }
+    }
+    setLastProgress(progress);
+  }, [progress]);
 
   useEffect(() => {
     const video = videoRef.current;

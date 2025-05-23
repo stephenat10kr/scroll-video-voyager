@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -14,7 +15,7 @@ import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
-import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
 
 const Index = () => {
@@ -36,8 +37,8 @@ const Index = () => {
   const lastScrollTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
   
-  // Use the same video asset for all devices
-  const videoAssetId = HERO_VIDEO_ASSET_ID; // Always use the new Hero Video Final
+  // Use appropriate video asset ID based on device
+  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   const { data: videoAsset } = useContentfulAsset(videoAssetId);
   
   // Get video source from Contentful
@@ -101,7 +102,7 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("Using video asset ID:", HERO_VIDEO_ASSET_ID);
+      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
     }
   }, [isIOS, isAndroid]);
   
@@ -125,7 +126,6 @@ const Index = () => {
         revealTextElementRef.current = document.getElementById('reveal-text-section');
       }
       
-      // Update to look for reveal-text-spacer instead of hero-text-spacer
       if (!spacerElementRef.current) {
         spacerElementRef.current = document.getElementById('reveal-text-spacer');
       }
@@ -303,9 +303,25 @@ const Index = () => {
           position: 'relative' 
         }}
       >
-        {/* Replaced logo section with HeroText component */}
+        {/* Logo section at the top */}
+        <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
+          <div className="w-full max-w-[90%] mx-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <div className="aspect-w-444 aspect-h-213 w-full">
+                    <Logo />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Content sections */}
         <section>
-          <HeroText />
+          <HeroText skipLogoSection={true} />
         </section>
         
         {/* RevealText component now includes the red spacer */}
