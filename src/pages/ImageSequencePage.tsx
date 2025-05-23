@@ -15,11 +15,27 @@ const ImageSequencePage = () => {
   }, []);
   
   return (
-    <div className="min-h-screen">
-      <ImageSequenceScrubber />
+    <div className="min-h-screen relative">
+      {/* Make the container sticky */}
+      <div className="sticky top-0 left-0 w-full h-screen z-10">
+        <ImageSequenceScrubber />
+      </div>
       
-      {/* Invisible content to enable scrolling */}
-      <div style={{ height: '400vh' }} aria-hidden="true"></div>
+      {/* Content that scrolls underneath */}
+      <div className="relative z-0">
+        {/* Example content sections */}
+        <section className="min-h-screen bg-opacity-80 bg-darkGreen flex items-center justify-center">
+          <h2 className="title-lg text-white">First Section</h2>
+        </section>
+        
+        <section className="min-h-screen bg-opacity-80 bg-darkGreen flex items-center justify-center">
+          <h2 className="title-lg text-white">Second Section</h2>
+        </section>
+        
+        <section className="min-h-screen bg-opacity-80 bg-darkGreen flex items-center justify-center">
+          <h2 className="title-lg text-white">Third Section</h2>
+        </section>
+      </div>
     </div>
   );
 };

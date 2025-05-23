@@ -140,10 +140,10 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   useEffect(() => {
     if (isLoading || !containerRef.current) return;
     
-    // Create timeline for scroll scrubbing
+    // Create timeline for scroll scrubbing - adjust to work with sticky positioning
     const timeline = gsap.timeline({
       scrollTrigger: {
-        trigger: document.body,
+        trigger: document.body, // Use body as trigger instead of the container
         start: "top top", 
         end: "bottom bottom",
         scrub: 0.5, // Smoother scrubbing
