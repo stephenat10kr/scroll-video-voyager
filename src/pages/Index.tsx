@@ -27,7 +27,6 @@ const Index = () => {
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
-  const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
@@ -197,63 +196,6 @@ const Index = () => {
       }
     };
   }, [throttledScrollHandler]);
-  
-  // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // This is a backup to the scroll listener above
-  useEffect(() => {
-    // Wait for the component to be fully mounted
-    const setupObserver = () => {
-      // Find our marker element
-      const markerElement = document.getElementById('chladni-transition-marker');
-      
-      if (!markerElement) {
-        console.log("Transition marker element not found, retrying in 500ms");
-        setTimeout(setupObserver, 500);
-        return;
-      }
-      
-      console.log("Setting up Intersection Observer for transition marker");
-      
-      // Create new Intersection Observer
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          
-          if (entry.isIntersecting) {
-            console.log("Marker intersecting viewport - showing Chladni pattern");
-            setShowChladniPattern(true);
-          } else if (entry.boundingClientRect.top > 0) {
-            // Only hide pattern if we're scrolling UP past the marker (top > 0)
-            console.log("Scrolled above marker - showing video again");
-            setShowChladniPattern(false);
-          }
-          // Do nothing when scrolling down past the marker - keep pattern visible
-        },
-        {
-          // Adjust threshold to fine-tune when the transition happens
-          threshold: 0.1,
-          // Use the viewport as the root
-          root: null
-        }
-      );
-      
-      // Start observing the marker element
-      observerRef.current.observe(markerElement);
-      console.log("Intersection Observer started watching marker element");
-    };
-    
-    // Start setting up the observer
-    setupObserver();
-    
-    // Cleanup function
-    return () => {
-      if (observerRef.current) {
-        console.log("Cleaning up Intersection Observer");
-        observerRef.current.disconnect();
-        observerRef.current = null;
-      }
-    };
-  }, []); // Removed hasPassedMarker dependency
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
