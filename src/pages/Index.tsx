@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -27,7 +28,7 @@ const Index = () => {
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
-  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // New state for z-index switching
+  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // State for z-index switching
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
@@ -148,8 +149,10 @@ const Index = () => {
       // Video is visible only when spacer is below viewport top (with offset)
       const newVideoVisible = spacerRect.top > VISIBILITY_OFFSET;
       
-      // Chladni pattern is visible only when spacer reaches or passes viewport top (with offset)
-      const newShowChladniPattern = spacerRect.top <= -VISIBILITY_OFFSET;
+      // Chladni pattern is visible only when:
+      // 1. Spacer reaches or passes viewport top (with offset)
+      // 2. AND we're below the RevealText section
+      const newShowChladniPattern = spacerRect.top <= -VISIBILITY_OFFSET && !newIsAboveRevealText;
       
       // Debug logs to track state changes
       if (newVideoVisible !== videoVisible) {
@@ -192,7 +195,7 @@ const Index = () => {
       setShowChladniPattern(newShowChladniPattern);
       setIsAboveRevealText(newIsAboveRevealText);
     });
-  }, [videoVisible, showChladniPattern, isAboveRevealText]); // Added isAboveRevealText dependency
+  }, [videoVisible, showChladniPattern, isAboveRevealText]);
   
   // Set up optimized scroll listener
   useEffect(() => {
@@ -242,7 +245,7 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern with dynamic z-index */}
+        {/* Chladni pattern with dynamic visibility and z-index */}
         <div 
           style={{
             position: 'fixed',
@@ -286,7 +289,7 @@ const Index = () => {
             backgroundColor: colors.darkGreen,
             opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 20  // ADJUSTED: Between Chladni (15/30) and video (11/25)
+            zIndex: 20  // Between Chladni (15/30) and video (11/25)
           }}
         />
         
