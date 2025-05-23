@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -125,8 +124,8 @@ const RevealText = () => {
   }
   
   return <>
-      {/* Added spacer above RevealText component - matches the one below */}
-      <div style={{
+      {/* Added spacer above RevealText component - matches the one below - now with ID */}
+      <div id="reveal-text-spacer" style={{
       height: "256px",
       backgroundColor: colors.darkGreen,
       margin: 0,

@@ -32,6 +32,7 @@ const Index = () => {
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
+  const spacerElementRef = useRef<HTMLElement | null>(null);
   const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
@@ -120,43 +121,60 @@ const Index = () => {
       
       lastScrollTimeRef.current = now;
       
-      // Use cached element reference
+      // Use cached element references
       if (!revealTextElementRef.current) {
         revealTextElementRef.current = document.getElementById('reveal-text-section');
       }
       
-      const revealTextElement = revealTextElementRef.current;
-      if (!revealTextElement) return;
+      if (!spacerElementRef.current) {
+        spacerElementRef.current = document.getElementById('reveal-text-spacer');
+      }
       
-      // Get position of RevealText element
-      const rect = revealTextElement.getBoundingClientRect();
+      const revealTextElement = revealTextElementRef.current;
+      const spacerElement = spacerElementRef.current;
+      
+      if (!revealTextElement || !spacerElement) return;
+      
+      // Get position of RevealText element for video visibility
+      const revealTextRect = revealTextElement.getBoundingClientRect();
+      
+      // Get position of spacer element for fade calculation
+      const spacerRect = spacerElement.getBoundingClientRect();
       
       // Calculate all values first to batch state updates
-      const newVideoVisible = rect.top > 0;
-      const viewportHeight = window.innerHeight;
-      const halfwayThreshold = viewportHeight / 2;
+      const newVideoVisible = revealTextRect.top > 0;
       
       let newFadeProgress = 0;
       let newShowChladniPattern = showChladniPattern;
       let newHasPassedMarker = hasPassedMarker;
       
-      if (rect.top <= halfwayThreshold) {
-        // Calculate fade progress from halfway point to top of screen
-        const rawProgress = 1 - (rect.top / halfwayThreshold);
-        const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
-        newFadeProgress = clampedProgress * 0.95; // Scale to 95% maximum
+      // Calculate fade progress based on spacer element position
+      // Fade should reach 100% when the top of the spacer reaches the top of the screen
+      if (spacerRect.top <= 0) {
+        // When spacer top is at or above viewport top, fade should be 100%
+        newFadeProgress = 1;
         
-        // If we're at 90% or more of the scaled progress, show Chladni pattern
-        if (newFadeProgress >= 0.9 && !showChladniPattern) {
+        // Show Chladni pattern when fade reaches 100%
+        if (!showChladniPattern) {
           newShowChladniPattern = true;
           newHasPassedMarker = true;
         }
       } else {
-        // Reset fade when scrolling back up
-        newFadeProgress = 0;
+        // Calculate fade progress from spacer top approaching viewport top
+        // We'll use the viewport height as our reference point for when to start fading
+        const viewportHeight = window.innerHeight;
+        const fadeStartDistance = viewportHeight; // Start fading when spacer is one viewport away
         
-        // Only hide Chladni pattern if we're scrolling back above the halfway point
-        if (showChladniPattern && !hasPassedMarker) {
+        if (spacerRect.top <= fadeStartDistance) {
+          // Calculate progress from fadeStartDistance to 0
+          const rawProgress = 1 - (spacerRect.top / fadeStartDistance);
+          newFadeProgress = Math.min(Math.max(rawProgress, 0), 1);
+        } else {
+          newFadeProgress = 0;
+        }
+        
+        // Reset Chladni pattern if we're scrolling back up above the fade zone
+        if (showChladniPattern && spacerRect.top > 0 && !hasPassedMarker) {
           newShowChladniPattern = false;
         }
       }
