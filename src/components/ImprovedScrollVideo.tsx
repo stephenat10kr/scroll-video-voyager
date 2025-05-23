@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -181,10 +180,25 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     const container = containerRef.current;
     if (!video || !isVideoLoaded || !container) return;
     
-    // Set container height first, before setting up ScrollTrigger
-    const scrollHeight = window.innerHeight * 5; // 500vh
+    // DETAILED DEBUGGING: Log all measurements
+    const viewportHeight = window.innerHeight;
+    const scrollHeight = viewportHeight * 5; // 500vh
+    
+    console.log("=== SCROLL VIDEO DEBUG ===");
+    console.log("Viewport height:", viewportHeight);
+    console.log("Target scroll height (500vh):", scrollHeight);
+    
+    // Set container height IMMEDIATELY and log it
     container.style.height = `${scrollHeight}px`;
-    console.log("Container height set to:", scrollHeight, "px (500vh)");
+    console.log("Container height set to:", container.style.height);
+    
+    // Force a reflow to ensure height is applied
+    container.offsetHeight;
+    
+    // Log actual computed height
+    const computedHeight = getComputedStyle(container).height;
+    console.log("Container computed height:", computedHeight);
+    console.log("Container getBoundingClientRect height:", container.getBoundingClientRect().height);
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -224,63 +238,88 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     
     // Create timeline for scroll scrubbing - only for non-Android devices
     if (!isAndroid) {
-      // Wait a frame to ensure container height is applied
+      // Wait multiple frames to ensure container height is fully applied
       requestAnimationFrame(() => {
-        const timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: container,
-            start: "top top",
-            end: "bottom top", // This will use the container's full height (500vh)
-            scrub: 3.5,
-            markers: false, // Set to true for debugging
-            onUpdate: (self) => {
-              console.log("Scroll progress:", self.progress);
+        requestAnimationFrame(() => {
+          // Log container measurements again after frames
+          console.log("After requestAnimationFrame:");
+          console.log("Container offsetHeight:", container.offsetHeight);
+          console.log("Container scrollHeight:", container.scrollHeight);
+          console.log("Container getBoundingClientRect():", container.getBoundingClientRect());
+          
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: container,
+              start: "top top",
+              end: "bottom top", // This should use the full 500vh height
+              scrub: 3.5,
+              markers: false, // Set to true for debugging
+              onUpdate: (self) => {
+                const video = videoRef.current;
+                if (video) {
+                  console.log(`Scroll progress: ${(self.progress * 100).toFixed(1)}%, Video time: ${(video.currentTime).toFixed(2)}s/${video.duration.toFixed(2)}s, Frame: ${Math.floor(video.currentTime * 30)}`);
+                }
+              },
+              onRefresh: (self) => {
+                console.log("ScrollTrigger refreshed:");
+                console.log("Start:", self.start);
+                console.log("End:", self.end);
+                console.log("Distance:", self.end - self.start);
+                console.log("Trigger element height:", self.trigger.offsetHeight);
+              }
             }
-          }
-        });
-        
-        // Wait until video metadata is loaded before creating the animation
-        const handleMetadataLoaded = () => {
-          if (video.duration) {
-            timeline.to(video, { currentTime: video.duration });
-            console.log("Video scroll animation set up with duration:", video.duration, "for full container height");
-          }
-        };
-        
-        if (video.readyState >= 2) {
-          handleMetadataLoaded();
-        } else {
-          video.addEventListener('loadedmetadata', handleMetadataLoaded);
-        }
-
-        // Add ScrollTrigger to control visibility based on RevealText component position
-        const revealTextSection = document.getElementById('revealText-section');
-        if (revealTextSection) {
-          console.log("RevealText section found for video visibility trigger");
-          ScrollTrigger.create({
-            trigger: revealTextSection,
-            start: "top top", // This fires when the top of RevealText reaches the top of viewport
-            onEnter: () => {
-              console.log("Hiding video (scrolling down)");
-            },
-            onLeaveBack: () => {
-              console.log("Showing video (scrolling up)");
-            },
-            markers: false
           });
-        } else {
-          console.warn("RevealText section not found for video visibility trigger");
-        }
-        
-        // Clean up
-        return () => {
-          video.removeEventListener('loadedmetadata', handleMetadataLoaded);
-          if (timeline.scrollTrigger) {
-            timeline.scrollTrigger.kill();
+          
+          // Wait until video metadata is loaded before creating the animation
+          const handleMetadataLoaded = () => {
+            if (video.duration) {
+              console.log("=== VIDEO METADATA ===");
+              console.log("Video duration:", video.duration);
+              console.log("Video framerate estimate (assuming 30fps):", Math.floor(video.duration * 30), "frames");
+              
+              timeline.to(video, { currentTime: video.duration });
+              console.log("Video scroll animation set up with duration:", video.duration, "for full container height");
+              
+              // Force ScrollTrigger refresh to get accurate measurements
+              ScrollTrigger.refresh();
+            }
+          };
+          
+          if (video.readyState >= 2) {
+            handleMetadataLoaded();
+          } else {
+            video.addEventListener('loadedmetadata', handleMetadataLoaded);
           }
-          timeline.kill();
-          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-        };
+
+          // Add ScrollTrigger to control visibility based on RevealText component position
+          const revealTextSection = document.getElementById('revealText-section');
+          if (revealTextSection) {
+            console.log("RevealText section found for video visibility trigger");
+            ScrollTrigger.create({
+              trigger: revealTextSection,
+              start: "top top", // This fires when the top of RevealText reaches the top of viewport
+              onEnter: () => {
+                console.log("Hiding video (scrolling down)");
+              },
+              onLeaveBack: () => {
+                console.log("Showing video (scrolling up)");
+              },
+              markers: false
+            });
+          } else {
+            console.warn("RevealText section not found for video visibility trigger");
+          }
+          
+          // Clean up
+          return () => {
+            video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+            if (timeline.scrollTrigger) {
+              timeline.scrollTrigger.kill();
+            }
+            timeline.kill();
+            ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+          };
+        });
       });
     }
   }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, playAttempted]);
