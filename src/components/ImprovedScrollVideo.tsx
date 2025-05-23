@@ -1,12 +1,11 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance to match hero text duration
-const SCROLL_EXTRA_PX = 8000;
+// Increase scroll distance to 12000px for longer video duration
+const SCROLL_EXTRA_PX = 12000;
 
 interface ImprovedScrollVideoProps {
   src?: string;
