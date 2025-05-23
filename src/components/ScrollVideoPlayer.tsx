@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -37,8 +38,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  // Define the frames to stop before the end
-  const FRAMES_BEFORE_END = 5;
+  // COMMENTED OUT: Define the frames to stop before the end
+  // const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
   
@@ -227,23 +228,24 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate time to stop before the end of the video
+      // COMMENTED OUT: Calculate time to stop before the end of the video
       // For a standard 30fps video, 5 frames = 5/30 = 0.167 seconds before the end
-      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
+      // const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
       
-      // Adjust progress to stop 5 frames before the end
-      let adjustedProgress = progress;
-      if (progress > 0.98) {  // Only adjust near the end
-        // Scale progress to end at (duration - stopTimeBeforeEnd)
-        const maxTime = video.duration - stopTimeBeforeEnd;
-        adjustedProgress = Math.min(progress, maxTime / video.duration);
-      }
+      // COMMENTED OUT: Adjust progress to stop 5 frames before the end
+      // let adjustedProgress = progress;
+      // if (progress > 0.98) {  // Only adjust near the end
+      //   // Scale progress to end at (duration - stopTimeBeforeEnd)
+      //   const maxTime = video.duration - stopTimeBeforeEnd;
+      //   adjustedProgress = Math.min(progress, maxTime / video.duration);
+      // }
       
-      const newTime = adjustedProgress * video.duration;
+      // TEST: Allow video to play to the very end
+      const newTime = progress * video.duration;
       
       // Log when we're approaching the end
       if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
+        console.log(`Video progress: ${progress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
       }
       
       if (frameRef.current) {

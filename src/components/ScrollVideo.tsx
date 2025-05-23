@@ -61,21 +61,21 @@ const ScrollVideo: React.FC<{
     };
   }, []);
 
-  // Update progress state and determine scroll direction
-  useEffect(() => {
-    if (progress > lastProgress) {
-      // Scrolling down - set immediate transition
-      if (videoRef.current) {
-        videoRef.current.style.transition = "opacity 0s";
-      }
-    } else {
-      // Scrolling up - set smooth transition
-      if (videoRef.current) {
-        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
-      }
-    }
-    setLastProgress(progress);
-  }, [progress]);
+  // COMMENTED OUT: Update progress state and determine scroll direction
+  // useEffect(() => {
+  //   if (progress > lastProgress) {
+  //     // Scrolling down - set immediate transition
+  //     if (videoRef.current) {
+  //       videoRef.current.style.transition = "opacity 0s";
+  //     }
+  //   } else {
+  //     // Scrolling up - set smooth transition
+  //     if (videoRef.current) {
+  //       videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+  //     }
+  //   }
+  //   setLastProgress(progress);
+  // }, [progress]);
 
   useEffect(() => {
     const video = videoRef.current;
