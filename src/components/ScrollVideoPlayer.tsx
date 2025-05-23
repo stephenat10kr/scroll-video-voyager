@@ -201,8 +201,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     const resizeSection = () => {
       if (container) {
-        // Set container height to 500vh (5 times viewport height) to match HeroText
-        container.style.height = `${window.innerHeight * 5 + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+        // Set container height to exactly 500vh to match the scroll distance
+        container.style.height = `${window.innerHeight * 5}px`;
       }
     };
     resizeSection();
@@ -291,9 +291,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        // Set scroll distance to 500vh to match HeroText component height
-        end: `+=${window.innerHeight * 5}`, // 5 additional viewport heights for 500vh total
-        scrub: scrubValue, // Use the device/browser-specific scrub value
+        // Set scroll distance to exactly 500vh
+        end: `+=${window.innerHeight * 5}`, // 5 viewport heights for 500vh total
+        scrub: scrubValue,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
