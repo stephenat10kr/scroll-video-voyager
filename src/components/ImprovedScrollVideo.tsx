@@ -19,6 +19,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const [playAttempted, setPlayAttempted] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
@@ -195,10 +197,11 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // Force a reflow to ensure height is applied
     container.offsetHeight;
     
-    // Log actual computed height
+    // Log actual computed height - fix TypeScript error
     const computedHeight = getComputedStyle(container).height;
     console.log("Container computed height:", computedHeight);
-    console.log("Container getBoundingClientRect height:", container.getBoundingClientRect().height);
+    const rect = container.getBoundingClientRect();
+    console.log("Container getBoundingClientRect height:", rect.height);
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -257,7 +260,15 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
               onUpdate: (self) => {
                 const video = videoRef.current;
                 if (video) {
-                  console.log(`Scroll progress: ${(self.progress * 100).toFixed(1)}%, Video time: ${(video.currentTime).toFixed(2)}s/${video.duration.toFixed(2)}s, Frame: ${Math.floor(video.currentTime * 30)}`);
+                  const progress = self.progress * 100;
+                  const videoTime = video.currentTime;
+                  const videoDuration = video.duration;
+                  const videoPercent = videoDuration ? (videoTime / videoDuration) * 100 : 0;
+                  
+                  setScrollProgress(progress);
+                  setVideoProgress(videoPercent);
+                  
+                  console.log(`Scroll progress: ${progress.toFixed(1)}%, Video time: ${videoTime.toFixed(2)}s/${videoDuration.toFixed(2)}s, Frame: ${Math.floor(videoTime * 30)}, Video %: ${videoPercent.toFixed(1)}%`);
                 }
               },
               onRefresh: (self) => {
@@ -265,7 +276,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
                 console.log("Start:", self.start);
                 console.log("End:", self.end);
                 console.log("Distance:", self.end - self.start);
-                console.log("Trigger element height:", self.trigger.offsetHeight);
+                console.log("Trigger element height:", (self.trigger as HTMLElement).offsetHeight);
               }
             }
           });
@@ -417,12 +428,49 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   }, [isAndroid, isVideoLoaded]);
 
   return (
-    <div ref={containerRef} className="video-container w-full" style={{ minHeight: '500vh' }}>
+    <div ref={containerRef} className="video-container w-full relative" style={{ minHeight: '500vh' }}>
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <Spinner />
         </div>
+      )}
+      
+      {/* Debug markers */}
+      {!isAndroid && (
+        <>
+          {/* Progress indicators */}
+          <div className="fixed top-4 left-4 z-50 bg-black bg-opacity-75 text-white p-4 rounded font-mono text-sm">
+            <div>Scroll Progress: {scrollProgress.toFixed(1)}%</div>
+            <div>Video Progress: {videoProgress.toFixed(1)}%</div>
+            <div>Container Height: 500vh</div>
+          </div>
+          
+          {/* Visual markers at key points */}
+          <div className="absolute top-0 left-0 w-full h-4 bg-green-500 z-40">
+            <span className="text-white text-xs">VIDEO START (0vh)</span>
+          </div>
+          
+          <div className="absolute top-[100vh] left-0 w-full h-4 bg-yellow-500 z-40">
+            <span className="text-black text-xs">100vh MARK</span>
+          </div>
+          
+          <div className="absolute top-[200vh] left-0 w-full h-4 bg-orange-500 z-40">
+            <span className="text-white text-xs">200vh MARK</span>
+          </div>
+          
+          <div className="absolute top-[300vh] left-0 w-full h-4 bg-red-500 z-40">
+            <span className="text-white text-xs">300vh MARK</span>
+          </div>
+          
+          <div className="absolute top-[400vh] left-0 w-full h-4 bg-purple-500 z-40">
+            <span className="text-white text-xs">400vh MARK</span>
+          </div>
+          
+          <div className="absolute bottom-0 left-0 w-full h-4 bg-red-800 z-40">
+            <span className="text-white text-xs">VIDEO END (500vh)</span>
+          </div>
+        </>
       )}
       
       {videoSrc && (
