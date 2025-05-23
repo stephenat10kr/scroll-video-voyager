@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -269,11 +268,11 @@ const Index = () => {
           )}
         </div>
         
-        {/* Red overlay with opacity controlled by fade progress */}
+        {/* Dark green overlay with opacity controlled by fade progress */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
-            backgroundColor: "red",
+            backgroundColor: colors.darkGreen,
             opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
             zIndex: 20  // ADJUSTED: Between Chladni (30) and video (11)
