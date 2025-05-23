@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -291,7 +292,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         // Set scroll distance to 500vh to match HeroText component height
-        end: `+=${window.innerHeight * 4}`, // 4 additional viewport heights (since start is at top)
+        end: `+=${window.innerHeight * 5}`, // 5 additional viewport heights for 500vh total
         scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
