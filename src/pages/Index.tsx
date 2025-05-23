@@ -27,6 +27,7 @@ const Index = () => {
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
+  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // New state for z-index switching
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
@@ -135,9 +136,14 @@ const Index = () => {
       
       // Get position of spacer element for all calculations
       const spacerRect = spacerElement.getBoundingClientRect();
+      const revealTextRect = revealTextElement.getBoundingClientRect();
       
       // Add a small offset to ensure the pattern hides slightly before reaching the exact boundary
       const VISIBILITY_OFFSET = 10; // 10px offset
+      
+      // Determine if we're above the RevealText component
+      // We're above if the RevealText section hasn't reached the top of the viewport yet
+      const newIsAboveRevealText = revealTextRect.top > 0;
       
       // Video is visible only when spacer is below viewport top (with offset)
       const newVideoVisible = spacerRect.top > VISIBILITY_OFFSET;
@@ -152,6 +158,10 @@ const Index = () => {
       
       if (newShowChladniPattern !== showChladniPattern) {
         console.log(`Chladni pattern visibility changed: ${newShowChladniPattern}, spacer top: ${spacerRect.top}`);
+      }
+      
+      if (newIsAboveRevealText !== isAboveRevealText) {
+        console.log(`Position relative to RevealText changed: ${newIsAboveRevealText ? 'above' : 'below'}, RevealText top: ${revealTextRect.top}`);
       }
       
       let newFadeProgress = 0;
@@ -180,8 +190,9 @@ const Index = () => {
       setVideoVisible(newVideoVisible);
       setFadeProgress(newFadeProgress);
       setShowChladniPattern(newShowChladniPattern);
+      setIsAboveRevealText(newIsAboveRevealText);
     });
-  }, [videoVisible, showChladniPattern]); // Added dependencies for debugging
+  }, [videoVisible, showChladniPattern, isAboveRevealText]); // Added isAboveRevealText dependency
   
   // Set up optimized scroll listener
   useEffect(() => {
@@ -231,7 +242,7 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern positioned to show when video is hidden */}
+        {/* Chladni pattern with dynamic z-index */}
         <div 
           style={{
             position: 'fixed',
@@ -242,7 +253,7 @@ const Index = () => {
             opacity: showChladniPattern ? 1 : 0,
             visibility: showChladniPattern ? 'visible' : 'hidden',
             transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
-            zIndex: 30, // INCREASED: Much higher z-index than video (11)
+            zIndex: isAboveRevealText ? 15 : 30, // Lower z-index when above RevealText, higher when below
             pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
           }}
           className="chladni-container"
@@ -250,14 +261,14 @@ const Index = () => {
           <ChladniPattern className="fixed inset-0" />
         </div>
         
-        {/* Video with smooth transition - properly gated by videoVisible state */}
+        {/* Video with dynamic z-index */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 11, // Below Chladni (30), but above base (10)
+            zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -275,7 +286,7 @@ const Index = () => {
             backgroundColor: colors.darkGreen,
             opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 20  // ADJUSTED: Between Chladni (30) and video (11)
+            zIndex: 20  // ADJUSTED: Between Chladni (15/30) and video (11/25)
           }}
         />
         
