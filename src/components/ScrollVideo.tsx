@@ -8,8 +8,8 @@ import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 2000 to 4000
-const SCROLL_EXTRA_PX = 4000;
+// Increase scroll distance significantly to match hero text duration
+const SCROLL_EXTRA_PX = 8000; // Increased from 4000 to 8000 to match hero text scrolling
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
 const ScrollVideo: React.FC<{

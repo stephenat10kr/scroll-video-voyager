@@ -304,7 +304,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
-        end: `+=${SCROLL_EXTRA_PX}`,
+        end: `+=${SCROLL_EXTRA_PX}`, // This will now use the increased value
         scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
