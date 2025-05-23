@@ -18,8 +18,8 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const loadedImages = useRef<boolean[]>([]);
   const totalFrames = 237; // Total number of frames (0-236)
+  const concurrentLoads = 8; // Number of images to load concurrently
   
   // Set up canvas and image loading
   useEffect(() => {
@@ -38,9 +38,8 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     
     // Initialize image arrays
     imagesRef.current = new Array(totalFrames);
-    loadedImages.current = new Array(totalFrames).fill(false);
 
-    // Load all images sequentially
+    // Load all images with concurrency
     loadAllImages();
     
     return () => {
@@ -48,52 +47,85 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     };
   }, [onReady]);
   
-  // Load all images sequentially
+  // Load all images with concurrency control
   const loadAllImages = async () => {
     let loadedCount = 0;
+    const totalImages = totalFrames;
+    let activeLoads = 0;
+    let nextIndexToLoad = 0;
     
-    const loadNextImage = (index: number) => {
-      if (index >= totalFrames) {
-        setIsLoading(false);
-        if (onReady) onReady();
-        
-        // Show first frame
-        if (imagesRef.current[0]) {
-          drawImageToCanvas(imagesRef.current[0]);
-        }
-        return;
-      }
-      
-      const img = new Image();
-      const paddedIndex = index.toString().padStart(3, '0');
-      
-      img.onload = () => {
-        imagesRef.current[index] = img;
-        loadedImages.current[index] = true;
-        loadedCount++;
-        
-        // Update progress
-        setLoadProgress((loadedCount / totalFrames) * 100);
-        
-        // If this is the first frame, show it immediately
-        if (index === 0) {
-          drawImageToCanvas(img);
+    // Function to load a single image
+    const loadImage = (index: number): Promise<void> => {
+      return new Promise((resolve) => {
+        if (index >= totalImages) {
+          resolve();
+          return;
         }
         
-        // Load next image
-        loadNextImage(index + 1);
-      };
-      
-      img.onerror = () => {
-        // Continue loading even if one image fails
-        loadNextImage(index + 1);
-      };
-      
-      img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
+        const img = new Image();
+        const paddedIndex = index.toString().padStart(3, '0');
+        
+        img.onload = () => {
+          imagesRef.current[index] = img;
+          loadedCount++;
+          
+          // Update progress
+          setLoadProgress((loadedCount / totalImages) * 100);
+          
+          // If this is the first frame, show it immediately
+          if (index === 0 && canvasRef.current) {
+            drawImageToCanvas(img);
+          }
+          
+          resolve();
+        };
+        
+        img.onerror = () => {
+          // Continue even if image fails to load
+          loadedCount++;
+          setLoadProgress((loadedCount / totalImages) * 100);
+          resolve();
+        };
+        
+        // Add cache busting if needed (remove in production)
+        // const cacheBuster = Date.now();
+        img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
+        
+        // Set crossOrigin to anonymous to avoid CORS issues with canvas
+        img.crossOrigin = "anonymous";
+      });
     };
     
-    // Start loading with the first image
-    loadNextImage(0);
+    // Process queue function to manage concurrent loading
+    const processQueue = async () => {
+      if (nextIndexToLoad >= totalImages) return;
+      
+      const currentIndex = nextIndexToLoad++;
+      activeLoads++;
+      
+      try {
+        await loadImage(currentIndex);
+      } finally {
+        activeLoads--;
+        
+        // If we've loaded all images, mark as complete
+        if (loadedCount >= totalImages) {
+          setIsLoading(false);
+          if (onReady) onReady();
+          
+          return;
+        }
+        
+        // Continue loading more images
+        processQueue();
+      }
+    };
+    
+    // Start initial batch of concurrent loads
+    const initialBatch = Math.min(concurrentLoads, totalImages);
+    for (let i = 0; i < initialBatch; i++) {
+      processQueue();
+    }
   };
   
   // Draw the current image to canvas, maintaining aspect ratio
@@ -155,7 +187,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
             setCurrentFrame(frameIndex);
             
             // Draw the new image if it's loaded
-            if (imagesRef.current[frameIndex] && loadedImages.current[frameIndex]) {
+            if (imagesRef.current[frameIndex]) {
               drawImageToCanvas(imagesRef.current[frameIndex]);
             }
           }
