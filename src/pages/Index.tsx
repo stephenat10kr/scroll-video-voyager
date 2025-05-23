@@ -287,7 +287,7 @@ const Index = () => {
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
-            opacity: videoVisible ? fadeProgress : 0, // Only show when video is visible
+            opacity: fadeProgress, // FIXED: Always show based on scroll progress, not video visibility
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
             zIndex: 20  // Between Chladni (15/30) and video (11/25)
           }}
