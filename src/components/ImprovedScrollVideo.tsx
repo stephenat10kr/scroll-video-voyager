@@ -437,61 +437,62 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         </div>
       )}
       
-      {/* Debug markers - ALWAYS VISIBLE for non-Android, with higher z-index */}
+      {/* Debug markers - ALWAYS VISIBLE for non-Android, with MUCH higher z-index */}
       {!isAndroid && (
         <>
-          {/* Progress indicators - FIXED POSITION */}
+          {/* Progress indicators - FIXED POSITION with extremely high z-index */}
           <div 
-            className="fixed top-4 left-4 bg-black text-white p-4 rounded font-mono text-sm border-2 border-white"
-            style={{ zIndex: 9999 }}
+            className="fixed top-4 left-4 bg-red-600 text-white p-4 rounded font-mono text-sm border-4 border-yellow-400"
+            style={{ zIndex: 999999 }}
           >
             <div>Scroll Progress: {scrollProgress.toFixed(1)}%</div>
             <div>Video Progress: {videoProgress.toFixed(1)}%</div>
             <div>Container Height: 500vh</div>
             <div>Markers Visible: TRUE</div>
+            <div>Z-INDEX: 999999</div>
           </div>
           
-          {/* Visual markers at key points - ABSOLUTE POSITIONING with high z-index */}
+          {/* Visual markers at key points - ABSOLUTE POSITIONING with extremely high z-index */}
           <div 
-            className="absolute top-0 left-0 w-full h-8 bg-green-500 flex items-center justify-center"
-            style={{ zIndex: 9998 }}
+            className="absolute top-0 left-0 w-full h-16 bg-green-500 flex items-center justify-center border-4 border-white"
+            style={{ zIndex: 999998 }}
           >
-            <span className="text-white text-sm font-bold">VIDEO START (0vh)</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-8 bg-yellow-500 flex items-center justify-center"
-            style={{ top: '100vh', zIndex: 9998 }}
-          >
-            <span className="text-black text-sm font-bold">100vh MARK</span>
+            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">VIDEO START (0vh) - Z: 999998</span>
           </div>
           
           <div 
-            className="absolute left-0 w-full h-8 bg-orange-500 flex items-center justify-center"
-            style={{ top: '200vh', zIndex: 9998 }}
+            className="absolute left-0 w-full h-16 bg-yellow-500 flex items-center justify-center border-4 border-black"
+            style={{ top: '100vh', zIndex: 999997 }}
           >
-            <span className="text-white text-sm font-bold">200vh MARK</span>
+            <span className="text-black text-lg font-bold bg-white px-4 py-2 rounded">100vh MARK - Z: 999997</span>
           </div>
           
           <div 
-            className="absolute left-0 w-full h-8 bg-red-500 flex items-center justify-center"
-            style={{ top: '300vh', zIndex: 9998 }}
+            className="absolute left-0 w-full h-16 bg-orange-500 flex items-center justify-center border-4 border-white"
+            style={{ top: '200vh', zIndex: 999996 }}
           >
-            <span className="text-white text-sm font-bold">300vh MARK - VIDEO SHOULD CONTINUE</span>
+            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">200vh MARK - Z: 999996</span>
           </div>
           
           <div 
-            className="absolute left-0 w-full h-8 bg-purple-500 flex items-center justify-center"
-            style={{ top: '400vh', zIndex: 9998 }}
+            className="absolute left-0 w-full h-16 bg-red-500 flex items-center justify-center border-4 border-yellow-400"
+            style={{ top: '300vh', zIndex: 999995 }}
           >
-            <span className="text-white text-sm font-bold">400vh MARK</span>
+            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">300vh MARK - VIDEO SHOULD CONTINUE - Z: 999995</span>
           </div>
           
           <div 
-            className="absolute bottom-0 left-0 w-full h-8 bg-red-800 flex items-center justify-center"
-            style={{ zIndex: 9998 }}
+            className="absolute left-0 w-full h-16 bg-purple-500 flex items-center justify-center border-4 border-white"
+            style={{ top: '400vh', zIndex: 999994 }}
           >
-            <span className="text-white text-sm font-bold">VIDEO END (500vh)</span>
+            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">400vh MARK - Z: 999994</span>
+          </div>
+          
+          <div 
+            className="absolute bottom-0 left-0 w-full h-16 bg-red-800 flex items-center justify-center border-4 border-yellow-400"
+            style={{ zIndex: 999993 }}
+          >
+            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">VIDEO END (500vh) - Z: 999993</span>
           </div>
         </>
       )}
@@ -506,7 +507,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
             pointerEvents: 'none', // Disable controls interaction for all devices
-            zIndex: 1 // Lower z-index than markers
+            zIndex: 1 // Much lower z-index than markers
           }}
           playsInline={true}
           webkit-playsinline="true" 
