@@ -1,8 +1,10 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Progress } from './ui/progress';
+import { useImageSequence } from '../hooks/useImageSequence';
+import { updateCanvasSize } from '../utils/imageSequenceUtils';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -12,140 +14,55 @@ interface ImageSequenceScrubberProps {
 }
 
 const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }) => {
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [currentFrame, setCurrentFrame] = useState(0);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
   const totalFrames = 237; // Total number of frames (0-236)
   
-  // Set up canvas and image loading
+  const { 
+    isLoading, 
+    loadProgress, 
+    currentFrame, 
+    setCurrentFrame,
+    drawFrame
+  } = useImageSequence({
+    totalFrames,
+    onReady
+  });
+  
+  // Set up canvas and handle resizing
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Size canvas to viewport
-    const updateCanvasSize = () => {
-      if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    // Initial canvas setup
+    updateCanvasSize(canvas);
+    
+    // Handle window resize
+    const handleResize = () => {
+      if (canvas) {
+        updateCanvasSize(canvas);
+        // Redraw current frame after resize
+        drawFrame(currentFrame, canvas);
+      }
     };
     
-    window.addEventListener('resize', updateCanvasSize);
-    updateCanvasSize();
-    
-    // Initialize image arrays
-    imagesRef.current = new Array(totalFrames);
-
-    // Load all images simultaneously
-    loadAllImages();
+    window.addEventListener('resize', handleResize);
     
     return () => {
-      window.removeEventListener('resize', updateCanvasSize);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [onReady]);
-  
-  // Load all images simultaneously
-  const loadAllImages = async () => {
-    let loadedCount = 0;
-    const totalImages = totalFrames;
-    const loadingPromises: Promise<void>[] = [];
-    
-    // Start loading all images at once
-    for (let i = 0; i < totalImages; i++) {
-      const loadPromise = loadImage(i);
-      loadingPromises.push(loadPromise);
-    }
-    
-    // Wait for all images to load
-    await Promise.all(loadingPromises);
-    
-    // Mark loading as complete
-    setIsLoading(false);
-    if (onReady) onReady();
-    
-    // Function to load a single image
-    function loadImage(index: number): Promise<void> {
-      return new Promise((resolve) => {
-        const img = new Image();
-        const paddedIndex = index.toString().padStart(3, '0');
-        
-        img.onload = () => {
-          imagesRef.current[index] = img;
-          loadedCount++;
-          
-          // Update progress
-          setLoadProgress((loadedCount / totalImages) * 100);
-          
-          // If this is the first frame, show it immediately
-          if (index === 0 && canvasRef.current) {
-            drawImageToCanvas(img);
-          }
-          
-          resolve();
-        };
-        
-        img.onerror = () => {
-          // Continue even if image fails to load
-          loadedCount++;
-          setLoadProgress((loadedCount / totalImages) * 100);
-          resolve();
-        };
-        
-        img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
-        img.crossOrigin = "anonymous";
-      });
-    }
-  };
-  
-  // Draw the current image to canvas, maintaining aspect ratio
-  const drawImageToCanvas = (img: HTMLImageElement) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Calculate dimensions to cover the viewport height while maintaining aspect ratio
-    const imgRatio = img.width / img.height;
-    const canvasRatio = canvas.width / canvas.height;
-    
-    let renderWidth, renderHeight, offsetX, offsetY;
-    
-    // Make sure the image always covers the viewport height
-    renderHeight = canvas.height;
-    renderWidth = renderHeight * imgRatio;
-    
-    // Center horizontally if wider than canvas
-    offsetX = (canvas.width - renderWidth) / 2;
-    offsetY = 0;
-    
-    // If the calculated width is less than canvas width, stretch to cover width too
-    if (renderWidth < canvas.width) {
-      renderWidth = canvas.width;
-      renderHeight = renderWidth / imgRatio;
-      offsetX = 0;
-      offsetY = (canvas.height - renderHeight) / 2;
-    }
-    
-    // Draw the image
-    ctx.drawImage(img, offsetX, offsetY, renderWidth, renderHeight);
-  };
+  }, [currentFrame, drawFrame]);
   
   // Set up scroll-based scrubbing
   useEffect(() => {
-    if (isLoading || !containerRef.current) return;
+    if (isLoading || !containerRef.current || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
     
     // Ensure at least the first frame is visible
-    if (imagesRef.current[0]) {
-      drawImageToCanvas(imagesRef.current[0]);
-    }
+    drawFrame(0, canvas);
     
-    // Create timeline for scroll scrubbing - adjust to work with sticky positioning
+    // Create timeline for scroll scrubbing
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: document.body, // Use body as trigger instead of the container
@@ -161,32 +78,22 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
           
           if (frameIndex !== currentFrame) {
             setCurrentFrame(frameIndex);
-            
-            // Draw the new image if it's loaded
-            if (imagesRef.current[frameIndex]) {
-              drawImageToCanvas(imagesRef.current[frameIndex]);
-            }
+            drawFrame(frameIndex, canvas);
           }
         },
-        // Add these event callbacks to handle end of scrolling
+        // Handle end of scrolling events
         onLeave: () => {
-          // Make sure last frame is drawn when scrolling beyond the end
+          // Last frame when scrolling beyond end
           const lastFrameIndex = totalFrames - 1;
-          if (imagesRef.current[lastFrameIndex]) {
-            drawImageToCanvas(imagesRef.current[lastFrameIndex]);
-          }
+          drawFrame(lastFrameIndex, canvas);
         },
         onLeaveBack: () => {
-          // Make sure first frame is drawn when scrolling back to the top
-          if (imagesRef.current[0]) {
-            drawImageToCanvas(imagesRef.current[0]);
-          }
+          // First frame when scrolling back to top
+          drawFrame(0, canvas);
         },
         onRefresh: () => {
-          // Ensure current frame is redrawn when ScrollTrigger refreshes (e.g., on resize)
-          if (imagesRef.current[currentFrame]) {
-            drawImageToCanvas(imagesRef.current[currentFrame]);
-          }
+          // Redraw on ScrollTrigger refresh
+          drawFrame(currentFrame, canvas);
         }
       }
     });
@@ -198,7 +105,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       }
       timeline.kill();
     };
-  }, [isLoading, currentFrame]);
+  }, [isLoading, currentFrame, drawFrame, setCurrentFrame, totalFrames]);
 
   return (
     <div 
