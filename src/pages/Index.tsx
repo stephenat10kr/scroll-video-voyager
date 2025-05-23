@@ -136,12 +136,23 @@ const Index = () => {
       // Get position of spacer element for all calculations
       const spacerRect = spacerElement.getBoundingClientRect();
       
-      // Simplified visibility logic based purely on spacer position
-      // Video is visible only when spacer is below viewport top (spacer.top > 0)
-      const newVideoVisible = spacerRect.top > 0;
+      // Add a small offset to ensure the pattern hides slightly before reaching the exact boundary
+      const VISIBILITY_OFFSET = 10; // 10px offset
       
-      // Chladni pattern is visible only when spacer reaches or passes viewport top (spacer.top <= 0)
-      const newShowChladniPattern = spacerRect.top <= 0;
+      // Video is visible only when spacer is below viewport top (with offset)
+      const newVideoVisible = spacerRect.top > VISIBILITY_OFFSET;
+      
+      // Chladni pattern is visible only when spacer reaches or passes viewport top (with offset)
+      const newShowChladniPattern = spacerRect.top <= -VISIBILITY_OFFSET;
+      
+      // Debug logs to track state changes
+      if (newVideoVisible !== videoVisible) {
+        console.log(`Video visibility changed: ${newVideoVisible}, spacer top: ${spacerRect.top}`);
+      }
+      
+      if (newShowChladniPattern !== showChladniPattern) {
+        console.log(`Chladni pattern visibility changed: ${newShowChladniPattern}, spacer top: ${spacerRect.top}`);
+      }
       
       let newFadeProgress = 0;
       
@@ -170,7 +181,7 @@ const Index = () => {
       setFadeProgress(newFadeProgress);
       setShowChladniPattern(newShowChladniPattern);
     });
-  }, []); // Removed showChladniPattern and hasPassedMarker dependencies
+  }, [videoVisible, showChladniPattern]); // Added dependencies for debugging
   
   // Set up optimized scroll listener
   useEffect(() => {
@@ -249,7 +260,7 @@ const Index = () => {
           }}
         />
         
-        {/* Chladni pattern with smooth transition - now covers all content */}
+        {/* Chladni pattern with improved visibility control */}
         <div 
           style={{
             position: 'fixed',
@@ -258,8 +269,10 @@ const Index = () => {
             width: '100%',
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 13  // Above dark green overlay
+            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
+            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
+            zIndex: 13,  // Above dark green overlay
+            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
           }}
           className="chladni-container"
         >
