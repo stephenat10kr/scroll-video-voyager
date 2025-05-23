@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -26,7 +25,6 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -136,31 +134,23 @@ const Index = () => {
       
       if (!revealTextElement || !spacerElement) return;
       
-      // Get position of RevealText element for video visibility
-      const revealTextRect = revealTextElement.getBoundingClientRect();
-      
-      // Get position of spacer element for fade calculation
+      // Get position of spacer element for all calculations
       const spacerRect = spacerElement.getBoundingClientRect();
       
-      // Video is visible only when we haven't reached the pattern section
-      // This is independent of the fade overlay
-      const newVideoVisible = !showChladniPattern;
+      // Simplified visibility logic based purely on spacer position
+      // Video is visible only when spacer is below viewport top (spacer.top > 0)
+      const newVideoVisible = spacerRect.top > 0;
+      
+      // Chladni pattern is visible only when spacer reaches or passes viewport top (spacer.top <= 0)
+      const newShowChladniPattern = spacerRect.top <= 0;
       
       let newFadeProgress = 0;
-      let newShowChladniPattern = showChladniPattern;
-      let newHasPassedMarker = hasPassedMarker;
       
       // Calculate fade progress based on spacer element position
       // Fade should reach 100% when the top of the spacer reaches the top of the screen
       if (spacerRect.top <= 0) {
         // When spacer top is at or above viewport top, fade should be 100%
         newFadeProgress = 1;
-        
-        // Show Chladni pattern when fade reaches 100%
-        if (!showChladniPattern) {
-          newShowChladniPattern = true;
-          newHasPassedMarker = true;
-        }
       } else {
         // Calculate fade progress from spacer top approaching viewport top
         // We'll use the viewport height as our reference point for when to start fading
@@ -174,26 +164,14 @@ const Index = () => {
         } else {
           newFadeProgress = 0;
         }
-        
-        // Reset Chladni pattern if we're scrolling back up above the fade zone
-        if (showChladniPattern && spacerRect.top > 0 && !hasPassedMarker) {
-          newShowChladniPattern = false;
-        }
       }
       
       // Batch state updates to reduce re-renders
       setVideoVisible(newVideoVisible);
       setFadeProgress(newFadeProgress);
-      
-      if (newShowChladniPattern !== showChladniPattern) {
-        setShowChladniPattern(newShowChladniPattern);
-      }
-      
-      if (newHasPassedMarker !== hasPassedMarker) {
-        setHasPassedMarker(newHasPassedMarker);
-      }
+      setShowChladniPattern(newShowChladniPattern);
     });
-  }, [showChladniPattern, hasPassedMarker]);
+  }, []); // Removed showChladniPattern and hasPassedMarker dependencies
   
   // Set up optimized scroll listener
   useEffect(() => {
@@ -241,15 +219,13 @@ const Index = () => {
         (entries) => {
           const entry = entries[0];
           
-          if (entry.isIntersecting && !hasPassedMarker) {
+          if (entry.isIntersecting) {
             console.log("Marker intersecting viewport - showing Chladni pattern");
             setShowChladniPattern(true);
-            setHasPassedMarker(true); // Set flag to remember we've passed the marker
-          } else if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+          } else if (entry.boundingClientRect.top > 0) {
             // Only hide pattern if we're scrolling UP past the marker (top > 0)
             console.log("Scrolled above marker - showing video again");
             setShowChladniPattern(false);
-            setHasPassedMarker(false); // Reset our marker flag
           }
           // Do nothing when scrolling down past the marker - keep pattern visible
         },
@@ -277,7 +253,7 @@ const Index = () => {
         observerRef.current = null;
       }
     };
-  }, [hasPassedMarker]);
+  }, []); // Removed hasPassedMarker dependency
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
