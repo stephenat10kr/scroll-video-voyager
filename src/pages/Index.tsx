@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -107,14 +108,13 @@ const Index = () => {
       // Get position of RevealText element
       const rect = revealTextElement.getBoundingClientRect();
       
-      // Calculate when RevealText is halfway up the screen
-      // Viewport height - top position of RevealText
+      // Calculate fade progress: start at halfway up screen, complete when top reaches screen top
       const viewportHeight = window.innerHeight;
       const halfwayThreshold = viewportHeight / 2;
       
-      if (rect.top < halfwayThreshold) {
-        // Calculate fade progress based on how far the element has passed the threshold
-        // Map rect.top from [halfwayThreshold, -rect.height] to [0, 1]
+      if (rect.top <= halfwayThreshold) {
+        // Calculate fade progress from halfway point to top of screen
+        // Map rect.top from [halfwayThreshold, 0] to [0, 1]
         const rawProgress = 1 - (rect.top / halfwayThreshold);
         const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
         
