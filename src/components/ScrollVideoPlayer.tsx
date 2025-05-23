@@ -1,7 +1,9 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsAndroid } from "../hooks/use-android";
+import { useIsIOS } from "../hooks/useIsIOS";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,7 +39,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  // Define the frames to stop before the end
+  // Define the frames to stop before the end - iOS specific handling
   const FRAMES_BEFORE_END = 5;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
@@ -45,8 +47,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   
-  // Use the Android hook for detection
+  // Use the Android and iOS hooks for detection
   const isAndroid = useIsAndroid();
+  const isIOS = useIsIOS();
 
   // Create a ref to store the current interpolation target time
   const targetTimeRef = useRef<number>(0);
@@ -108,6 +111,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
 
     console.log("Mobile detection:", isMobile);
     console.log("Android detection:", isAndroid);
+    console.log("iOS detection:", isIOS);
     console.log("Firefox detection:", isFirefox);
     console.log("Segment count:", segmentCount);
 
@@ -137,6 +141,30 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Force the first frame to display immediately
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
+      }
+      
+      // iOS-specific optimizations
+      if (isIOS) {
+        console.log("Applying iOS-specific optimizations");
+        
+        // iOS Safari video optimizations
+        video.style.transform = "translate3d(0,0,0)";
+        video.style.webkitTransform = "translate3d(0,0,0)";
+        video.style.backfaceVisibility = "hidden";
+        video.style.willChange = "transform";
+        
+        // iOS-specific attributes to prevent video texture unloading
+        video.setAttribute("webkit-playsinline", "true");
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("preload", "auto");
+        
+        // Force initial frame load for iOS
+        setTimeout(() => {
+          if (video.readyState >= 1) {
+            video.currentTime = 0.001;
+            console.log("iOS: Forced initial frame load");
+          }
+        }, 100);
       }
       
       // Android-specific optimizations
@@ -227,33 +255,64 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate time to stop before the end of the video
-      // For a standard 30fps video, 5 frames = 5/30 = 0.167 seconds before the end
-      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
-      
-      // Adjust progress to stop 5 frames before the end
+      // iOS-specific end handling - allow video to play closer to completion
       let adjustedProgress = progress;
-      if (progress > 0.98) {  // Only adjust near the end
-        // Scale progress to end at (duration - stopTimeBeforeEnd)
-        const maxTime = video.duration - stopTimeBeforeEnd;
-        adjustedProgress = Math.min(progress, maxTime / video.duration);
+      if (isIOS) {
+        // For iOS, allow the video to play much closer to the end to prevent black screen
+        // Only stop 1 frame before the end instead of 5 frames
+        const stopTimeBeforeEnd = 1 / STANDARD_FRAME_RATE;
+        
+        if (progress > 0.99) {  // Only adjust very close to the end
+          const maxTime = video.duration - stopTimeBeforeEnd;
+          adjustedProgress = Math.min(progress, maxTime / video.duration);
+        }
+        
+        // Log iOS-specific handling
+        if (progress > 0.95) {
+          console.log(`iOS video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${(adjustedProgress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
+        }
+      } else {
+        // Non-iOS devices use the original logic
+        const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
+        
+        if (progress > 0.98) {  // Only adjust near the end
+          const maxTime = video.duration - stopTimeBeforeEnd;
+          adjustedProgress = Math.min(progress, maxTime / video.duration);
+        }
+        
+        // Log when we're approaching the end
+        if (progress > 0.95) {
+          console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${(adjustedProgress * video.duration).toFixed(2)}/${video.duration.toFixed(2)}`);
+        }
       }
       
       const newTime = adjustedProgress * video.duration;
-      
-      // Log when we're approaching the end
-      if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
-      }
       
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Enhanced Android-specific smooth interpolation
-        if (isAndroid) {
-          // Use our new smooth interpolation function for Android
+        if (isIOS) {
+          // iOS-specific smooth time updates to prevent glitches
+          const timeDiff = Math.abs(video.currentTime - newTime);
+          
+          // For iOS, use a more conservative approach to time updates
+          if (timeDiff > 0.1) {
+            // Large jumps - set directly but with a small buffer
+            video.currentTime = newTime;
+          } else {
+            // Small adjustments - interpolate smoothly
+            const lerpFactor = 0.3; // Slower interpolation for iOS
+            const interpolatedTime = video.currentTime + (newTime - video.currentTime) * lerpFactor;
+            video.currentTime = interpolatedTime;
+          }
+          
+          if (progress > 0.95) {
+            console.log(`iOS smooth update: target=${newTime.toFixed(3)}, current=${video.currentTime.toFixed(3)}`);
+          }
+        } else if (isAndroid) {
+          // Use our existing smooth interpolation function for Android
           smoothlyUpdateVideoTime(video, newTime);
           
           // Log Android-specific smoothing when near the end
@@ -261,7 +320,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
             console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
-          // Standard approach for non-Android devices
+          // Standard approach for desktop browsers
           video.currentTime = newTime;
         }
         onAfterVideoChange(progress >= 1);
@@ -288,18 +347,20 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.pause();
       
       // Determine the appropriate scrub value based on browser and device
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
       let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      // Android-specific scrub value optimization
-      if (isAndroid) {
+      // iOS-specific scrub value optimization
+      if (isIOS) {
+        // iOS benefits from a higher scrub value for smoother performance and less glitches
+        scrubValue = 2.2;
+        console.log("Using iOS-optimized scrub value:", scrubValue);
+      } else if (isAndroid) {
         // Android devices benefit from a higher scrub value for smoother performance
-        // Changed from 2.0 to 1.8 for smoother scrubbing
         scrubValue = 1.8;
         console.log("Using Android-optimized scrub value:", scrubValue);
       }
       
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
+      console.log(`Using scrub value: ${scrubValue} for ${isIOS ? 'iOS' : (isAndroid ? 'Android' : (isFirefox ? 'Firefox' : (isMobile ? 'mobile' : 'desktop')))}`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
@@ -382,7 +443,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid, isIOS]);
 
   return <>{children}</>;
 };
