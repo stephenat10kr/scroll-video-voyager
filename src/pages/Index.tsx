@@ -232,33 +232,14 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Chladni pattern positioned BEHIND the video with lower z-index */}
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: showChladniPattern ? 1 : 0,
-            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
-            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
-            zIndex: 11,  // CHANGED: Now below video (was 13)
-            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
-          }}
-          className="chladni-container"
-        >
-          <ChladniPattern className="fixed inset-0" />
-        </div>
-        
-        {/* Video with smooth transition - properly gated by videoVisible state */}
+        {/* Video with smooth transition - now at the bottom layer */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 12, // CHANGED: Now above Chladni (was 11)
+            zIndex: 11, // Bottom layer
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -269,14 +250,33 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay with opacity controlled by fade progress directly */}
+        {/* Chladni pattern positioned ABOVE the video - now covers the video */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: showChladniPattern ? 1 : 0,
+            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
+            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
+            zIndex: 12,  // CHANGED: Now above video (was 11)
+            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
+          }}
+          className="chladni-container"
+        >
+          <ChladniPattern className="fixed inset-0" />
+        </div>
+        
+        {/* Dark green overlay - now only used for fade effect, not covering video */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
             opacity: fadeProgress, // Directly use fadeProgress, not dependent on videoVisible
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 13  // CHANGED: Now highest layer (was 12)
+            zIndex: 13  // Highest layer for fade effect
           }}
         />
         
