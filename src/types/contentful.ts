@@ -49,7 +49,7 @@ export interface ContentfulAsset {
 }
 
 // Define the hero video asset IDs for reference
-export const HERO_VIDEO_ASSET_ID = '2m5qExRLz3WlRJQiUhP0aB';
+export const HERO_VIDEO_ASSET_ID = '5LzoveNWfrc4blO79Fr80U';
 export const HERO_VIDEO_PORTRAIT_ASSET_ID = '2d34mOBMZSbJGNYTg4ych9';
 
 // Define the structure of a gallery entry from Contentful
