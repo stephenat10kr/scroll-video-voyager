@@ -18,6 +18,7 @@ interface ImprovedScrollVideoProps {
 const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: externalSrc, onReady }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
+  const [playAttempted, setPlayAttempted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
@@ -59,11 +60,41 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       initializeVideoForIOS();
     }
     
-    // For Android, just play the video directly
-    if (isAndroid && videoRef.current) {
-      console.log("Android device - playing video normally without controls");
-      videoRef.current.play().catch(err => {
-        console.log("Android auto-play failed:", err);
+    // For Android, try to play the video
+    if (isAndroid && videoRef.current && !playAttempted) {
+      playAndroidVideo();
+    }
+  };
+  
+  // Function to start Android video playback
+  const playAndroidVideo = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    setPlayAttempted(true);
+    console.log("Android device - attempting to play video");
+    
+    // Force play on Android
+    const playPromise = video.play();
+    
+    // Handle play promise
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        console.log("Android video started playing successfully");
+      }).catch(err => {
+        console.error("Android auto-play failed:", err);
+        
+        // Try again after a short delay
+        setTimeout(() => {
+          if (video) {
+            console.log("Retrying Android video playback");
+            // Try unmuting as a fallback
+            video.muted = true;
+            video.play().catch(e => {
+              console.error("Second Android play attempt failed:", e);
+            });
+          }
+        }, 500);
       });
     }
   };
@@ -156,10 +187,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       // Disable controls for Android users
       video.controls = false;
       
-      // Play video normally
-      video.play().catch(err => {
-        console.log("Android play error:", err);
-      });
+      // Try to play video normally
+      if (!playAttempted) {
+        playAndroidVideo();
+      }
       
       // Make sure onReady is called
       if (onReady && !readyCalledRef.current) {
@@ -234,7 +265,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         ScrollTrigger.getAll().forEach(trigger => trigger.kill());
       };
     }
-  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
+  }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, playAttempted]);
 
   // Add a useEffect specifically for iOS video handling
   useEffect(() => {
@@ -292,6 +323,41 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       clearTimeout(fallbackTimer);
     };
   }, [isIOS, isVideoInitialized, onReady]);
+
+  // Additional Android-specific effect to retry playback periodically
+  useEffect(() => {
+    if (!isAndroid || !videoRef.current) return;
+    
+    // Try playing video again after component fully mounts
+    const retryTimeout = setTimeout(() => {
+      if (videoRef.current) {
+        console.log("Delayed retry of Android video playback");
+        playAndroidVideo();
+      }
+    }, 1000);
+    
+    // Setup observer to check if video is actually playing
+    const video = videoRef.current;
+    let playCheckInterval: NodeJS.Timeout;
+    
+    // Check if time is advancing (video is actually playing)
+    if (video) {
+      let lastTime = video.currentTime;
+      playCheckInterval = setInterval(() => {
+        if (video.currentTime === lastTime && !video.paused) {
+          console.log("Video appears stuck, trying to restart playback");
+          video.currentTime += 0.1; // Try advancing slightly
+          playAndroidVideo();
+        }
+        lastTime = video.currentTime;
+      }, 2000); // Check every 2 seconds
+    }
+    
+    return () => {
+      clearTimeout(retryTimeout);
+      if (playCheckInterval) clearInterval(playCheckInterval);
+    };
+  }, [isAndroid, isVideoLoaded]);
 
   return (
     <div ref={containerRef} className="video-container w-full h-screen">
