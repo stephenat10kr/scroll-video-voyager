@@ -20,9 +20,8 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const loadedImages = useRef<boolean[]>([]);
   const totalFrames = 237; // Total number of frames (0-236)
-  const initialLoadCount = 24; // Initial frames to load before showing content
   
-  // Set up canvas and initial loading
+  // Set up canvas and image loading
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -41,128 +40,60 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     imagesRef.current = new Array(totalFrames);
     loadedImages.current = new Array(totalFrames).fill(false);
 
-    // Load key frames first (first frame and every 10th frame)
-    const loadKeyFrames = async () => {
-      const keyFramesToLoad = [];
-      
-      // Load first frame and every 10th frame up to initialLoadCount
-      keyFramesToLoad.push(0);
-      for (let i = 10; i < Math.min(initialLoadCount, totalFrames); i += 10) {
-        keyFramesToLoad.push(i);
-      }
-      
-      let loadedCount = 0;
-      
-      for (const index of keyFramesToLoad) {
-        await loadImage(index);
-        loadedCount++;
-        setLoadProgress((loadedCount / initialLoadCount) * 40); // First 40% of progress bar
-      }
-      
-      // Once initial key frames are loaded, show the first frame
-      if (imagesRef.current[0] && loadedImages.current[0]) {
-        drawImageToCanvas(imagesRef.current[0]);
-        setIsLoading(false);
-        
-        // Notify ready if callback provided
-        if (onReady) {
-          onReady();
-        }
-        
-        // Load remaining frames in the background
-        loadRemainingFrames();
-      }
-    };
-    
-    loadKeyFrames();
+    // Load all images sequentially
+    loadAllImages();
     
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
   }, [onReady]);
   
-  // Load a single image and return a promise
-  const loadImage = (index: number): Promise<void> => {
-    return new Promise((resolve) => {
-      if (loadedImages.current[index]) {
-        resolve(); // Already loaded
+  // Load all images sequentially
+  const loadAllImages = async () => {
+    let loadedCount = 0;
+    
+    const loadNextImage = (index: number) => {
+      if (index >= totalFrames) {
+        setIsLoading(false);
+        if (onReady) onReady();
+        
+        // Show first frame
+        if (imagesRef.current[0]) {
+          drawImageToCanvas(imagesRef.current[0]);
+        }
         return;
       }
       
-      const paddedIndex = index.toString().padStart(3, '0');
       const img = new Image();
+      const paddedIndex = index.toString().padStart(3, '0');
       
       img.onload = () => {
-        loadedImages.current[index] = true;
         imagesRef.current[index] = img;
-        resolve();
+        loadedImages.current[index] = true;
+        loadedCount++;
+        
+        // Update progress
+        setLoadProgress((loadedCount / totalFrames) * 100);
+        
+        // If this is the first frame, show it immediately
+        if (index === 0) {
+          drawImageToCanvas(img);
+        }
+        
+        // Load next image
+        loadNextImage(index + 1);
       };
       
       img.onerror = () => {
-        resolve(); // Resolve anyway to continue loading other images
+        // Continue loading even if one image fails
+        loadNextImage(index + 1);
       };
       
       img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
-    });
-  };
-  
-  // Load remaining frames in background with priority to frames near current position
-  const loadRemainingFrames = async () => {
-    // Calculate how many frames are left to load
-    const remainingFrames = totalFrames - initialLoadCount;
-    let loadedCount = initialLoadCount;
+    };
     
-    // Generate a loading sequence that prioritizes frames near the current frame
-    const loadingSequence = generateLoadingSequence(currentFrame, totalFrames);
-    
-    // Load frames in batches to not overwhelm the browser
-    const batchSize = 5;
-    for (let i = 0; i < loadingSequence.length; i += batchSize) {
-      const batch = loadingSequence.slice(i, i + batchSize);
-      await Promise.all(batch.map(index => loadImage(index)));
-      
-      // Update progress for the remaining 60%
-      loadedCount += batch.length;
-      setLoadProgress(40 + ((loadedCount - initialLoadCount) / remainingFrames) * 60);
-      
-      // Allow a small break between batches
-      await new Promise(resolve => setTimeout(resolve, 10));
-    }
-  };
-  
-  // Generate a sequence that prioritizes frames near the current frame
-  const generateLoadingSequence = (current: number, total: number): number[] => {
-    const sequence: number[] = [];
-    const alreadyAdded = new Set<number>();
-    
-    // Add frames that were loaded in initial batch
-    for (let i = 0; i < initialLoadCount; i++) {
-      if (i % 10 === 0 || i === 0) {
-        alreadyAdded.add(i);
-      }
-    }
-    
-    // Start from current frame and expand outwards
-    let distance = 1;
-    while (sequence.length < total - alreadyAdded.size) {
-      // Look forward
-      const forward = current + distance;
-      if (forward < total && !alreadyAdded.has(forward)) {
-        sequence.push(forward);
-        alreadyAdded.add(forward);
-      }
-      
-      // Look backward
-      const backward = current - distance;
-      if (backward >= 0 && !alreadyAdded.has(backward)) {
-        sequence.push(backward);
-        alreadyAdded.add(backward);
-      }
-      
-      distance++;
-    }
-    
-    return sequence;
+    // Start loading with the first image
+    loadNextImage(0);
   };
   
   // Draw the current image to canvas, maintaining aspect ratio
@@ -212,7 +143,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
         trigger: document.body,
         start: "top top", 
         end: "bottom bottom",
-        scrub: 0.5, // Smoother scrubbing 
+        scrub: 0.5, // Smoother scrubbing
         onUpdate: self => {
           // Calculate the image index based on scroll progress
           const frameIndex = Math.min(
@@ -226,15 +157,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
             // Draw the new image if it's loaded
             if (imagesRef.current[frameIndex] && loadedImages.current[frameIndex]) {
               drawImageToCanvas(imagesRef.current[frameIndex]);
-            } else {
-              // If current frame isn't loaded yet, find closest loaded frame
-              let closestLoaded = findClosestLoadedFrame(frameIndex);
-              if (closestLoaded >= 0) {
-                drawImageToCanvas(imagesRef.current[closestLoaded]);
-              }
-              
-              // Prioritize loading this frame
-              loadImage(frameIndex);
             }
           }
         }
@@ -249,34 +171,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
       timeline.kill();
     };
   }, [isLoading, currentFrame]);
-  
-  // Find the closest frame that has been loaded
-  const findClosestLoadedFrame = (targetIndex: number): number => {
-    // Check target frame first
-    if (loadedImages.current[targetIndex]) return targetIndex;
-    
-    // Look for the closest loaded frame (alternating between before and after)
-    let distance = 1;
-    const maxDistance = totalFrames;
-    
-    while (distance < maxDistance) {
-      // Check before
-      const beforeIndex = targetIndex - distance;
-      if (beforeIndex >= 0 && loadedImages.current[beforeIndex]) {
-        return beforeIndex;
-      }
-      
-      // Check after
-      const afterIndex = targetIndex + distance;
-      if (afterIndex < totalFrames && loadedImages.current[afterIndex]) {
-        return afterIndex;
-      }
-      
-      distance++;
-    }
-    
-    return -1; // No loaded frame found
-  };
 
   return (
     <div 
