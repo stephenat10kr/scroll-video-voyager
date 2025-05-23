@@ -1,6 +1,7 @@
 
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useIsAndroid } from "@/hooks/use-android";
 
 interface MediaItemProps {
   url: string;
@@ -10,16 +11,17 @@ interface MediaItemProps {
 
 const MediaItem = ({ url, type, caption }: MediaItemProps) => {
   const isVideo = type.startsWith('video/');
+  const isAndroid = useIsAndroid();
 
   return (
     <AspectRatio ratio={16 / 9} className="rounded-lg overflow-hidden">
       {isVideo ? (
         <video
           src={url}
-          controls
+          controls={isAndroid} // Show controls on Android
           playsInline
-          autoPlay
-          muted
+          autoPlay={isAndroid} // Auto play on Android
+          muted={!isAndroid} // Only mute on non-Android
           loop
           preload="auto"
           className="object-cover w-full h-full rounded-lg"

@@ -31,7 +31,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       console.log("iOS device detected in ImprovedScrollVideo component");
     }
     if (isAndroid) {
-      console.log("Android device detected in ImprovedScrollVideo component");
+      console.log("Android device detected in ImprovedScrollVideo component - disabling scroll scrubbing");
     }
   }, [isIOS, isAndroid]);
   
@@ -58,6 +58,14 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     // For iOS, we need to manually initialize the video when it's loaded
     if (isIOS && videoRef.current && !isVideoInitialized) {
       initializeVideoForIOS();
+    }
+    
+    // For Android, just play the video directly
+    if (isAndroid && videoRef.current) {
+      console.log("Android device - playing video normally");
+      videoRef.current.play().catch(err => {
+        console.log("Android auto-play failed:", err);
+      });
     }
   };
   
@@ -142,6 +150,26 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     if (isIOS && !isVideoInitialized) {
       initializeVideoForIOS();
     }
+    // For Android devices, we'll play the video normally instead of scroll scrubbing
+    else if (isAndroid) {
+      console.log("Setting up normal video playback for Android");
+      
+      // Enable controls for Android users
+      video.controls = true;
+      
+      // Play video normally
+      video.play().catch(err => {
+        console.log("Android play error:", err);
+      });
+      
+      // Make sure onReady is called
+      if (onReady && !readyCalledRef.current) {
+        onReady();
+        readyCalledRef.current = true;
+      }
+      
+      return; // Skip setting up ScrollTrigger for Android
+    }
     // For touch devices, we need to initialize the video first
     else if (isTouchDevice() && !isIOS) { // Only run this for non-iOS touch devices
       video.play().then(() => {
@@ -151,62 +179,62 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       });
     }
     
-    // Create timeline for scroll scrubbing
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        // Increase the end value to extend the scrolling length
-        end: "bottom+=600% bottom", // Keep extended scrolling length
-        // Use a much lower scrub value for Android devices to reduce lag
-        scrub: isAndroid ? 0.5 : 3.5, // Lower value for Android for more responsive scrubbing
-        markers: false, // Set to true for debugging
-      }
-    });
-    
-    // Wait until video metadata is loaded before creating the animation
-    const handleMetadataLoaded = () => {
-      if (video.duration) {
-        timeline.to(video, { currentTime: video.duration });
-        console.log("Video scroll animation set up with duration:", video.duration);
-        console.log("Using scrub value:", isAndroid ? "0.5 (Android)" : "3.5 (non-Android)");
-      }
-    };
-    
-    if (video.readyState >= 2) {
-      handleMetadataLoaded();
-    } else {
-      video.addEventListener('loadedmetadata', handleMetadataLoaded);
-    }
-
-    // Add ScrollTrigger to control visibility based on RevealText component position
-    const revealTextSection = document.getElementById('revealText-section');
-    if (revealTextSection) {
-      console.log("RevealText section found for video visibility trigger");
-      ScrollTrigger.create({
-        trigger: revealTextSection,
-        start: "top top", // This fires when the top of RevealText reaches the top of viewport
-        onEnter: () => {
-          console.log("Hiding video (scrolling down)");
-        },
-        onLeaveBack: () => {
-          console.log("Showing video (scrolling up)");
-        },
-        markers: false
+    // Create timeline for scroll scrubbing - only for non-Android devices
+    if (!isAndroid) {
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          // Increase the end value to extend the scrolling length
+          end: "bottom+=600% bottom", // Keep extended scrolling length
+          scrub: 3.5,
+          markers: false, // Set to true for debugging
+        }
       });
-    } else {
-      console.warn("RevealText section not found for video visibility trigger");
-    }
-    
-    // Clean up
-    return () => {
-      video.removeEventListener('loadedmetadata', handleMetadataLoaded);
-      if (timeline.scrollTrigger) {
-        timeline.scrollTrigger.kill();
+      
+      // Wait until video metadata is loaded before creating the animation
+      const handleMetadataLoaded = () => {
+        if (video.duration) {
+          timeline.to(video, { currentTime: video.duration });
+          console.log("Video scroll animation set up with duration:", video.duration);
+        }
+      };
+      
+      if (video.readyState >= 2) {
+        handleMetadataLoaded();
+      } else {
+        video.addEventListener('loadedmetadata', handleMetadataLoaded);
       }
-      timeline.kill();
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
+
+      // Add ScrollTrigger to control visibility based on RevealText component position
+      const revealTextSection = document.getElementById('revealText-section');
+      if (revealTextSection) {
+        console.log("RevealText section found for video visibility trigger");
+        ScrollTrigger.create({
+          trigger: revealTextSection,
+          start: "top top", // This fires when the top of RevealText reaches the top of viewport
+          onEnter: () => {
+            console.log("Hiding video (scrolling down)");
+          },
+          onLeaveBack: () => {
+            console.log("Showing video (scrolling up)");
+          },
+          markers: false
+        });
+      } else {
+        console.warn("RevealText section not found for video visibility trigger");
+      }
+      
+      // Clean up
+      return () => {
+        video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+        if (timeline.scrollTrigger) {
+          timeline.scrollTrigger.kill();
+        }
+        timeline.kill();
+        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      };
+    }
   }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid]);
 
   // Add a useEffect specifically for iOS video handling
@@ -283,14 +311,15 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             backgroundColor: 'black',
             willChange: 'transform',
             transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden'
+            backfaceVisibility: 'hidden',
+            pointerEvents: isAndroid ? 'auto' : 'none' // Enable controls interaction on Android
           }}
           playsInline={true}
           webkit-playsinline="true" 
           preload="auto"
-          muted={true}
-          autoPlay={isIOS ? true : false}
-          controls={false}
+          muted={!isAndroid} // Only mute for non-Android
+          autoPlay={isAndroid} // Auto play on Android
+          controls={isAndroid} // Show controls on Android
           onLoadedData={handleVideoLoaded}
         >
           <source src={videoSrc} type="video/mp4" />
