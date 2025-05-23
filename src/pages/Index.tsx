@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -269,11 +268,11 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay with opacity controlled by fade progress directly */}
+        {/* Red overlay with opacity controlled by fade progress directly */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
-            backgroundColor: colors.darkGreen,
+            backgroundColor: "red", // CHANGED: From colors.darkGreen to red
             opacity: fadeProgress, // Directly use fadeProgress, not dependent on videoVisible
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
             zIndex: 13  // CHANGED: Now highest layer (was 12)
