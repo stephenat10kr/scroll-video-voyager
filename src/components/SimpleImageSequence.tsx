@@ -22,8 +22,10 @@ const SimpleImageSequence = () => {
     const updateProgress = () => {
       loadedCount++;
       setLoadProgress((loadedCount / totalFrames) * 100);
+      console.log(`Loaded ${loadedCount}/${totalFrames} images`);
       
       if (loadedCount === totalFrames) {
+        console.log('All images loaded');
         setIsLoading(false);
       }
     };
@@ -34,7 +36,10 @@ const SimpleImageSequence = () => {
       const paddedIndex = i.toString().padStart(3, '0');
       
       img.onload = updateProgress;
-      img.onerror = updateProgress; // Count errors as loaded to avoid getting stuck
+      img.onerror = (e) => {
+        console.error(`Failed to load image ${i}: ${e}`);
+        updateProgress(); // Count errors as loaded to avoid getting stuck
+      };
       
       img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
       img.crossOrigin = "anonymous";
@@ -84,6 +89,7 @@ const SimpleImageSequence = () => {
   useEffect(() => {
     if (isLoading || !canvasRef.current) return;
     
+    console.log('Setting up scroll trigger');
     const canvas = canvasRef.current;
     const images = imagesRef.current;
     
@@ -95,6 +101,7 @@ const SimpleImageSequence = () => {
         end: "bottom bottom",
         scrub: 0.5,
         onUpdate: self => {
+          console.log(`Scroll progress: ${self.progress.toFixed(2)}`);
           // Calculate the image index based on scroll progress
           const frameIndex = Math.min(
             Math.floor(self.progress * (totalFrames - 1)),
@@ -103,22 +110,11 @@ const SimpleImageSequence = () => {
           
           if (frameIndex !== currentFrame) {
             setCurrentFrame(frameIndex);
+            console.log(`Drawing frame: ${frameIndex}`);
             
             if (images[frameIndex] && images[frameIndex].complete) {
               drawImageToCanvas(images[frameIndex], canvas);
             }
-          }
-        },
-        // Handle end of scrolling events
-        onLeave: () => {
-          const lastFrameIndex = totalFrames - 1;
-          if (images[lastFrameIndex] && images[lastFrameIndex].complete) {
-            drawImageToCanvas(images[lastFrameIndex], canvas);
-          }
-        },
-        onLeaveBack: () => {
-          if (images[0] && images[0].complete) {
-            drawImageToCanvas(images[0], canvas);
           }
         }
       }
@@ -190,6 +186,7 @@ const SimpleImageSequence = () => {
               style={{ width: `${loadProgress}%` }}
             />
           </div>
+          <div className="absolute text-white text-sm mt-8">{Math.floor(loadProgress)}%</div>
         </div>
       )}
       <canvas 

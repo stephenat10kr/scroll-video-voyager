@@ -17,7 +17,7 @@ const ImgSeqPage = () => {
   return (
     <div className="relative min-h-screen">
       {/* Sticky container for image sequence */}
-      <div className="sticky top-0 left-0 w-full h-screen z-10">
+      <div className="sticky top-0 left-0 w-full h-screen z-10 flex items-center justify-center">
         <SimpleImageSequence />
       </div>
     </div>
