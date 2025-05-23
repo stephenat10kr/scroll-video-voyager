@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -15,7 +14,7 @@ import Logo from "../components/Logo";
 import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
-import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
 import colors from "../lib/theme";
 
 const Index = () => {
@@ -37,9 +36,8 @@ const Index = () => {
   const lastScrollTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
   
-  // Use appropriate video asset ID based on device
-  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
-  const { data: videoAsset } = useContentfulAsset(videoAssetId);
+  // Use single video asset ID for all devices
+  const { data: videoAsset } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
   // Get video source from Contentful
   const videoSrc = videoAsset?.fields?.file?.url 
@@ -102,7 +100,7 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+      console.log("Using single video asset ID:", HERO_VIDEO_ASSET_ID);
     }
   }, [isIOS, isAndroid]);
   
