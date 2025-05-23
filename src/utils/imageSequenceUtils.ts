@@ -33,7 +33,7 @@ export const drawImageToCanvas = (
   img: HTMLImageElement, 
   canvas: HTMLCanvasElement
 ): void => {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false }); // Disable alpha for better performance
   if (!ctx) return;
   
   // Clear the canvas
@@ -61,8 +61,14 @@ export const drawImageToCanvas = (
     offsetY = (canvas.height - renderHeight) / 2;
   }
   
-  // Draw the image
-  ctx.drawImage(img, offsetX, offsetY, renderWidth, renderHeight);
+  // Draw the image - use integer values for better performance
+  ctx.drawImage(
+    img, 
+    Math.floor(offsetX), 
+    Math.floor(offsetY), 
+    Math.floor(renderWidth), 
+    Math.floor(renderHeight)
+  );
 };
 
 /**
