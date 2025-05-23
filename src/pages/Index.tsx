@@ -101,7 +101,7 @@ const Index = () => {
     
     if (isAndroid) {
       console.log("Android device detected in Index component");
-      console.log("Using portrait video asset ID:", HERO_VIDEO_PORTRAIT_ASSET_ID);
+      console.log("Using video asset ID:", HERO_VIDEO_ASSET_ID);
     }
   }, [isIOS, isAndroid]);
   
