@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -141,8 +142,9 @@ const Index = () => {
       // Get position of spacer element for fade calculation
       const spacerRect = spacerElement.getBoundingClientRect();
       
-      // Calculate all values first to batch state updates
-      const newVideoVisible = revealTextRect.top > 0;
+      // Video is visible only when we haven't reached the pattern section
+      // This is independent of the fade overlay
+      const newVideoVisible = !showChladniPattern;
       
       let newFadeProgress = 0;
       let newShowChladniPattern = showChladniPattern;
@@ -300,14 +302,14 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with smooth transition - now also controlled by videoVisible state */}
+        {/* Video with smooth transition - properly gated by videoVisible state */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: (showVideo && !showChladniPattern && videoVisible) ? 1 : 0,
+            opacity: (showVideo && videoVisible) ? 1 : 0,
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 10,
+            zIndex: 11, // Updated to 11 (was 10)
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -318,12 +320,12 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay with opacity controlled by fade progress and videoVisible */}
+        {/* Dark green overlay with opacity controlled by fade progress directly */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
-            opacity: videoVisible ? fadeProgress : 0,
+            opacity: fadeProgress, // Directly use fadeProgress, not dependent on videoVisible
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
             zIndex: 12  // Above video but below Chladni
           }}
