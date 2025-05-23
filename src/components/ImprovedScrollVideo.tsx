@@ -19,20 +19,21 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoInitialized, setIsVideoInitialized] = useState(false);
   const [playAttempted, setPlayAttempted] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [videoProgress, setVideoProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isIOS = useIsIOS();
   const isAndroid = useIsAndroid();
   const readyCalledRef = useRef(false);
   
-  // For debugging - log when component mounts
+  // For debugging
   useEffect(() => {
-    console.log("=== ImprovedScrollVideo mounted ===");
-    console.log("isAndroid:", isAndroid);
-    console.log("isIOS:", isIOS);
-  }, []);
+    if (isIOS) {
+      console.log("iOS device detected in ImprovedScrollVideo component");
+    }
+    if (isAndroid) {
+      console.log("Android device detected in ImprovedScrollVideo component - disabling scroll scrubbing");
+    }
+  }, [isIOS, isAndroid]);
   
   const { data: heroVideoAsset, isLoading } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
   
@@ -176,29 +177,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   
   useEffect(() => {
     const video = videoRef.current;
-    const container = containerRef.current;
-    if (!video || !isVideoLoaded || !container) return;
-    
-    // DETAILED DEBUGGING: Log all measurements
-    const viewportHeight = window.innerHeight;
-    const scrollHeight = viewportHeight * 5; // 500vh
-    
-    console.log("=== SCROLL VIDEO DEBUG ===");
-    console.log("Viewport height:", viewportHeight);
-    console.log("Target scroll height (500vh):", scrollHeight);
-    
-    // Set container height IMMEDIATELY and log it
-    container.style.height = `${scrollHeight}px`;
-    console.log("Container height set to:", container.style.height);
-    
-    // Force a reflow to ensure height is applied
-    container.offsetHeight;
-    
-    // Log actual computed height - fix TypeScript error
-    const computedHeight = getComputedStyle(container).height;
-    console.log("Container computed height:", computedHeight);
-    const rect = container.getBoundingClientRect();
-    console.log("Container getBoundingClientRect height:", rect.height);
+    if (!video || !isVideoLoaded) return;
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -238,97 +217,59 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     
     // Create timeline for scroll scrubbing - only for non-Android devices
     if (!isAndroid) {
-      // Wait multiple frames to ensure container height is fully applied
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Log container measurements again after frames
-          console.log("After requestAnimationFrame:");
-          console.log("Container offsetHeight:", container.offsetHeight);
-          console.log("Container scrollHeight:", container.scrollHeight);
-          console.log("Container getBoundingClientRect():", container.getBoundingClientRect());
-          
-          const timeline = gsap.timeline({
-            scrollTrigger: {
-              trigger: container,
-              start: "top top",
-              end: "bottom top", // This should use the full 500vh height
-              scrub: 3.5,
-              markers: false, // Set to true for debugging
-              onUpdate: (self) => {
-                const video = videoRef.current;
-                if (video) {
-                  const progress = self.progress * 100;
-                  const videoTime = video.currentTime;
-                  const videoDuration = video.duration;
-                  const videoPercent = videoDuration ? (videoTime / videoDuration) * 100 : 0;
-                  
-                  setScrollProgress(progress);
-                  setVideoProgress(videoPercent);
-                  
-                  console.log(`Scroll progress: ${progress.toFixed(1)}%, Video time: ${videoTime.toFixed(2)}s/${videoDuration.toFixed(2)}s, Frame: ${Math.floor(videoTime * 30)}, Video %: ${videoPercent.toFixed(1)}%`);
-                }
-              },
-              onRefresh: (self) => {
-                console.log("ScrollTrigger refreshed:");
-                console.log("Start:", self.start);
-                console.log("End:", self.end);
-                console.log("Distance:", self.end - self.start);
-                console.log("Trigger element height:", (self.trigger as HTMLElement).offsetHeight);
-              }
-            }
-          });
-          
-          // Wait until video metadata is loaded before creating the animation
-          const handleMetadataLoaded = () => {
-            if (video.duration) {
-              console.log("=== VIDEO METADATA ===");
-              console.log("Video duration:", video.duration);
-              console.log("Video framerate estimate (assuming 30fps):", Math.floor(video.duration * 30), "frames");
-              
-              timeline.to(video, { currentTime: video.duration });
-              console.log("Video scroll animation set up with duration:", video.duration, "for full container height");
-              
-              // Force ScrollTrigger refresh to get accurate measurements
-              ScrollTrigger.refresh();
-            }
-          };
-          
-          if (video.readyState >= 2) {
-            handleMetadataLoaded();
-          } else {
-            video.addEventListener('loadedmetadata', handleMetadataLoaded);
-          }
-
-          // Add ScrollTrigger to control visibility based on RevealText component position
-          const revealTextSection = document.getElementById('revealText-section');
-          if (revealTextSection) {
-            console.log("RevealText section found for video visibility trigger");
-            ScrollTrigger.create({
-              trigger: revealTextSection,
-              start: "top top", // This fires when the top of RevealText reaches the top of viewport
-              onEnter: () => {
-                console.log("Hiding video (scrolling down)");
-              },
-              onLeaveBack: () => {
-                console.log("Showing video (scrolling up)");
-              },
-              markers: false
-            });
-          } else {
-            console.warn("RevealText section not found for video visibility trigger");
-          }
-          
-          // Clean up
-          return () => {
-            video.removeEventListener('loadedmetadata', handleMetadataLoaded);
-            if (timeline.scrollTrigger) {
-              timeline.scrollTrigger.kill();
-            }
-            timeline.kill();
-            ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-          };
-        });
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          // Increase the end value to extend the scrolling length
+          end: "bottom+=600% bottom", // Keep extended scrolling length
+          scrub: 3.5,
+          markers: false, // Set to true for debugging
+        }
       });
+      
+      // Wait until video metadata is loaded before creating the animation
+      const handleMetadataLoaded = () => {
+        if (video.duration) {
+          timeline.to(video, { currentTime: video.duration });
+          console.log("Video scroll animation set up with duration:", video.duration);
+        }
+      };
+      
+      if (video.readyState >= 2) {
+        handleMetadataLoaded();
+      } else {
+        video.addEventListener('loadedmetadata', handleMetadataLoaded);
+      }
+
+      // Add ScrollTrigger to control visibility based on RevealText component position
+      const revealTextSection = document.getElementById('revealText-section');
+      if (revealTextSection) {
+        console.log("RevealText section found for video visibility trigger");
+        ScrollTrigger.create({
+          trigger: revealTextSection,
+          start: "top top", // This fires when the top of RevealText reaches the top of viewport
+          onEnter: () => {
+            console.log("Hiding video (scrolling down)");
+          },
+          onLeaveBack: () => {
+            console.log("Showing video (scrolling up)");
+          },
+          markers: false
+        });
+      } else {
+        console.warn("RevealText section not found for video visibility trigger");
+      }
+      
+      // Clean up
+      return () => {
+        video.removeEventListener('loadedmetadata', handleMetadataLoaded);
+        if (timeline.scrollTrigger) {
+          timeline.scrollTrigger.kill();
+        }
+        timeline.kill();
+        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      };
     }
   }, [isVideoLoaded, isIOS, isVideoInitialized, isAndroid, playAttempted]);
 
@@ -424,12 +365,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     };
   }, [isAndroid, isVideoLoaded]);
 
-  console.log("=== RENDER DEBUG ===");
-  console.log("Component rendering, isAndroid:", isAndroid);
-  console.log("Should show markers:", !isAndroid);
-
   return (
-    <div ref={containerRef} className="video-container w-full relative" style={{ minHeight: '500vh', backgroundColor: 'black' }}>
+    <div ref={containerRef} className="video-container w-full h-screen">
       {/* Show loading state if video is still loading */}
       {(isLoading || !isVideoLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -437,77 +374,16 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         </div>
       )}
       
-      {/* Debug markers - ALWAYS VISIBLE for non-Android, with MUCH higher z-index */}
-      {!isAndroid && (
-        <>
-          {/* Progress indicators - FIXED POSITION with extremely high z-index */}
-          <div 
-            className="fixed top-4 left-4 bg-red-600 text-white p-4 rounded font-mono text-sm border-4 border-yellow-400"
-            style={{ zIndex: 999999 }}
-          >
-            <div>Scroll Progress: {scrollProgress.toFixed(1)}%</div>
-            <div>Video Progress: {videoProgress.toFixed(1)}%</div>
-            <div>Container Height: 500vh</div>
-            <div>Markers Visible: TRUE</div>
-            <div>Z-INDEX: 999999</div>
-          </div>
-          
-          {/* Visual markers at key points - ABSOLUTE POSITIONING with extremely high z-index */}
-          <div 
-            className="absolute top-0 left-0 w-full h-16 bg-green-500 flex items-center justify-center border-4 border-white"
-            style={{ zIndex: 999998 }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">VIDEO START (0vh) - Z: 999998</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-yellow-500 flex items-center justify-center border-4 border-black"
-            style={{ top: '100vh', zIndex: 999997 }}
-          >
-            <span className="text-black text-lg font-bold bg-white px-4 py-2 rounded">100vh MARK - Z: 999997</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-orange-500 flex items-center justify-center border-4 border-white"
-            style={{ top: '200vh', zIndex: 999996 }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">200vh MARK - Z: 999996</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-red-500 flex items-center justify-center border-4 border-yellow-400"
-            style={{ top: '300vh', zIndex: 999995 }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">300vh MARK - VIDEO SHOULD CONTINUE - Z: 999995</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-purple-500 flex items-center justify-center border-4 border-white"
-            style={{ top: '400vh', zIndex: 999994 }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">400vh MARK - Z: 999994</span>
-          </div>
-          
-          <div 
-            className="absolute bottom-0 left-0 w-full h-16 bg-red-800 flex items-center justify-center border-4 border-yellow-400"
-            style={{ zIndex: 999993 }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">VIDEO END (500vh) - Z: 999993</span>
-          </div>
-        </>
-      )}
-      
       {videoSrc && (
         <video 
           ref={videoRef}
-          className="w-full h-screen object-cover pointer-events-none fixed top-0 left-0"
+          className="w-full h-full object-cover pointer-events-none"
           style={{ 
             backgroundColor: 'black',
             willChange: 'transform',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
-            pointerEvents: 'none', // Disable controls interaction for all devices
-            zIndex: 1 // Much lower z-index than markers
+            pointerEvents: 'none' // Disable controls interaction for all devices
           }}
           playsInline={true}
           webkit-playsinline="true" 

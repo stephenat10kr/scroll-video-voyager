@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -25,13 +26,8 @@ const ScrollVideo: React.FC<{
   const [progress, setProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(true);
   const [lastProgress, setLastProgress] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
-  
-  console.log("=== SCROLL VIDEO COMPONENT DEBUG ===");
-  console.log("Is Android:", isAndroid);
-  console.log("Should show markers:", !isAndroid);
   
   // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
@@ -326,119 +322,39 @@ const ScrollVideo: React.FC<{
   }, [isMobile, isAndroid]);
 
   return (
-    <>
-      {/* CLEAN VIDEO CONTAINER - NO DEBUG MARKERS */}
-      <div 
-        ref={containerRef} 
-        className="relative w-full min-h-screen overflow-hidden bg-black"
-        style={{
-          // Ensure container has proper stacking context
-          isolation: 'isolate',
-          // Remove any potential transform that could affect ScrollTrigger
-          transform: 'none'
-        }}
+    <div 
+      ref={containerRef} 
+      className="relative w-full min-h-screen overflow-hidden bg-black"
+    >
+      <ScrollVideoPlayer 
+        src={secureVideoSrc} 
+        segmentCount={segmentCount} 
+        onAfterVideoChange={setIsAfterVideo}
+        onProgressChange={setProgress}
+        videoRef={videoRef} 
+        containerRef={containerRef} 
+        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
+        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
+        isMobile={isMobile}
       >
-        <ScrollVideoPlayer 
+        <video 
+          ref={videoRef} 
           src={secureVideoSrc} 
-          segmentCount={segmentCount} 
-          onAfterVideoChange={setIsAfterVideo}
-          onProgressChange={(progress) => {
-            setProgress(progress);
-            setScrollProgress(progress * 100);
-          }}
-          videoRef={videoRef} 
-          containerRef={containerRef} 
-          SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
-          AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
-          isMobile={isMobile}
-        >
-          <video 
-            ref={videoRef} 
-            src={secureVideoSrc} 
-            playsInline 
-            preload="auto" 
-            loop={false} 
-            muted 
-            tabIndex={-1} 
-            className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
-            style={{
-              minHeight: "100vh",
-              backgroundColor: "black",
-              display: "block",
-              visibility: "visible",
-              zIndex: 1
-            }} 
-          />
-        </ScrollVideoPlayer>
-      </div>
-
-      {/* DEBUG MARKERS - COMPLETELY SEPARATE FROM VIDEO CONTAINER */}
-      {!isAndroid && (
-        <div 
-          className="fixed inset-0 pointer-events-none" 
-          style={{ 
-            zIndex: 999999,
-            // Ensure markers don't create stacking context issues
-            isolation: 'isolate'
-          }}
-        >
-          {/* Progress indicators - FIXED POSITION */}
-          <div 
-            className="fixed top-4 left-4 bg-red-600 text-white p-4 rounded font-mono text-sm border-4 border-yellow-400"
-            style={{ zIndex: 999999, pointerEvents: 'none' }}
-          >
-            <div>NON-ANDROID DEBUG</div>
-            <div>Scroll Progress: {scrollProgress.toFixed(1)}%</div>
-            <div>Video Progress: {progress.toFixed(1)}%</div>
-            <div>Container Height: Should be 500vh</div>
-            <div>Z-INDEX: 999999</div>
-          </div>
-          
-          {/* Visual markers at key points - ABSOLUTE POSITIONING */}
-          <div 
-            className="absolute top-0 left-0 w-full h-16 bg-green-500 flex items-center justify-center border-4 border-white"
-            style={{ zIndex: 999998, pointerEvents: 'none' }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID VIDEO START (0vh) - Z: 999998</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-yellow-500 flex items-center justify-center border-4 border-black"
-            style={{ top: '100vh', zIndex: 999997, pointerEvents: 'none' }}
-          >
-            <span className="text-black text-lg font-bold bg-white px-4 py-2 rounded">NON-ANDROID 100vh MARK - Z: 999997</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-orange-500 flex items-center justify-center border-4 border-white"
-            style={{ top: '200vh', zIndex: 999996, pointerEvents: 'none' }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID 200vh MARK - Z: 999996</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-red-500 flex items-center justify-center border-4 border-yellow-400"
-            style={{ top: '300vh', zIndex: 999995, pointerEvents: 'none' }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID 300vh MARK - VIDEO SHOULD CONTINUE - Z: 999995</span>
-          </div>
-          
-          <div 
-            className="absolute left-0 w-full h-16 bg-purple-500 flex items-center justify-center border-4 border-white"
-            style={{ top: '400vh', zIndex: 999994, pointerEvents: 'none' }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID 400vh MARK - Z: 999994</span>
-          </div>
-          
-          <div 
-            className="absolute bottom-0 left-0 w-full h-16 bg-red-800 flex items-center justify-center border-4 border-yellow-400"
-            style={{ zIndex: 999993, pointerEvents: 'none' }}
-          >
-            <span className="text-white text-lg font-bold bg-black px-4 py-2 rounded">NON-ANDROID VIDEO END (500vh) - Z: 999993</span>
-          </div>
-        </div>
-      )}
-    </>
+          playsInline 
+          preload="auto" 
+          loop={false} 
+          muted 
+          tabIndex={-1} 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
+          style={{
+            minHeight: "100vh",
+            backgroundColor: "black",
+            display: "block",
+            visibility: "visible"
+          }} 
+        />
+      </ScrollVideoPlayer>
+    </div>
   );
 };
 
