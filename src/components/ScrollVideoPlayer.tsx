@@ -33,9 +33,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
+  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
+  // Define the frames to stop before the end
+  const FRAMES_BEFORE_END = 5;
+  // Standard video frame rate (most common)
+  const STANDARD_FRAME_RATE = 30;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -222,12 +227,23 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // FIXED: Allow video to play to its COMPLETE duration - let the 10fps video play fully
-      const newTime = progress * video.duration;
+      // Calculate time to stop before the end of the video
+      // For a standard 30fps video, 5 frames = 5/30 = 0.167 seconds before the end
+      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
       
-      // Enhanced logging for debugging
-      if (progress > 0.9) {
-        console.log(`Video playback - Progress: ${progress.toFixed(4)}, Target time: ${newTime.toFixed(3)}, Duration: ${video.duration.toFixed(3)}, Current time: ${video.currentTime.toFixed(3)}`);
+      // Adjust progress to stop 5 frames before the end
+      let adjustedProgress = progress;
+      if (progress > 0.98) {  // Only adjust near the end
+        // Scale progress to end at (duration - stopTimeBeforeEnd)
+        const maxTime = video.duration - stopTimeBeforeEnd;
+        adjustedProgress = Math.min(progress, maxTime / video.duration);
+      }
+      
+      const newTime = adjustedProgress * video.duration;
+      
+      // Log when we're approaching the end
+      if (progress > 0.95) {
+        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
       }
       
       if (frameRef.current) {
@@ -239,23 +255,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         if (isAndroid) {
           // Use our new smooth interpolation function for Android
           smoothlyUpdateVideoTime(video, newTime);
+          
+          // Log Android-specific smoothing when near the end
+          if (progress > 0.95) {
+            console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+          }
         } else {
           // Standard approach for non-Android devices
           video.currentTime = newTime;
         }
-        
-        // FIXED: Only show "after video" when we've actually reached the very end
-        // Don't trigger early - let the video play to completion
-        const videoAtEnd = video.currentTime >= (video.duration - 0.1); // Small buffer for precision
-        const scrollComplete = progress >= 0.999;
-        
-        // Only show after video when BOTH conditions are met
-        onAfterVideoChange(videoAtEnd && scrollComplete);
-        
-        // Enhanced logging for debugging end behavior
-        if (progress > 0.95) {
-          console.log(`End detection - Progress: ${progress.toFixed(4)}, Video time: ${video.currentTime.toFixed(3)}, Duration: ${video.duration.toFixed(3)}, Video at end: ${videoAtEnd}, Scroll complete: ${scrollComplete}`);
-        }
+        onAfterVideoChange(progress >= 1);
       });
     };
 
@@ -279,10 +288,13 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.pause();
       
       // Determine the appropriate scrub value based on browser and device
+      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
       let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
       // Android-specific scrub value optimization
       if (isAndroid) {
+        // Android devices benefit from a higher scrub value for smoother performance
+        // Changed from 2.0 to 1.8 for smoother scrubbing
         scrubValue = 1.8;
         console.log("Using Android-optimized scrub value:", scrubValue);
       }
@@ -293,7 +305,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue,
+        scrub: scrubValue, // Use the device/browser-specific scrub value
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -308,11 +320,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setupCompleted.current = true;
       
       console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
-      
-      // Log video info once it's set up
-      if (video.duration) {
-        console.log(`Video info - Duration: ${video.duration.toFixed(2)}s, Ready state: ${video.readyState}`);
-      }
     };
 
     // Request high priority loading for the video
@@ -368,6 +375,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (interpolationFrameRef.current) {
         cancelAnimationFrame(interpolationFrameRef.current);
       }
+      setupEvents.forEach(event => {
+        video.removeEventListener(event, handleVideoReady);
+      });
+      clearTimeout(timeoutId);
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
     };

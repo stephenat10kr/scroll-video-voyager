@@ -36,24 +36,26 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div className="w-full bg-transparent h-[500vh]">
-      {/* Section 1 - Logo section (1vh) */}
-      <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
-        <div className="w-full max-w-[90%] mx-auto">
-          <div className="flex flex-col items-center">
-            <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-            <div className="flex justify-center items-center mt-12 w-full">
-              <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                <AspectRatio ratio={444/213} className="w-full">
-                  <Logo />
-                </AspectRatio>
+    <div className={`w-full bg-transparent ${isAndroid ? '' : 'h-[500vh]'}`}>
+      {/* First section - Logo section (only show if not skipped) */}
+      {!skipLogoSection && (
+        <div className={`${isAndroid ? 'h-screen' : ''} flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20`}>
+          <div className="w-full max-w-[90%] mx-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
+              <div className="flex justify-center items-center mt-12 w-full">
+                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
+                  <AspectRatio ratio={444/213} className="w-full">
+                    <Logo />
+                  </AspectRatio>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Section 2 - First hero text (1vh) */}
+      {/* Second section - First hero text */}
       <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
@@ -69,8 +71,8 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
         </div>
       </div>
 
-      {/* Section 3 - Second hero text (1vh) */}
-      <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
+      {/* Third section - Second hero text */}
+      <div className={`h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 ${isAndroid ? 'mb-24' : ''}`}>
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
@@ -85,8 +87,8 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
         </div>
       </div>
 
-      {/* Section 4 - Spacer (2vh) */}
-      <div className="h-[200vh]" id="hero-text-spacer"></div>
+      {/* Additional spacing, only if not on Android */}
+      {!isAndroid && <div className="h-[400vh]"></div>}
     </div>
   );
 };
