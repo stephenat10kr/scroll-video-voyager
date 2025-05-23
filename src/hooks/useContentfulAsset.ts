@@ -31,6 +31,6 @@ export const useContentfulAsset = (assetId: string) => {
     },
     enabled: !!assetId,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0 // Don't cache the results
+    gcTime: 0 // Don't cache the results (renamed from cacheTime in v5)
   });
 };
