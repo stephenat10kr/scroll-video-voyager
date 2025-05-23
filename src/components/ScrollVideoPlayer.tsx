@@ -240,7 +240,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       //   adjustedProgress = Math.min(progress, maxTime / video.duration);
       // }
       
-      // TEST: Allow video to play to the very end
+      // FIXED: Allow video to play to its full duration without any cutoff
       const newTime = progress * video.duration;
       
       // Log when we're approaching the end
@@ -266,7 +266,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           // Standard approach for non-Android devices
           video.currentTime = newTime;
         }
-        onAfterVideoChange(progress >= 1);
+        
+        // FIXED: Only trigger "after video" when we're actually past the video duration, not at 100% scroll progress
+        // This prevents premature black screens on iPhone
+        const isActuallyAtEnd = video.currentTime >= (video.duration - 0.1); // Small buffer for precision
+        onAfterVideoChange(isActuallyAtEnd);
+        
+        // Additional logging for iPhone debugging
+        if (progress > 0.98) {
+          console.log(`iPhone debug - Progress: ${progress.toFixed(3)}, Video time: ${video.currentTime.toFixed(2)}, Duration: ${video.duration.toFixed(2)}, At end: ${isActuallyAtEnd}`);
+        }
       });
     };
 
