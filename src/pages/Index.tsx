@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -231,6 +232,25 @@ const Index = () => {
           backgroundColor: "black", // Ensure black background 
         }}
       >
+        {/* Chladni pattern positioned BEHIND the video with lower z-index */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: showChladniPattern ? 1 : 0,
+            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
+            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
+            zIndex: 11,  // CHANGED: Now below video (was 13)
+            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
+          }}
+          className="chladni-container"
+        >
+          <ChladniPattern className="fixed inset-0" />
+        </div>
+        
         {/* Video with smooth transition - properly gated by videoVisible state */}
         <div 
           style={{
@@ -238,7 +258,7 @@ const Index = () => {
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 11, // Updated to 11 (was 10)
+            zIndex: 12, // CHANGED: Now above Chladni (was 11)
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
@@ -256,28 +276,10 @@ const Index = () => {
             backgroundColor: colors.darkGreen,
             opacity: fadeProgress, // Directly use fadeProgress, not dependent on videoVisible
             transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth CSS transition
-            zIndex: 12  // Above video but below Chladni
+            zIndex: 13  // CHANGED: Now highest layer (was 12)
           }}
         />
         
-        {/* Chladni pattern with improved visibility control */}
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: showChladniPattern ? 1 : 0,
-            visibility: showChladniPattern ? 'visible' : 'hidden', // Immediate hiding
-            transition: "opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.1s", // Faster transition
-            zIndex: 13,  // Above dark green overlay
-            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
-          }}
-          className="chladni-container"
-        >
-          <ChladniPattern className="fixed inset-0" />
-        </div>
       </div>
       
       {/* Content overlay on top of everything */}
