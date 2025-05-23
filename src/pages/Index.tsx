@@ -125,8 +125,9 @@ const Index = () => {
         revealTextElementRef.current = document.getElementById('reveal-text-section');
       }
       
+      // Update to look for hero-text-spacer instead
       if (!spacerElementRef.current) {
-        spacerElementRef.current = document.getElementById('reveal-text-spacer');
+        spacerElementRef.current = document.getElementById('hero-text-spacer');
       }
       
       const revealTextElement = revealTextElementRef.current;
@@ -302,25 +303,9 @@ const Index = () => {
           position: 'relative' 
         }}
       >
-        {/* Logo section at the top */}
-        <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
-          <div className="w-full max-w-[90%] mx-auto">
-            <div className="flex flex-col items-center">
-              <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
-              <div className="flex justify-center items-center mt-12 w-full">
-                <div className="w-[320px] md:w-[420px] lg:w-[520px] mx-auto">
-                  <div className="aspect-w-444 aspect-h-213 w-full">
-                    <Logo />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Content sections */}
+        {/* Replaced logo section with HeroText component */}
         <section>
-          <HeroText skipLogoSection={true} />
+          <HeroText />
         </section>
         
         {/* RevealText component now includes the red spacer */}
