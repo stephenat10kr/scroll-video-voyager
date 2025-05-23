@@ -177,7 +177,13 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
   
   useEffect(() => {
     const video = videoRef.current;
+    const container = containerRef.current;
     if (!video || !isVideoLoaded) return;
+    
+    // Set container height to 500vh to match other video component
+    if (container) {
+      container.style.height = `${window.innerHeight * 5}px`;
+    }
     
     // For iOS devices, we need special handling
     if (isIOS && !isVideoInitialized) {
@@ -221,8 +227,8 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          // Increase the end value to extend the scrolling length
-          end: "bottom+=600% bottom", // Keep extended scrolling length
+          // Set scroll distance to exactly 500vh to match other video component
+          end: `+=${window.innerHeight * 5}`, // 5 viewport heights for 500vh total
           scrub: 3.5,
           markers: false, // Set to true for debugging
         }
@@ -232,7 +238,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
       const handleMetadataLoaded = () => {
         if (video.duration) {
           timeline.to(video, { currentTime: video.duration });
-          console.log("Video scroll animation set up with duration:", video.duration);
+          console.log("Video scroll animation set up with duration:", video.duration, "for 500vh scroll");
         }
       };
       
