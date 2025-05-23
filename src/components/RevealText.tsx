@@ -109,7 +109,7 @@ const RevealText = () => {
     };
   }, [revealTextContent]);
   if (isLoading) {
-    return <div className="w-full py-24 pb-36" style={{
+    return <div className="w-full min-h-screen py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -122,7 +122,7 @@ const RevealText = () => {
   }
   return (
     <>
-      <div className="w-full py-24 pb-36" style={{
+      <div className="w-full min-h-screen py-24 pb-36" style={{
         backgroundColor: colors.darkGreen,
         marginBottom: 0,
         paddingBottom: 0,
