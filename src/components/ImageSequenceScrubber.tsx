@@ -19,7 +19,6 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
   const [currentFrame, setCurrentFrame] = useState(0);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const totalFrames = 237; // Total number of frames (0-236)
-  const concurrentLoads = 8; // Number of images to load concurrently
   
   // Set up canvas and image loading
   useEffect(() => {
@@ -39,7 +38,7 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     // Initialize image arrays
     imagesRef.current = new Array(totalFrames);
 
-    // Load all images with concurrency
+    // Load all images simultaneously
     loadAllImages();
     
     return () => {
@@ -47,21 +46,28 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
     };
   }, [onReady]);
   
-  // Load all images with concurrency control
+  // Load all images simultaneously
   const loadAllImages = async () => {
     let loadedCount = 0;
     const totalImages = totalFrames;
-    let activeLoads = 0;
-    let nextIndexToLoad = 0;
+    const loadingPromises: Promise<void>[] = [];
+    
+    // Start loading all images at once
+    for (let i = 0; i < totalImages; i++) {
+      const loadPromise = loadImage(i);
+      loadingPromises.push(loadPromise);
+    }
+    
+    // Wait for all images to load
+    await Promise.all(loadingPromises);
+    
+    // Mark loading as complete
+    setIsLoading(false);
+    if (onReady) onReady();
     
     // Function to load a single image
-    const loadImage = (index: number): Promise<void> => {
+    function loadImage(index: number): Promise<void> {
       return new Promise((resolve) => {
-        if (index >= totalImages) {
-          resolve();
-          return;
-        }
-        
         const img = new Image();
         const paddedIndex = index.toString().padStart(3, '0');
         
@@ -87,44 +93,9 @@ const ImageSequenceScrubber: React.FC<ImageSequenceScrubberProps> = ({ onReady }
           resolve();
         };
         
-        // Add cache busting if needed (remove in production)
-        // const cacheBuster = Date.now();
         img.src = `/image-sequence/LS_HeroSequence${paddedIndex}.jpg`;
-        
-        // Set crossOrigin to anonymous to avoid CORS issues with canvas
         img.crossOrigin = "anonymous";
       });
-    };
-    
-    // Process queue function to manage concurrent loading
-    const processQueue = async () => {
-      if (nextIndexToLoad >= totalImages) return;
-      
-      const currentIndex = nextIndexToLoad++;
-      activeLoads++;
-      
-      try {
-        await loadImage(currentIndex);
-      } finally {
-        activeLoads--;
-        
-        // If we've loaded all images, mark as complete
-        if (loadedCount >= totalImages) {
-          setIsLoading(false);
-          if (onReady) onReady();
-          
-          return;
-        }
-        
-        // Continue loading more images
-        processQueue();
-      }
-    };
-    
-    // Start initial batch of concurrent loads
-    const initialBatch = Math.min(concurrentLoads, totalImages);
-    for (let i = 0; i < initialBatch; i++) {
-      processQueue();
     }
   };
   
