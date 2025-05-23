@@ -10,6 +10,7 @@ const ImageSequencePage = () => {
     
     return () => {
       document.body.style.height = ''; // Reset on unmount
+      document.body.style.overflow = ''; // Reset overflow
     };
   }, []);
   
