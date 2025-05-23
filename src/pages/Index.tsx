@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -114,16 +115,19 @@ const Index = () => {
       
       if (rect.top <= halfwayThreshold) {
         // Calculate fade progress from halfway point to top of screen
-        // Map rect.top from [halfwayThreshold, 0] to [0, 1]
+        // Map rect.top from [halfwayThreshold, 0] to [0, 0.95] (95% max)
         const rawProgress = 1 - (rect.top / halfwayThreshold);
         const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
         
-        // Apply the fade
-        setFadeProgress(clampedProgress);
-        console.log("Fade progress:", clampedProgress);
+        // Scale to 95% maximum
+        const scaledProgress = clampedProgress * 0.95;
         
-        // If we're fully faded in, we can set the Chladni pattern to show
-        if (clampedProgress >= 0.95 && !showChladniPattern) {
+        // Apply the fade
+        setFadeProgress(scaledProgress);
+        console.log("Fade progress:", scaledProgress);
+        
+        // If we're at 90% or more of the scaled progress, we can set the Chladni pattern to show
+        if (scaledProgress >= 0.9 && !showChladniPattern) {
           setShowChladniPattern(true);
           setHasPassedMarker(true);
         }
