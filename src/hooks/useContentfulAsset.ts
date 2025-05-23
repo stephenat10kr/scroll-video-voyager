@@ -8,7 +8,7 @@ import { ContentfulAsset } from "@/types/contentful";
  */
 export const useContentfulAsset = (assetId: string) => {
   return useQuery({
-    queryKey: ['contentfulAsset', assetId, Date.now()], // Add timestamp to force fresh data
+    queryKey: ['contentfulAsset', assetId], // Remove timestamp to allow proper caching
     queryFn: async () => {
       try {
         console.log(`Fetching Contentful asset with ID: ${assetId}`);
@@ -30,7 +30,7 @@ export const useContentfulAsset = (assetId: string) => {
       }
     },
     enabled: !!assetId,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0 // Don't cache the results (renamed from cacheTime in v5)
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes instead of always fetching fresh
+    gcTime: 10 * 60 * 1000 // Keep in cache for 10 minutes
   });
 };

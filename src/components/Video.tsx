@@ -21,9 +21,16 @@ const Video = () => {
   // Use the appropriate video asset ID based on device type
   const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
   
+  // Add detailed debugging for the asset data
+  console.log("Video component - Detailed asset debugging:");
+  console.log("- videoAsset raw:", videoAsset);
+  console.log("- videoAsset fields:", videoAsset?.fields);
+  console.log("- videoAsset file:", videoAsset?.fields?.file);
+  console.log("- videoAsset url:", videoAsset?.fields?.file?.url);
+  
   // Only use Contentful video source, with cache-busting parameter
   const videoSrc = videoAsset?.fields?.file?.url 
-    ? `https:${videoAsset.fields.file.url}?t=${Date.now()}`
+    ? `https:${videoAsset.fields.file.url}?v=${Date.now()}`
     : undefined;
   
   console.log("Video component - Asset data:");
@@ -293,6 +300,27 @@ const Video = () => {
   console.log('- progress:', loadProgress);
   console.log('- isAndroid:', isAndroid);
   console.log('- using asset ID:', videoAssetId);
+
+  // Don't render video components until we have a valid source
+  if (isLoading) {
+    console.log("Video component - Still loading, showing preloader only");
+    return (
+      <Preloader 
+        progress={0} 
+        onComplete={() => {}} 
+      />
+    );
+  }
+
+  if (error) {
+    console.error("Video component - Error loading asset:", error);
+    return <div>Error loading video</div>;
+  }
+
+  if (!videoSrc) {
+    console.warn("Video component - No video source available");
+    return <div>No video source available</div>;
+  }
 
   return (
     <>
