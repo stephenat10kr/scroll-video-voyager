@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
@@ -62,7 +61,7 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     
     // For Android, just play the video directly
     if (isAndroid && videoRef.current) {
-      console.log("Android device - playing video normally");
+      console.log("Android device - playing video normally without controls");
       videoRef.current.play().catch(err => {
         console.log("Android auto-play failed:", err);
       });
@@ -152,10 +151,10 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
     }
     // For Android devices, we'll play the video normally instead of scroll scrubbing
     else if (isAndroid) {
-      console.log("Setting up normal video playback for Android");
+      console.log("Setting up normal video playback for Android without controls");
       
-      // Enable controls for Android users
-      video.controls = true;
+      // Disable controls for Android users
+      video.controls = false;
       
       // Play video normally
       video.play().catch(err => {
@@ -312,14 +311,14 @@ const ImprovedScrollVideo: React.FC<ImprovedScrollVideoProps> = ({ src: external
             willChange: 'transform',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
-            pointerEvents: isAndroid ? 'auto' : 'none' // Enable controls interaction on Android
+            pointerEvents: 'none' // Disable controls interaction for all devices
           }}
           playsInline={true}
           webkit-playsinline="true" 
           preload="auto"
           muted={!isAndroid} // Only mute for non-Android
           autoPlay={isAndroid} // Auto play on Android
-          controls={isAndroid} // Show controls on Android
+          controls={false} // Never show controls
           onLoadedData={handleVideoLoaded}
         >
           <source src={videoSrc} type="video/mp4" />

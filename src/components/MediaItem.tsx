@@ -18,7 +18,7 @@ const MediaItem = ({ url, type, caption }: MediaItemProps) => {
       {isVideo ? (
         <video
           src={url}
-          controls={isAndroid} // Show controls on Android
+          controls={false} // Never show controls
           playsInline
           autoPlay={isAndroid} // Auto play on Android
           muted={!isAndroid} // Only mute on non-Android
