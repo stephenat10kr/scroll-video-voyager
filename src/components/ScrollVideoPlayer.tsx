@@ -37,8 +37,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  // Define the frames to stop before the end - changed from 5 to 3
-  const FRAMES_BEFORE_END = 3;
+  // Define the frames to stop before the end - changed from 3 to 1
+  const FRAMES_BEFORE_END = 1;
   // Standard video frame rate (most common)
   const STANDARD_FRAME_RATE = 30;
   
@@ -228,10 +228,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       // Calculate time to stop before the end of the video
-      // For a standard 30fps video, 3 frames = 3/30 = 0.1 seconds before the end
+      // For a standard 30fps video, 1 frame = 1/30 = 0.033 seconds before the end
       const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
       
-      // Adjust progress to stop 3 frames before the end
+      // Adjust progress to stop 1 frame before the end
       let adjustedProgress = progress;
       if (progress > 0.98) {  // Only adjust near the end
         // Scale progress to end at (duration - stopTimeBeforeEnd)
