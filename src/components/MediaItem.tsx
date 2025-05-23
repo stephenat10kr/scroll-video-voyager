@@ -1,8 +1,6 @@
 
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { useIsAndroid } from "@/hooks/use-android";
-import ImageSequenceScrubber from "./ImageSequenceScrubber";
 
 interface MediaItemProps {
   url: string;
@@ -12,28 +10,20 @@ interface MediaItemProps {
 
 const MediaItem = ({ url, type, caption }: MediaItemProps) => {
   const isVideo = type.startsWith('video/');
-  const isAndroid = useIsAndroid();
-
-  // For Android devices, check if this is a hero video that should be replaced with image sequence
-  const shouldUseImageSequence = isAndroid && isVideo && url.includes('HeroTest');
 
   return (
     <AspectRatio ratio={16 / 9} className="rounded-lg overflow-hidden">
       {isVideo ? (
-        shouldUseImageSequence ? (
-          <ImageSequenceScrubber />
-        ) : (
-          <video
-            src={url}
-            controls
-            playsInline
-            autoPlay
-            muted
-            loop
-            preload="auto"
-            className="object-cover w-full h-full rounded-lg"
-          />
-        )
+        <video
+          src={url}
+          controls
+          playsInline
+          autoPlay
+          muted
+          loop
+          preload="auto"
+          className="object-cover w-full h-full rounded-lg"
+        />
       ) : (
         <img
           src={url}

@@ -54,32 +54,6 @@ html, body {
   background-color: black; /* Ensure black background behind video */
 }
 
-/* Canvas element styles for image sequence */
-.video-container canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-  background-color: black; /* Ensure black background behind canvas */
-}
-
-/* Image sequence sticky container */
-.sticky-image-sequence {
-  position: sticky;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 15; /* Above content sections */
-}
-
-/* Content section styles for image sequence page */
-.image-sequence-content {
-  position: relative;
-  z-index: 5;
-  backdrop-filter: blur(5px);
-}
-
 /* Text flip animation styles */
 .flip-text {
   perspective: 1000px;
