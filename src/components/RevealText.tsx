@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -135,11 +136,16 @@ const RevealText = () => {
       display: 'block'
     }}></div>
       
-      <div id="reveal-text-section" style={{
-      backgroundColor: colors.darkGreen,
-      marginBottom: 0,
-      paddingBottom: 0
-    }} className="w-full min-h-screen pb-36 py-0">
+      <div 
+        id="reveal-text-section" 
+        data-component="reveal-text"
+        style={{
+        backgroundColor: colors.darkGreen,
+        marginBottom: 0,
+        paddingBottom: 0
+      }} 
+        className="w-full min-h-screen pb-36 py-0"
+      >
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} style={{
           background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
