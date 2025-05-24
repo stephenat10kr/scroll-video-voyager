@@ -33,10 +33,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reducing the threshold even further to allow more precise control at the end
   const progressThreshold = 0.0001; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
+  const videoEndedRef = useRef(false); // Track if video has reached the end
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -214,7 +214,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
       
-      // Reduce threshold check to allow the video to reach the very end
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -225,12 +224,26 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Let the video play all the way to the end - no early stopping
-      const newTime = progress * video.duration;
+      // Calculate the target time, but cap it at the actual video duration minus a tiny buffer
+      const maxAllowedTime = video.duration - 0.01; // 10ms before actual end
+      const targetTime = Math.min(progress * video.duration, maxAllowedTime);
+      
+      // Check if we've reached the effective end of the video
+      const isAtEnd = progress >= 0.999 || targetTime >= maxAllowedTime;
+      
+      if (isAtEnd && !videoEndedRef.current) {
+        videoEndedRef.current = true;
+        console.log(`Video reached end: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+        onAfterVideoChange(true);
+      } else if (!isAtEnd && videoEndedRef.current) {
+        // Reset if we scroll back
+        videoEndedRef.current = false;
+        onAfterVideoChange(false);
+      }
       
       // Log progress more frequently near the end
       if (progress > 0.9) {
-        console.log(`Video progress: ${progress.toFixed(4)}, time: ${newTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+        console.log(`Video progress: ${progress.toFixed(4)}, time: ${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
       }
       
       if (frameRef.current) {
@@ -238,21 +251,22 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Enhanced Android-specific smooth interpolation
-        if (isAndroid) {
-          // Use our smooth interpolation function for Android
-          smoothlyUpdateVideoTime(video, newTime);
-          
-          // Log Android-specific smoothing when near the end
-          if (progress > 0.9) {
-            console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+        // Only update video time if we haven't reached the end
+        if (!videoEndedRef.current || progress < 0.999) {
+          // Enhanced Android-specific smooth interpolation
+          if (isAndroid) {
+            // Use our smooth interpolation function for Android
+            smoothlyUpdateVideoTime(video, targetTime);
+            
+            // Log Android-specific smoothing when near the end
+            if (progress > 0.9) {
+              console.log(`Android smooth interpolation: target time = ${targetTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+            }
+          } else {
+            // Standard approach for non-Android devices
+            video.currentTime = targetTime;
           }
-        } else {
-          // Standard approach for non-Android devices
-          video.currentTime = newTime;
         }
-        // Ensure we trigger the after video change even for values very close to 1
-        onAfterVideoChange(progress >= 0.999);
       });
     };
 
@@ -363,12 +377,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (interpolationFrameRef.current) {
         cancelAnimationFrame(interpolationFrameRef.current);
       }
-      setupEvents.forEach(event => {
-        video.removeEventListener(event, handleVideoReady);
-      });
-      clearTimeout(timeoutId);
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
+      videoEndedRef.current = false; // Reset end state
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
