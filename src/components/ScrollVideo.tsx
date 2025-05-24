@@ -73,12 +73,14 @@ const ScrollVideo: React.FC<{
           const progress = self.progress;
           if (isNaN(progress) || progress < 0 || progress > 1) return;
           
-          // Simple, direct mapping - no throttling or buffers that cause issues
-          const targetTime = progress * video.duration;
+          // Prevent seeking to the very end - leave a small buffer to avoid black frames
+          const maxProgress = 0.99; // Don't go to 100% to avoid end-of-video issues
+          const clampedProgress = Math.min(progress, maxProgress);
+          const targetTime = clampedProgress * video.duration;
           
           try {
             video.currentTime = targetTime;
-            console.log(`Video scrub: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+            console.log(`Video scrub: progress=${progress.toFixed(4)}, clampedProgress=${clampedProgress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
           } catch (error) {
             console.warn("Error updating video time:", error);
           }
