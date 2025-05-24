@@ -73,14 +73,16 @@ const ScrollVideo: React.FC<{
           const progress = self.progress;
           if (isNaN(progress) || progress < 0 || progress > 1) return;
           
-          // Prevent seeking to the very end - leave a small buffer to avoid black frames
-          const maxProgress = 0.99; // Don't go to 100% to avoid end-of-video issues
-          const clampedProgress = Math.min(progress, maxProgress);
-          const targetTime = clampedProgress * video.duration;
+          // Calculate the safe video duration (avoid the last 0.5 seconds where issues occur)
+          const safeVideoDuration = Math.max(0, video.duration - 0.5);
+          const targetTime = progress * safeVideoDuration;
+          
+          // Additional safety check - ensure we never go beyond safe duration
+          const clampedTime = Math.min(targetTime, safeVideoDuration);
           
           try {
-            video.currentTime = targetTime;
-            console.log(`Video scrub: progress=${progress.toFixed(4)}, clampedProgress=${clampedProgress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+            video.currentTime = clampedTime;
+            console.log(`Video scrub: progress=${progress.toFixed(4)}, time=${clampedTime.toFixed(3)}/${video.duration.toFixed(3)}`);
           } catch (error) {
             console.warn("Error updating video time:", error);
           }
