@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,6 +10,7 @@ type ScrollVideoPlayerProps = {
   segmentCount: number;
   onAfterVideoChange: (after: boolean) => void;
   onProgressChange?: (progress: number) => void;
+  onVideoReady?: () => void;
   children?: React.ReactNode;
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
@@ -24,6 +24,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   segmentCount,
   onAfterVideoChange,
   onProgressChange,
+  onVideoReady,
   children,
   videoRef,
   containerRef,
@@ -38,6 +39,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   const videoEndedRef = useRef(false);
+  const videoReadyCalledRef = useRef(false);
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -118,86 +120,71 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     video.pause();
     console.log("Video paused during initialization");
 
-    // Mobile-specific optimizations that don't affect appearance
-    if (isMobile) {
-      // Keep these optimizations but remove visibility settings
+    // iOS-specific optimizations
+    if (isMobile && !isAndroid) {
+      console.log("iOS detected: Applying iOS-specific optimizations");
+      
+      // iOS requires specific attributes
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
       
-      // Force hardware acceleration
-      video.style.transform = "translate3d(0,0,0)";
-      video.style.willChange = "contents";
-      
-      // Ensure muted state for autoplay capability
+      // Ensure muted for autoplay capability
       video.muted = true;
       
-      // Force the first frame to display immediately
+      // iOS-specific hardware acceleration
+      video.style.transform = "translate3d(0,0,0)";
+      video.style.willChange = "transform";
+      video.style.webkitTransform = "translate3d(0,0,0)";
+      
+      // Force the first frame to display for iOS
       if (video.readyState >= 1) {
         video.currentTime = 0.001;
       }
+    }
+    // Android-specific optimizations
+    else if (isAndroid) {
+      console.log("Applying Android-specific optimizations");
       
-      // Android-specific optimizations
-      if (isAndroid) {
-        console.log("Applying Android-specific optimizations");
-        
-        // Enhanced hardware acceleration for Android
-        video.style.transform = "translate3d(0,0,0) translateZ(0)";
-        
-        // Improve Android rendering performance
-        video.style.backfaceVisibility = "hidden";
-        video.style.perspective = "1000px";
-        
-        // Android texture size optimization
-        video.style.maxWidth = "100%";
-        video.style.maxHeight = "100%";
-        
-        // Android sometimes benefits from webkitTransform
-        // @ts-ignore
-        video.style.webkitTransform = "translate3d(0,0,0)";
-        
-        // Force hardware acceleration using additional properties
-        video.style.willChange = "transform, opacity";
-        
-        // Attempt to improve initial frame rendering on Android
-        if (video.readyState >= 1) {
-          setTimeout(() => {
-            video.currentTime = 0.001;
-            console.log("Forced initial frame on Android");
-          }, 50);
-        }
+      // Enhanced hardware acceleration for Android
+      video.style.transform = "translate3d(0,0,0) translateZ(0)";
+      video.style.backfaceVisibility = "hidden";
+      video.style.perspective = "1000px";
+      video.style.maxWidth = "100%";
+      video.style.maxHeight = "100%";
+      video.style.webkitTransform = "translate3d(0,0,0)";
+      video.style.willChange = "transform, opacity";
+      
+      if (video.readyState >= 1) {
+        setTimeout(() => {
+          video.currentTime = 0.001;
+          console.log("Forced initial frame on Android");
+        }, 50);
       }
-    } else {
-      // Chrome-specific optimizations still apply
+    } 
+    // Desktop optimizations
+    else {
       video.style.willChange = "contents";
       if (navigator.userAgent.indexOf("Chrome") > -1) {
         video.style.transform = "translate3d(0,0,0)";
       }
       
-      // Firefox-specific optimizations
       if (isFirefox) {
-        // Add Firefox-specific hardware acceleration hints
         video.style.transform = "translateZ(0)";
-        // Additional Firefox optimization to improve rendering
         video.style.backfaceVisibility = "hidden";
       }
     }
 
-    // --- Begin: Video source selection and logging ---
-    let srcAssigned = false;
-    
+    // Video source assignment
     if (!src) {
       console.log("[ScrollVideo] No src provided.");
       return;
     }
 
-    // For mobile or desktop, use the provided source
     if (video.src !== src) {
       video.src = src;
       const extension = src.split(".").pop() || "unknown";
       console.log(`[ScrollVideo] Assigned ${extension.toUpperCase()} video source: ${src}`);
     }
-    srcAssigned = true;
-    // --- End: Video source selection and logging ---
 
     const resizeSection = () => {
       if (container) {
@@ -206,11 +193,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     };
     resizeSection();
     window.addEventListener("resize", resizeSection);
-
-    // Calculate segment length based on the dynamic segmentCount
-    const calculateSegmentLength = (segments: number) => {
-      return 1 / (segments + 1);
-    };
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
@@ -220,7 +202,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       lastProgressRef.current = progress;
       
-      // Call the progress change callback
       if (onProgressChange) {
         onProgressChange(progress);
       }
@@ -236,12 +217,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         console.log(`Video reached end: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
         onAfterVideoChange(true);
       } else if (!isAtEnd && videoEndedRef.current) {
-        // Reset if we scroll back
         videoEndedRef.current = false;
         onAfterVideoChange(false);
       }
       
-      // Log progress more frequently near the end
       if (progress > 0.9) {
         console.log(`Video progress: ${progress.toFixed(4)}, time: ${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
       }
@@ -251,20 +230,14 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Always update video time - don't block updates when at end
-        // This ensures the video stays on the last frame instead of going black
-        
-        // Enhanced Android-specific smooth interpolation
+        // Always update video time to prevent black screens
         if (isAndroid) {
-          // Use our smooth interpolation function for Android
           smoothlyUpdateVideoTime(video, targetTime);
           
-          // Log Android-specific smoothing when near the end
           if (progress > 0.9) {
             console.log(`Android smooth interpolation: target time = ${targetTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
-          // Standard approach for non-Android devices
           video.currentTime = targetTime;
         }
       });
@@ -273,12 +246,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      // For mobile, try to render a frame immediately without waiting for duration
-      if (isMobile) {
+      if (isMobile && !isAndroid) {
         video.currentTime = 0.001;
       }
       
-      // Check if video duration is available
       if (!video.duration && !isMobile) {
         console.log("Video duration not yet available, waiting...");
         return;
@@ -286,17 +257,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
       
-      // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser and device
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
       let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
       
-      // Android-specific scrub value optimization
       if (isAndroid) {
-        // Android devices benefit from a higher scrub value for smoother performance
-        // Changed from 2.0 to 1.8 for smoother scrubbing
         scrubValue = 1.8;
         console.log("Using Android-optimized scrub value:", scrubValue);
       }
@@ -307,7 +272,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the device/browser-specific scrub value
+        scrub: scrubValue,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
@@ -321,23 +286,25 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setIsLoaded(true);
       setupCompleted.current = true;
       
+      // Call onVideoReady callback once
+      if (onVideoReady && !videoReadyCalledRef.current) {
+        onVideoReady();
+        videoReadyCalledRef.current = true;
+      }
+      
       console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
     };
 
-    // Request high priority loading for the video
     if ('fetchPriority' in HTMLImageElement.prototype) {
-      // @ts-ignore - TypeScript doesn't know about fetchPriority yet
       video.fetchPriority = 'high';
     }
 
-    // For mobile devices, we'll set up ScrollTrigger even without duration
     if (isMobile) {
       setupScrollTrigger();
     } else if (video.readyState >= 2) {
       setupScrollTrigger();
     }
 
-    // Set up event listeners regardless of initial state
     const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
       
     const handleVideoReady = () => {
@@ -346,7 +313,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         setupScrollTrigger();
       }
       
-      // Clean up event listeners after setup
       if (setupCompleted.current) {
         setupEvents.forEach(event => {
           video.removeEventListener(event, handleVideoReady);
@@ -358,7 +324,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       video.addEventListener(event, handleVideoReady);
     });
     
-    // Safety timeout to ensure ScrollTrigger gets set up
     const timeoutId = setTimeout(() => {
       if (!setupCompleted.current) {
         console.log("Setting up ScrollTrigger after timeout");
@@ -380,8 +345,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
       videoEndedRef.current = false;
+      videoReadyCalledRef.current = false;
     };
-  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
+  }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, onVideoReady, src, isLoaded, isMobile, isAndroid]);
 
   return <>{children}</>;
 };
