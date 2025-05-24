@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -295,9 +296,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
     };
 
-    if ('fetchPriority' in HTMLImageElement.prototype) {
-      video.fetchPriority = 'high';
-    }
+    // Remove the fetchPriority line that was causing the build error
+    // if ('fetchPriority' in HTMLImageElement.prototype) {
+    //   video.fetchPriority = 'high';
+    // }
 
     if (isMobile) {
       setupScrollTrigger();
@@ -342,6 +344,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (interpolationFrameRef.current) {
         cancelAnimationFrame(interpolationFrameRef.current);
       }
+      clearTimeout(timeoutId);
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
       videoEndedRef.current = false;
