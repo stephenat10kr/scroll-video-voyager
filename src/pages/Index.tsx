@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -37,6 +36,23 @@ const Index = () => {
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
+  
+  // Reset scroll position on page load/refresh
+  useEffect(() => {
+    // Force scroll to top immediately on component mount
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // Also ensure scroll is at top after a short delay in case other components interfere
+    const resetScrollTimeout = setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 100);
+    
+    return () => clearTimeout(resetScrollTimeout);
+  }, []);
   
   // Force complete preloader after maximum time
   useEffect(() => {
@@ -143,11 +159,24 @@ const Index = () => {
   }, []);
   
   const handlePreloaderComplete = () => {
-    console.log("Preloader complete, fading in video");
+    console.log("Preloader complete, ensuring page is at top");
     setLoading(false);
+    
+    // Ensure we're at the top of the page when preloader completes
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
     // Start fading in the video
     setShowVideo(true);
     document.body.style.overflow = 'auto'; // Ensure scrolling is enabled
+    
+    // Additional scroll reset after a short delay to ensure it sticks
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 50);
   };
   
   const handleVideoReady = () => {
