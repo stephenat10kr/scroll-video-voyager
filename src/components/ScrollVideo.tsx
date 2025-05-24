@@ -24,7 +24,6 @@ const ScrollVideo: React.FC<{
   const setupCompleted = useRef(false);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
-  const lastUpdateTimeRef = useRef<number>(0);
   
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
 
@@ -74,24 +73,14 @@ const ScrollVideo: React.FC<{
           const progress = self.progress;
           if (isNaN(progress) || progress < 0 || progress > 1) return;
           
-          // Throttle updates to avoid glitching
-          const now = Date.now();
-          if (now - lastUpdateTimeRef.current < 16) return; // 60fps throttle
-          lastUpdateTimeRef.current = now;
+          // Simple, direct mapping - no throttling or buffers that cause issues
+          const targetTime = progress * video.duration;
           
-          // Map progress to video time - use full duration but leave small buffer at end
-          const maxTime = Math.max(0, video.duration - 0.1); // Larger buffer to prevent premature ending
-          const targetTime = Math.min(progress * video.duration, maxTime);
-          
-          // Only update if the time difference is significant enough
-          const timeDiff = Math.abs(video.currentTime - targetTime);
-          if (timeDiff > 0.05) { // Only update if difference is more than 50ms
-            try {
-              video.currentTime = targetTime;
-              console.log(`Video time updated: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
-            } catch (error) {
-              console.warn("Error updating video time:", error);
-            }
+          try {
+            video.currentTime = targetTime;
+            console.log(`Video scrub: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+          } catch (error) {
+            console.warn("Error updating video time:", error);
           }
         }
       });
@@ -109,7 +98,7 @@ const ScrollVideo: React.FC<{
     const handleVideoReady = () => {
       console.log("Video ready:", { readyState: video.readyState, duration: video.duration });
       
-      // Ensure we have a valid duration
+      // Simple check - if we have a valid duration, set up the trigger
       if (video.duration && isFinite(video.duration) && video.duration > 0) {
         setupScrollTrigger();
       }
@@ -121,7 +110,6 @@ const ScrollVideo: React.FC<{
     } else {
       video.addEventListener('loadedmetadata', handleVideoReady);
       video.addEventListener('canplay', handleVideoReady);
-      video.addEventListener('durationchange', handleVideoReady);
     }
 
     // Cleanup
@@ -132,7 +120,6 @@ const ScrollVideo: React.FC<{
       }
       video.removeEventListener('loadedmetadata', handleVideoReady);
       video.removeEventListener('canplay', handleVideoReady);
-      video.removeEventListener('durationchange', handleVideoReady);
       setupCompleted.current = false;
     };
   }, [secureVideoSrc, isMobile, isAndroid, onReady]);
