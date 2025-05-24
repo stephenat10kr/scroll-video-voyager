@@ -8,6 +8,11 @@ export function useIsAndroid() {
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroidDevice = userAgent.indexOf("android") > -1;
     setIsAndroid(isAndroidDevice);
+    
+    // Log detection for debugging
+    if (isAndroidDevice) {
+      console.log("Android device detected in useIsAndroid hook");
+    }
   }, []);
 
   return isAndroid;

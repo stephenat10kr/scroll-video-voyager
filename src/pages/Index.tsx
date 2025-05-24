@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
 import RevealText from "../components/RevealText";
@@ -25,8 +26,16 @@ const Index = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [hasPassedMarker, setHasPassedMarker] = useState(false); // New state to track if marker was passed
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [fadeProgress, setFadeProgress] = useState(0);
+  const [videoVisible, setVideoVisible] = useState(true);
+  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // State for z-index switching
+  
+  // Cache DOM element reference and throttling state
+  const revealTextElementRef = useRef<HTMLElement | null>(null);
+  const spacerElementRef = useRef<HTMLElement | null>(null);
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -97,64 +106,121 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // Set up Intersection Observer for reliable transition between video and Chladni pattern
-  // UPDATED: Modified to keep pattern visible after scrolling past marker
-  useEffect(() => {
-    // Wait for the component to be fully mounted
-    const setupObserver = () => {
-      // Find our marker element
-      const markerElement = document.getElementById('chladni-transition-marker');
+  // Throttled scroll handler using requestAnimationFrame for optimal performance
+  const throttledScrollHandler = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastScrollTimeRef.current;
       
-      if (!markerElement) {
-        console.log("Transition marker element not found, retrying in 500ms");
-        setTimeout(setupObserver, 500);
-        return;
+      // Throttle to maximum 60fps (16ms between updates)
+      if (timeSinceLastUpdate < 16) return;
+      
+      lastScrollTimeRef.current = now;
+      
+      // Use cached element references
+      if (!revealTextElementRef.current) {
+        revealTextElementRef.current = document.getElementById('reveal-text-section');
       }
       
-      console.log("Setting up Intersection Observer for transition marker");
+      if (!spacerElementRef.current) {
+        spacerElementRef.current = document.getElementById('reveal-text-spacer');
+      }
       
-      // Create new Intersection Observer
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          
-          if (entry.isIntersecting && !hasPassedMarker) {
-            console.log("Marker intersecting viewport - showing Chladni pattern");
-            setShowChladniPattern(true);
-            setHasPassedMarker(true); // Set flag to remember we've passed the marker
-          } else if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
-            // Only hide pattern if we're scrolling UP past the marker (top > 0)
-            console.log("Scrolled above marker - showing video again");
-            setShowChladniPattern(false);
-            setHasPassedMarker(false); // Reset our marker flag
-          }
-          // Do nothing when scrolling down past the marker - keep pattern visible
-        },
-        {
-          // Adjust threshold to fine-tune when the transition happens
-          threshold: 0.1,
-          // Use the viewport as the root
-          root: null
+      const revealTextElement = revealTextElementRef.current;
+      const spacerElement = spacerElementRef.current;
+      
+      if (!revealTextElement || !spacerElement) return;
+      
+      // Get position of spacer element for all calculations
+      const spacerRect = spacerElement.getBoundingClientRect();
+      const revealTextRect = revealTextElement.getBoundingClientRect();
+      
+      // Add a small offset to ensure the pattern hides slightly before reaching the exact boundary
+      const VISIBILITY_OFFSET = 10; // 10px offset
+      
+      // Determine if we're above the RevealText component
+      // We're above if the RevealText section hasn't reached the top of the viewport yet
+      const newIsAboveRevealText = revealTextRect.top > 0;
+      
+      // Video is visible only when spacer is below viewport top (with offset)
+      const newVideoVisible = spacerRect.top > VISIBILITY_OFFSET;
+      
+      // Chladni pattern is visible only when:
+      // 1. Spacer reaches or passes viewport top (with offset)
+      // 2. AND we're below the RevealText section
+      const newShowChladniPattern = spacerRect.top <= -VISIBILITY_OFFSET && !newIsAboveRevealText;
+      
+      // Debug logs to track state changes
+      if (newVideoVisible !== videoVisible) {
+        console.log(`Video visibility changed: ${newVideoVisible}, spacer top: ${spacerRect.top}`);
+      }
+      
+      if (newShowChladniPattern !== showChladniPattern) {
+        console.log(`Chladni pattern visibility changed: ${newShowChladniPattern}, spacer top: ${spacerRect.top}`);
+      }
+      
+      if (newIsAboveRevealText !== isAboveRevealText) {
+        console.log(`Position relative to RevealText changed: ${newIsAboveRevealText ? 'above' : 'below'}, RevealText top: ${revealTextRect.top}`);
+      }
+      
+      let newFadeProgress = 0;
+      
+      // Calculate fade progress based on spacer element position
+      // Fade should reach 100% when the top of the spacer reaches the top of the screen
+      if (spacerRect.top <= 0) {
+        // When spacer top is at or above viewport top, fade should be 100%
+        newFadeProgress = 1;
+      } else {
+        // Calculate fade progress from spacer top approaching viewport top
+        // We'll use the viewport height as our reference point for when to start fading
+        const viewportHeight = window.innerHeight;
+        const fadeStartDistance = viewportHeight; // Start fading when spacer is one viewport away
+        
+        if (spacerRect.top <= fadeStartDistance) {
+          // Calculate progress from fadeStartDistance to 0
+          const rawProgress = 1 - (spacerRect.top / fadeStartDistance);
+          newFadeProgress = Math.min(Math.max(rawProgress, 0), 1);
+        } else {
+          newFadeProgress = 0;
         }
-      );
+      }
       
-      // Start observing the marker element
-      observerRef.current.observe(markerElement);
-      console.log("Intersection Observer started watching marker element");
-    };
+      // Batch state updates to reduce re-renders
+      setVideoVisible(newVideoVisible);
+      setFadeProgress(newFadeProgress);
+      setShowChladniPattern(newShowChladniPattern);
+      setIsAboveRevealText(newIsAboveRevealText);
+    });
+  }, [videoVisible, showChladniPattern, isAboveRevealText]);
+  
+  // Set up optimized scroll listener
+  useEffect(() => {
+    // Cache the RevealText element on mount
+    revealTextElementRef.current = document.getElementById('reveal-text-section');
     
-    // Start setting up the observer
-    setupObserver();
+    // Add throttled scroll listener
+    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+    
+    // Initial call to set correct state on page load
+    throttledScrollHandler();
     
     // Cleanup function
     return () => {
-      if (observerRef.current) {
-        console.log("Cleaning up Intersection Observer");
-        observerRef.current.disconnect();
-        observerRef.current = null;
+      window.removeEventListener('scroll', throttledScrollHandler);
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
       }
     };
-  }, [hasPassedMarker]); // Added hasPassedMarker to the dependency array
+  }, [throttledScrollHandler]);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -175,18 +241,38 @@ const Index = () => {
       <div 
         className="fixed inset-0 w-full h-full" 
         style={{ 
-          zIndex: 10,
+          zIndex: 10, // Base z-index, stays consistent
           backgroundColor: "black", // Ensure black background 
         }}
       >
-        {/* Video with instant transition */}
+        {/* Chladni pattern with dynamic visibility and z-index */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: showChladniPattern ? 1 : 0,
+            visibility: showChladniPattern ? 'visible' : 'hidden',
+            transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
+            zIndex: isAboveRevealText ? 15 : 30, // Lower z-index when above RevealText, higher when below
+            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
+          }}
+          className="chladni-container"
+        >
+          <ChladniPattern className="fixed inset-0" />
+        </div>
+        
+        {/* Video with dynamic z-index */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: (showVideo && !showChladniPattern) ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
-            zIndex: 10
+            opacity: (showVideo && videoVisible) ? 1 : 0,
+            transition: "opacity 0.3s ease-out", // Smooth CSS transition
+            zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
+            pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
           {isAndroid ? (
@@ -196,28 +282,26 @@ const Index = () => {
           )}
         </div>
         
-        {/* Chladni pattern with instant transition - now covers all content */}
-        <div 
+        {/* Dark green overlay with opacity controlled by fade progress */}
+        <div
+          className="fixed inset-0 pointer-events-none"
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: showChladniPattern ? 1 : 0,
-            transition: "opacity 0s", // Keep instant transition
-            zIndex: 11
+            backgroundColor: colors.darkGreen,
+            opacity: fadeProgress, // FIXED: Always show based on scroll progress, not video visibility
+            transition: "opacity 0.3s ease-out", // Smooth CSS transition
+            zIndex: 20  // Between Chladni (15/30) and video (11/25)
           }}
-          className="chladni-container"
-        >
-          <ChladniPattern className="fixed inset-0" />
-        </div>
+        />
+        
       </div>
       
       {/* Content overlay on top of everything */}
       <div 
-        className="content-container relative z-20"
-        style={{ backgroundColor: 'transparent', position: 'relative' }}
+        className="content-container relative z-40" // INCREASED: Content z-index highest of all (was 20)
+        style={{ 
+          backgroundColor: 'transparent', // Always transparent to let Chladni pattern show through
+          position: 'relative' 
+        }}
       >
         {/* Logo section at the top */}
         <section className="relative w-full h-screen flex flex-col justify-center items-center bg-transparent">
