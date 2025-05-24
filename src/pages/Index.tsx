@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -106,112 +105,28 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
+  // TEMPORARILY DISABLED: Scroll handler for video visibility logic
   // Throttled scroll handler using requestAnimationFrame for optimal performance
   const throttledScrollHandler = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
+    // TEMPORARILY DISABLED - keeping video always visible
+    console.log("Scroll handler temporarily disabled - video always visible");
+    return;
     
-    animationFrameRef.current = requestAnimationFrame(() => {
-      const now = Date.now();
-      const timeSinceLastUpdate = now - lastScrollTimeRef.current;
-      
-      // Throttle to maximum 60fps (16ms between updates)
-      if (timeSinceLastUpdate < 16) return;
-      
-      lastScrollTimeRef.current = now;
-      
-      // Use cached element references
-      if (!revealTextElementRef.current) {
-        revealTextElementRef.current = document.getElementById('reveal-text-section');
-      }
-      
-      if (!spacerElementRef.current) {
-        spacerElementRef.current = document.getElementById('reveal-text-spacer');
-      }
-      
-      const revealTextElement = revealTextElementRef.current;
-      const spacerElement = spacerElementRef.current;
-      
-      if (!revealTextElement || !spacerElement) return;
-      
-      // Get position of spacer element for all calculations
-      const spacerRect = spacerElement.getBoundingClientRect();
-      const revealTextRect = revealTextElement.getBoundingClientRect();
-      
-      // Add a small offset to ensure the pattern hides slightly before reaching the exact boundary
-      const VISIBILITY_OFFSET = 10; // 10px offset
-      
-      // Determine if we're above the RevealText component
-      // We're above if the RevealText section hasn't reached the top of the viewport yet
-      const newIsAboveRevealText = revealTextRect.top > 0;
-      
-      // Video is visible only when spacer is below viewport top (with offset)
-      const newVideoVisible = spacerRect.top > VISIBILITY_OFFSET;
-      
-      // Chladni pattern is visible only when:
-      // 1. Spacer reaches or passes viewport top (with offset)
-      // 2. AND we're below the RevealText section
-      const newShowChladniPattern = spacerRect.top <= -VISIBILITY_OFFSET && !newIsAboveRevealText;
-      
-      // Debug logs to track state changes
-      if (newVideoVisible !== videoVisible) {
-        console.log(`Video visibility changed: ${newVideoVisible}, spacer top: ${spacerRect.top}`);
-      }
-      
-      if (newShowChladniPattern !== showChladniPattern) {
-        console.log(`Chladni pattern visibility changed: ${newShowChladniPattern}, spacer top: ${spacerRect.top}`);
-      }
-      
-      if (newIsAboveRevealText !== isAboveRevealText) {
-        console.log(`Position relative to RevealText changed: ${newIsAboveRevealText ? 'above' : 'below'}, RevealText top: ${revealTextRect.top}`);
-      }
-      
-      let newFadeProgress = 0;
-      
-      // Calculate fade progress based on spacer element position
-      // Fade should reach 100% when the top of the spacer reaches the top of the screen
-      if (spacerRect.top <= 0) {
-        // When spacer top is at or above viewport top, fade should be 100%
-        newFadeProgress = 1;
-      } else {
-        // Calculate fade progress from spacer top approaching viewport top
-        // We'll use the viewport height as our reference point for when to start fading
-        const viewportHeight = window.innerHeight;
-        const fadeStartDistance = viewportHeight; // Start fading when spacer is one viewport away
-        
-        if (spacerRect.top <= fadeStartDistance) {
-          // Calculate progress from fadeStartDistance to 0
-          const rawProgress = 1 - (spacerRect.top / fadeStartDistance);
-          newFadeProgress = Math.min(Math.max(rawProgress, 0), 1);
-        } else {
-          newFadeProgress = 0;
-        }
-      }
-      
-      // Batch state updates to reduce re-renders
-      setVideoVisible(newVideoVisible);
-      setFadeProgress(newFadeProgress);
-      setShowChladniPattern(newShowChladniPattern);
-      setIsAboveRevealText(newIsAboveRevealText);
-    });
+    // ... keep existing code (original scroll handler logic) commented out for now
   }, [videoVisible, showChladniPattern, isAboveRevealText]);
   
-  // Set up optimized scroll listener
+  // TEMPORARILY DISABLED: Set up optimized scroll listener
   useEffect(() => {
-    // Cache the RevealText element on mount
-    revealTextElementRef.current = document.getElementById('reveal-text-section');
+    // TEMPORARILY DISABLED - not setting up scroll listeners
+    console.log("Scroll listeners temporarily disabled");
     
-    // Add throttled scroll listener
-    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+    // Keep video always visible for testing
+    setVideoVisible(true);
+    setShowChladniPattern(false);
+    setFadeProgress(0);
+    setIsAboveRevealText(true);
     
-    // Initial call to set correct state on page load
-    throttledScrollHandler();
-    
-    // Cleanup function
     return () => {
-      window.removeEventListener('scroll', throttledScrollHandler);
-      
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -220,7 +135,7 @@ const Index = () => {
         clearTimeout(throttleTimeoutRef.current);
       }
     };
-  }, [throttledScrollHandler]);
+  }, []);
   
   const handlePreloaderComplete = () => {
     console.log("Preloader complete, fading in video");
@@ -264,15 +179,15 @@ const Index = () => {
           <ChladniPattern className="fixed inset-0" />
         </div>
         
-        {/* Video with dynamic z-index */}
+        {/* Video with dynamic z-index - TEMPORARILY ALWAYS VISIBLE */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: (showVideo && videoVisible) ? 1 : 0,
+            opacity: showVideo ? 1 : 0, // Removed videoVisible condition - always show when showVideo is true
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
             zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
-            pointerEvents: videoVisible ? 'auto' : 'none'
+            pointerEvents: 'auto' // Always allow interaction when video is shown
           }}
         >
           {isAndroid ? (
@@ -282,12 +197,12 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay with opacity controlled by fade progress */}
+        {/* Dark green overlay with opacity controlled by fade progress - TEMPORARILY DISABLED */}
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
-            opacity: fadeProgress, // FIXED: Always show based on scroll progress, not video visibility
+            opacity: 0, // TEMPORARILY SET TO 0 - was fadeProgress
             transition: "opacity 0.3s ease-out", // Smooth CSS transition
             zIndex: 20  // Between Chladni (15/30) and video (11/25)
           }}
