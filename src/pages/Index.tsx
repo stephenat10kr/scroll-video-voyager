@@ -27,7 +27,7 @@ const Index = () => {
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
-  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // State for z-index switching
+  const [isAboveRevealText, setIsAboveRevealText] = useState(true);
   
   // Cache DOM element reference and throttling state
   const revealTextElementRef = useRef<HTMLElement | null>(null);
@@ -43,7 +43,7 @@ const Index = () => {
   const videoSrc = videoAsset?.fields?.file?.url 
     ? `https:${videoAsset.fields.file.url}`
     : undefined;
-  
+
   // Force complete preloader after maximum time
   useEffect(() => {
     const maxLoadingTime = 8000; // 8 seconds max loading time
@@ -239,8 +239,8 @@ const Index = () => {
       <div 
         className="fixed inset-0 w-full h-full" 
         style={{ 
-          zIndex: 10, // Base z-index, stays consistent
-          backgroundColor: "black", // Ensure black background 
+          zIndex: 10,
+          backgroundColor: "black",
         }}
       >
         {/* Chladni pattern with dynamic visibility and z-index */}
@@ -253,9 +253,9 @@ const Index = () => {
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
             visibility: showChladniPattern ? 'visible' : 'hidden',
-            transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
-            zIndex: isAboveRevealText ? 15 : 30, // Lower z-index when above RevealText, higher when below
-            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
+            transition: "opacity 0.3s ease-out, visibility 0.3s",
+            zIndex: isAboveRevealText ? 15 : 30,
+            pointerEvents: showChladniPattern ? 'auto' : 'none'
           }}
           className="chladni-container"
         >
@@ -268,16 +268,13 @@ const Index = () => {
             position: 'absolute',
             inset: 0,
             opacity: (showVideo && videoVisible) ? 1 : 0,
-            transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
+            transition: "opacity 0.3s ease-out",
+            zIndex: isAboveRevealText ? 25 : 11,
             pointerEvents: videoVisible ? 'auto' : 'none'
           }}
         >
-          {isAndroid ? (
-            <ImprovedScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          ) : (
-            <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
-          )}
+          {/* Use the simplified ScrollVideo component for all devices */}
+          <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
         </div>
         
         {/* Dark green overlay with opacity controlled by fade progress */}
@@ -285,9 +282,9 @@ const Index = () => {
           className="fixed inset-0 pointer-events-none"
           style={{
             backgroundColor: colors.darkGreen,
-            opacity: fadeProgress, // FIXED: Always show based on scroll progress, not video visibility
-            transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 20  // Between Chladni (15/30) and video (11/25)
+            opacity: fadeProgress,
+            transition: "opacity 0.3s ease-out",
+            zIndex: 20
           }}
         />
         
@@ -295,9 +292,9 @@ const Index = () => {
       
       {/* Content overlay on top of everything */}
       <div 
-        className="content-container relative z-40" // INCREASED: Content z-index highest of all (was 20)
+        className="content-container relative z-40"
         style={{ 
-          backgroundColor: 'transparent', // Always transparent to let Chladni pattern show through
+          backgroundColor: 'transparent',
           position: 'relative' 
         }}
       >

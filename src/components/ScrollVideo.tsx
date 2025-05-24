@@ -2,13 +2,11 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Increase scroll distance from 2000 to 4000
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
@@ -21,83 +19,123 @@ const ScrollVideo: React.FC<{
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isAfterVideo, setIsAfterVideo] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isInViewport, setIsInViewport] = useState(true);
+  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const setupCompleted = useRef(false);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
   
-  // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
-  
-  // Calculate segment count - increase for Android for smoother transitions
-  const segmentCount = isAndroid ? 8 : 5;
 
-  // Add intersection observer to detect when video exits viewport
   useEffect(() => {
-    if (!containerRef.current) return;
+    const video = videoRef.current;
+    const container = containerRef.current;
+    
+    if (!video || !container || !secureVideoSrc) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInViewport(entry.isIntersecting);
-      },
-      { 
-        threshold: 0.01,
-        rootMargin: "0px"
-      }
-    );
+    console.log("Setting up ScrollVideo with src:", secureVideoSrc);
 
-    observer.observe(containerRef.current);
-
-    return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
-    };
-  }, []);
-
-  // Handle video ready callback
-  const handleVideoReady = () => {
-    console.log("ScrollVideo: Video is ready");
-    if (onReady) {
-      onReady();
+    // Clean up any existing scroll triggers
+    if (scrollTriggerRef.current) {
+      scrollTriggerRef.current.kill();
+      scrollTriggerRef.current = null;
     }
-  };
+
+    // Reset setup flag
+    setupCompleted.current = false;
+
+    // Configure video
+    video.src = secureVideoSrc;
+    video.controls = false;
+    video.playsInline = true;
+    video.muted = true;
+    video.preload = "auto";
+    video.pause();
+
+    // Set container height
+    container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
+
+    const setupScrollTrigger = () => {
+      if (setupCompleted.current || !video.duration || !isFinite(video.duration)) {
+        return;
+      }
+
+      console.log(`Setting up ScrollTrigger with video duration: ${video.duration}s`);
+
+      const scrubValue = isAndroid ? 1.8 : (isMobile ? 1.0 : 0.8);
+      
+      scrollTriggerRef.current = ScrollTrigger.create({
+        trigger: container,
+        start: "top top",
+        end: `+=${SCROLL_EXTRA_PX}`,
+        scrub: scrubValue,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          if (isNaN(progress) || progress < 0 || progress > 1) return;
+          
+          // Map progress to video time more accurately
+          const targetTime = progress * video.duration;
+          video.currentTime = Math.min(targetTime, video.duration - 0.01);
+          
+          console.log(`Scroll progress: ${progress.toFixed(4)}, video time: ${video.currentTime.toFixed(3)}`);
+        }
+      });
+
+      setupCompleted.current = true;
+      setIsVideoReady(true);
+      
+      if (onReady) {
+        onReady();
+      }
+
+      console.log("ScrollTrigger setup completed");
+    };
+
+    const handleVideoReady = () => {
+      console.log("Video ready:", { readyState: video.readyState, duration: video.duration });
+      setupScrollTrigger();
+    };
+
+    // Wait for video to be ready
+    if (video.readyState >= 1 && video.duration && isFinite(video.duration)) {
+      setupScrollTrigger();
+    } else {
+      video.addEventListener('loadedmetadata', handleVideoReady);
+      video.addEventListener('canplay', handleVideoReady);
+    }
+
+    // Cleanup
+    return () => {
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+        scrollTriggerRef.current = null;
+      }
+      video.removeEventListener('loadedmetadata', handleVideoReady);
+      video.removeEventListener('canplay', handleVideoReady);
+      setupCompleted.current = false;
+    };
+  }, [secureVideoSrc, isMobile, isAndroid, onReady]);
 
   return (
     <div 
       ref={containerRef} 
       className="relative w-full min-h-screen overflow-hidden bg-black"
     >
-      <ScrollVideoPlayer 
-        src={secureVideoSrc} 
-        segmentCount={segmentCount} 
-        onAfterVideoChange={setIsAfterVideo}
-        onProgressChange={setProgress}
-        videoRef={videoRef} 
-        containerRef={containerRef} 
-        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
-        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
-        isMobile={isMobile}
-        onVideoReady={handleVideoReady}
-      >
-        <video 
-          ref={videoRef} 
-          src={secureVideoSrc} 
-          playsInline 
-          preload="auto" 
-          loop={false} 
-          muted 
-          tabIndex={-1} 
-          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
-          style={{
-            minHeight: "100vh",
-            backgroundColor: "black",
-            display: "block",
-            visibility: "visible"
-          }} 
-        />
-      </ScrollVideoPlayer>
+      <video 
+        ref={videoRef}
+        playsInline 
+        preload="auto" 
+        loop={false} 
+        muted 
+        tabIndex={-1} 
+        className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "black",
+          display: "block",
+          visibility: "visible"
+        }} 
+      />
     </div>
   );
 };
