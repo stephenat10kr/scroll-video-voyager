@@ -36,7 +36,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  const progressThreshold = 0.0001; 
+  const progressThreshold = 0.001; // Increased threshold for better performance
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   const videoEndedRef = useRef(false);
@@ -196,8 +196,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     window.addEventListener("resize", resizeSection);
     
     const updateVideoFrame = (progress: number) => {
-      if (!video.duration) return;
+      if (!video || !video.duration || !isFinite(video.duration)) {
+        console.log("Video not ready for scrubbing:", { duration: video?.duration, readyState: video?.readyState });
+        return;
+      }
       
+      // Check if progress change is significant enough
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -207,23 +211,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate the target time - allow full video duration playback
-      const targetTime = progress * video.duration;
+      // Calculate the target time - ensure we use the full video duration
+      const targetTime = Math.min(progress * video.duration, video.duration - 0.01);
       
-      // Check if we've reached the actual end of the video (true 100% progress)
-      const isAtEnd = progress >= 1.0;
+      console.log(`Video scrubbing: progress=${progress.toFixed(4)}, targetTime=${targetTime.toFixed(3)}, duration=${video.duration.toFixed(3)}`);
+      
+      // Check if we've reached the end
+      const isAtEnd = progress >= 0.99; // Use 99% instead of 100% to avoid edge cases
       
       if (isAtEnd && !videoEndedRef.current) {
         videoEndedRef.current = true;
-        console.log(`Video reached end: progress=${progress.toFixed(4)}, time=${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+        console.log(`Video reached end: progress=${progress.toFixed(4)}`);
         onAfterVideoChange(true);
       } else if (!isAtEnd && videoEndedRef.current) {
         videoEndedRef.current = false;
         onAfterVideoChange(false);
-      }
-      
-      if (progress > 0.9) {
-        console.log(`Video progress: ${progress.toFixed(4)}, time: ${targetTime.toFixed(3)}/${video.duration.toFixed(3)}`);
       }
       
       if (frameRef.current) {
@@ -231,15 +233,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Always update video time to prevent black screens
-        if (isAndroid) {
-          smoothlyUpdateVideoTime(video, targetTime);
-          
-          if (progress > 0.9) {
-            console.log(`Android smooth interpolation: target time = ${targetTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
+        try {
+          if (isAndroid) {
+            smoothlyUpdateVideoTime(video, targetTime);
+          } else {
+            video.currentTime = targetTime;
           }
-        } else {
-          video.currentTime = targetTime;
+          console.log(`Video time updated to: ${video.currentTime.toFixed(3)}`);
+        } catch (error) {
+          console.error("Error updating video time:", error);
         }
       });
     };
@@ -247,13 +249,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     const setupScrollTrigger = () => {
       if (setupCompleted.current) return;
       
-      if (isMobile && !isAndroid) {
-        video.currentTime = 0.001;
+      // Wait for video to be ready
+      if (!video.duration || !isFinite(video.duration)) {
+        console.log("Video duration not available, waiting...");
+        return;
       }
       
-      if (!video.duration && !isMobile) {
-        console.log("Video duration not yet available, waiting...");
-        return;
+      console.log(`Video ready for ScrollTrigger setup. Duration: ${video.duration}s`);
+      
+      if (isMobile && !isAndroid) {
+        video.currentTime = 0.001;
       }
       
       if (scrollTriggerRef.current) scrollTriggerRef.current.kill();
@@ -279,7 +284,10 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         preventOverlaps: true,
         onUpdate: (self) => {
           const progress = self.progress;
-          if (isNaN(progress)) return;
+          if (isNaN(progress) || progress < 0 || progress > 1) {
+            console.warn("Invalid progress value:", progress);
+            return;
+          }
           updateVideoFrame(progress);
         }
       });
@@ -296,42 +304,55 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       console.log("ScrollTrigger setup completed with scrub value:", scrubValue);
     };
 
-    // Remove the fetchPriority line that was causing the build error
-    // if ('fetchPriority' in HTMLImageElement.prototype) {
-    //   video.fetchPriority = 'high';
-    // }
-
-    if (isMobile) {
-      setupScrollTrigger();
-    } else if (video.readyState >= 2) {
-      setupScrollTrigger();
-    }
-
-    const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata'];
-      
+    // Enhanced video ready detection
     const handleVideoReady = () => {
-      if (!setupCompleted.current) {
+      console.log("Video ready event fired:", { readyState: video.readyState, duration: video.duration });
+      if (!setupCompleted.current && video.duration && isFinite(video.duration)) {
         console.log("Setting up ScrollTrigger after video event");
         setupScrollTrigger();
       }
+    };
+
+    // Wait for video metadata to be loaded before setting up ScrollTrigger
+    if (video.readyState >= 1 && video.duration && isFinite(video.duration)) {
+      setupScrollTrigger();
+    } else {
+      const setupEvents = ['loadedmetadata', 'canplay', 'loadeddata', 'durationchange'];
       
-      if (setupCompleted.current) {
+      setupEvents.forEach(event => {
+        video.addEventListener(event, handleVideoReady);
+      });
+      
+      // Fallback timeout
+      const timeoutId = setTimeout(() => {
+        if (!setupCompleted.current) {
+          console.log("Setting up ScrollTrigger after timeout");
+          setupScrollTrigger();
+        }
+      }, 1000); // Increased timeout
+      
+      // Cleanup function
+      return () => {
+        window.removeEventListener("resize", resizeSection);
+        if (scrollTriggerRef.current) {
+          scrollTriggerRef.current.kill();
+        }
+        if (frameRef.current) {
+          cancelAnimationFrame(frameRef.current);
+        }
+        if (interpolationFrameRef.current) {
+          cancelAnimationFrame(interpolationFrameRef.current);
+        }
         setupEvents.forEach(event => {
           video.removeEventListener(event, handleVideoReady);
         });
-      }
-    };
-    
-    setupEvents.forEach(event => {
-      video.addEventListener(event, handleVideoReady);
-    });
-    
-    const timeoutId = setTimeout(() => {
-      if (!setupCompleted.current) {
-        console.log("Setting up ScrollTrigger after timeout");
-        setupScrollTrigger();
-      }
-    }, 300);
+        clearTimeout(timeoutId);
+        setupCompleted.current = false;
+        isInterpolatingRef.current = false;
+        videoEndedRef.current = false;
+        videoReadyCalledRef.current = false;
+      };
+    }
     
     return () => {
       window.removeEventListener("resize", resizeSection);
@@ -344,7 +365,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       if (interpolationFrameRef.current) {
         cancelAnimationFrame(interpolationFrameRef.current);
       }
-      clearTimeout(timeoutId);
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
       videoEndedRef.current = false;
