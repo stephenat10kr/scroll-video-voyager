@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import colors from "@/lib/theme";
 
@@ -63,11 +62,7 @@ const Preloader: React.FC<PreloaderProps> = ({ progress, onComplete }) => {
   // Handle completion - show "Come in" when progress reaches 100%
   useEffect(() => {
     if (displayedProgress >= 100) {
-      console.log("Preloader - 100% reached, showing welcome message and resetting scroll");
-      
-      // Reset scroll position to top immediately when 100% is reached
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      console.log("Preloader - Scroll position reset to top");
+      console.log("Preloader - 100% reached, showing welcome message");
       
       // Show "Come in." text
       setShowWelcome(true);
