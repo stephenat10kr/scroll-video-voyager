@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -36,7 +37,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.0001; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  const videoEndedRef = useRef(false); // Track if video has reached the end
+  const videoEndedRef = useRef(false);
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -224,12 +225,11 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate the target time, but cap it at the actual video duration minus a tiny buffer
-      const maxAllowedTime = video.duration - 0.01; // 10ms before actual end
-      const targetTime = Math.min(progress * video.duration, maxAllowedTime);
+      // Calculate the target time - allow full video duration playback
+      const targetTime = progress * video.duration;
       
-      // Check if we've reached the effective end of the video
-      const isAtEnd = progress >= 0.999 || targetTime >= maxAllowedTime;
+      // Check if we've reached the actual end of the video (true 100% progress)
+      const isAtEnd = progress >= 1.0;
       
       if (isAtEnd && !videoEndedRef.current) {
         videoEndedRef.current = true;
@@ -251,21 +251,21 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       
       frameRef.current = requestAnimationFrame(() => {
-        // Only update video time if we haven't reached the end
-        if (!videoEndedRef.current || progress < 0.999) {
-          // Enhanced Android-specific smooth interpolation
-          if (isAndroid) {
-            // Use our smooth interpolation function for Android
-            smoothlyUpdateVideoTime(video, targetTime);
-            
-            // Log Android-specific smoothing when near the end
-            if (progress > 0.9) {
-              console.log(`Android smooth interpolation: target time = ${targetTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
-            }
-          } else {
-            // Standard approach for non-Android devices
-            video.currentTime = targetTime;
+        // Always update video time - don't block updates when at end
+        // This ensures the video stays on the last frame instead of going black
+        
+        // Enhanced Android-specific smooth interpolation
+        if (isAndroid) {
+          // Use our smooth interpolation function for Android
+          smoothlyUpdateVideoTime(video, targetTime);
+          
+          // Log Android-specific smoothing when near the end
+          if (progress > 0.9) {
+            console.log(`Android smooth interpolation: target time = ${targetTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
+        } else {
+          // Standard approach for non-Android devices
+          video.currentTime = targetTime;
         }
       });
     };
@@ -379,7 +379,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       }
       setupCompleted.current = false;
       isInterpolatingRef.current = false;
-      videoEndedRef.current = false; // Reset end state
+      videoEndedRef.current = false;
     };
   }, [segmentCount, SCROLL_EXTRA_PX, AFTER_VIDEO_EXTRA_HEIGHT, containerRef, videoRef, onAfterVideoChange, onProgressChange, src, isLoaded, isMobile, isAndroid]);
 
