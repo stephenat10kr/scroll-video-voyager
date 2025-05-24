@@ -73,16 +73,24 @@ const ScrollVideo: React.FC<{
           const progress = self.progress;
           if (isNaN(progress) || progress < 0 || progress > 1) return;
           
-          // Calculate the safe video duration (avoid the last 0.5 seconds where issues occur)
-          const safeVideoDuration = Math.max(0, video.duration - 0.5);
-          const targetTime = progress * safeVideoDuration;
+          // Much more aggressive safety buffer - exclude last 1.5 seconds and never exceed 85% of video
+          const safeEndBuffer = Math.min(1.5, video.duration * 0.15); // At least 15% buffer or 1.5 seconds
+          const maxSafeTime = Math.max(0, video.duration - safeEndBuffer);
+          const maxProgress = 0.85; // Never go beyond 85% of the video to avoid end issues
           
-          // Additional safety check - ensure we never go beyond safe duration
-          const clampedTime = Math.min(targetTime, safeVideoDuration);
+          // Map progress to the safe portion only
+          const safeProgress = Math.min(progress, maxProgress);
+          const targetTime = safeProgress * maxSafeTime;
+          
+          // Triple safety check
+          const finalTime = Math.min(Math.max(0, targetTime), maxSafeTime);
           
           try {
-            video.currentTime = clampedTime;
-            console.log(`Video scrub: progress=${progress.toFixed(4)}, time=${clampedTime.toFixed(3)}/${video.duration.toFixed(3)}`);
+            // Only update if the time is significantly different to reduce flicker
+            if (Math.abs(video.currentTime - finalTime) > 0.05) {
+              video.currentTime = finalTime;
+            }
+            console.log(`Video scrub: progress=${progress.toFixed(4)}, safeProgress=${safeProgress.toFixed(4)}, time=${finalTime.toFixed(3)}/${video.duration.toFixed(3)} (max safe: ${maxSafeTime.toFixed(3)})`);
           } catch (error) {
             console.warn("Error updating video time:", error);
           }
