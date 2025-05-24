@@ -33,8 +33,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const lastProgressRef = useRef(0);
-  // Reducing the threshold from 0.002 to 0.0005 for more responsive scrubbing
-  const progressThreshold = 0.0005; 
+  // Reducing the threshold even further to allow more precise control at the end
+  const progressThreshold = 0.0001; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
   
@@ -213,6 +213,8 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
     
     const updateVideoFrame = (progress: number) => {
       if (!video.duration) return;
+      
+      // Reduce threshold check to allow the video to reach the very end
       if (Math.abs(progress - lastProgressRef.current) < progressThreshold) {
         return;
       }
@@ -226,9 +228,9 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Let the video play all the way to the end - no early stopping
       const newTime = progress * video.duration;
       
-      // Log progress
-      if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
+      // Log progress more frequently near the end
+      if (progress > 0.9) {
+        console.log(`Video progress: ${progress.toFixed(4)}, time: ${newTime.toFixed(3)}/${video.duration.toFixed(3)}`);
       }
       
       if (frameRef.current) {
@@ -242,14 +244,15 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
           smoothlyUpdateVideoTime(video, newTime);
           
           // Log Android-specific smoothing when near the end
-          if (progress > 0.95) {
+          if (progress > 0.9) {
             console.log(`Android smooth interpolation: target time = ${newTime.toFixed(3)}, current = ${video.currentTime.toFixed(3)}`);
           }
         } else {
           // Standard approach for non-Android devices
           video.currentTime = newTime;
         }
-        onAfterVideoChange(progress >= 1);
+        // Ensure we trigger the after video change even for values very close to 1
+        onAfterVideoChange(progress >= 0.999);
       });
     };
 
