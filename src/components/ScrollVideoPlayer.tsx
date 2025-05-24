@@ -37,10 +37,6 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
   const progressThreshold = 0.0005; 
   const frameRef = useRef<number | null>(null);
   const setupCompleted = useRef(false);
-  // Define the frames to stop before the end - changed from 3 to 1
-  const FRAMES_BEFORE_END = 1;
-  // Standard video frame rate (most common)
-  const STANDARD_FRAME_RATE = 30;
   
   // Detect Firefox browser
   const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -227,23 +223,12 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
         onProgressChange(progress);
       }
       
-      // Calculate time to stop before the end of the video
-      // For a standard 30fps video, 1 frame = 1/30 = 0.033 seconds before the end
-      const stopTimeBeforeEnd = FRAMES_BEFORE_END / STANDARD_FRAME_RATE;
+      // Let the video play all the way to the end - no early stopping
+      const newTime = progress * video.duration;
       
-      // Adjust progress to stop 1 frame before the end
-      let adjustedProgress = progress;
-      if (progress > 0.98) {  // Only adjust near the end
-        // Scale progress to end at (duration - stopTimeBeforeEnd)
-        const maxTime = video.duration - stopTimeBeforeEnd;
-        adjustedProgress = Math.min(progress, maxTime / video.duration);
-      }
-      
-      const newTime = adjustedProgress * video.duration;
-      
-      // Log when we're approaching the end
+      // Log progress
       if (progress > 0.95) {
-        console.log(`Video progress: ${progress.toFixed(3)}, adjusted: ${adjustedProgress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
+        console.log(`Video progress: ${progress.toFixed(3)}, time: ${newTime.toFixed(2)}/${video.duration.toFixed(2)}`);
       }
       
       if (frameRef.current) {
@@ -253,7 +238,7 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       frameRef.current = requestAnimationFrame(() => {
         // Enhanced Android-specific smooth interpolation
         if (isAndroid) {
-          // Use our new smooth interpolation function for Android
+          // Use our smooth interpolation function for Android
           smoothlyUpdateVideoTime(video, newTime);
           
           // Log Android-specific smoothing when near the end
