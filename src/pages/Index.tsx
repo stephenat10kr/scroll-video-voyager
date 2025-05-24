@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import ImprovedScrollVideo from "../components/ImprovedScrollVideo";
 import HeroText from "../components/HeroText";
@@ -199,7 +200,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Dark green overlay on top of video */}
+        {/* Dark green overlay on top of video - now includes video visibility logic */}
         <div 
           style={{
             position: 'fixed',
@@ -208,7 +209,7 @@ const Index = () => {
             width: '100%',
             height: '100%',
             backgroundColor: colors.darkGreen,
-            opacity: overlayOpacity,
+            opacity: (showVideo && videoVisible) ? overlayOpacity : 0,
             zIndex: 30,
             pointerEvents: 'none'
           }}
