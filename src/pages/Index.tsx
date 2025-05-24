@@ -96,10 +96,10 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // NEW: Video visibility logic based on RevealText position
+  // Video visibility logic based on RevealText position
   useEffect(() => {
     const handleScroll = () => {
-      const revealTextSection = document.getElementById('reveal-text-section');
+      const revealTextSection = document.querySelector('[data-component="reveal-text"]');
       if (!revealTextSection) return;
       
       const rect = revealTextSection.getBoundingClientRect();
@@ -146,7 +146,7 @@ const Index = () => {
           backgroundColor: "black",
         }}
       >
-        {/* Chladni pattern with dynamic visibility */}
+        {/* Chladni pattern with instant visibility */}
         <div 
           style={{
             position: 'fixed',
@@ -156,7 +156,6 @@ const Index = () => {
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
             visibility: showChladniPattern ? 'visible' : 'hidden',
-            transition: "opacity 0.3s ease-out, visibility 0.3s",
             zIndex: 15,
             pointerEvents: showChladniPattern ? 'auto' : 'none'
           }}
@@ -165,13 +164,12 @@ const Index = () => {
           <ChladniPattern className="fixed inset-0" />
         </div>
         
-        {/* Video with dynamic visibility */}
+        {/* Video with instant visibility */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
             opacity: showVideo && videoVisible ? 1 : 0,
-            transition: "opacity 0.3s ease-out",
             zIndex: 25,
             pointerEvents: 'auto'
           }}
