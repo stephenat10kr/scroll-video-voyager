@@ -1,3 +1,4 @@
+
 import React from "react";
 import Ritual from "./Ritual";
 import RitualReversed from "./RitualReversed";
@@ -96,7 +97,7 @@ const Rituals: React.FC<RitualsProps> = ({
   return <div style={{
     backgroundColor: colors.coral,
     borderTop: `4px solid ${colors.coral}`
-  }} className="w-full relative py-[192px] mb-24">
+  }} className="w-full relative py-[192px]">
       {/* Curved top SVG - with shape rendering and coral border */}
       <div className="absolute top-0 left-0 right-0 w-full transform -translate-y-[calc(100%+1px)]" style={{ 
         borderBottom: `2px solid ${colors.coral}`
