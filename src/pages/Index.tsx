@@ -24,17 +24,8 @@ const Index = () => {
   const [loadProgress, setLoadProgress] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
-  const [showChladniPattern, setShowChladniPattern] = useState(false);
-  const [fadeProgress, setFadeProgress] = useState(0);
   const [videoVisible, setVideoVisible] = useState(true);
-  const [isAboveRevealText, setIsAboveRevealText] = useState(true); // State for z-index switching
-  
-  // Cache DOM element reference and throttling state
-  const revealTextElementRef = useRef<HTMLElement | null>(null);
-  const spacerElementRef = useRef<HTMLElement | null>(null);
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastScrollTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
+  const [showChladniPattern, setShowChladniPattern] = useState(false);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -105,35 +96,30 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // TEMPORARILY DISABLED: Scroll handler for video visibility logic
-  // Throttled scroll handler using requestAnimationFrame for optimal performance
-  const throttledScrollHandler = useCallback(() => {
-    // TEMPORARILY DISABLED - keeping video always visible
-    console.log("Scroll handler temporarily disabled - video always visible");
-    return;
-    
-    // ... keep existing code (original scroll handler logic) commented out for now
-  }, [videoVisible, showChladniPattern, isAboveRevealText]);
-  
-  // TEMPORARILY DISABLED: Set up optimized scroll listener
+  // NEW: Video visibility logic based on RevealText position
   useEffect(() => {
-    // TEMPORARILY DISABLED - not setting up scroll listeners
-    console.log("Scroll listeners temporarily disabled");
+    const handleScroll = () => {
+      const revealTextSection = document.getElementById('reveal-text-section');
+      if (!revealTextSection) return;
+      
+      const rect = revealTextSection.getBoundingClientRect();
+      const isRevealTextAtTop = rect.top <= 0;
+      
+      // Hide video when RevealText reaches top, show when it's below
+      setVideoVisible(!isRevealTextAtTop);
+      setShowChladniPattern(isRevealTextAtTop);
+      
+      console.log("RevealText at top:", isRevealTextAtTop, "Video visible:", !isRevealTextAtTop);
+    };
     
-    // Keep video always visible for testing
-    setVideoVisible(true);
-    setShowChladniPattern(false);
-    setFadeProgress(0);
-    setIsAboveRevealText(true);
+    // Set up scroll listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Check initial position
+    handleScroll();
     
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-      }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
@@ -156,11 +142,11 @@ const Index = () => {
       <div 
         className="fixed inset-0 w-full h-full" 
         style={{ 
-          zIndex: 10, // Base z-index, stays consistent
-          backgroundColor: "black", // Ensure black background 
+          zIndex: 10,
+          backgroundColor: "black",
         }}
       >
-        {/* Chladni pattern with dynamic visibility and z-index */}
+        {/* Chladni pattern with dynamic visibility */}
         <div 
           style={{
             position: 'fixed',
@@ -170,24 +156,24 @@ const Index = () => {
             height: '100%',
             opacity: showChladniPattern ? 1 : 0,
             visibility: showChladniPattern ? 'visible' : 'hidden',
-            transition: "opacity 0.3s ease-out, visibility 0.3s", // Smooth transition
-            zIndex: isAboveRevealText ? 15 : 30, // Lower z-index when above RevealText, higher when below
-            pointerEvents: showChladniPattern ? 'auto' : 'none' // Disable interaction when hidden
+            transition: "opacity 0.3s ease-out, visibility 0.3s",
+            zIndex: 15,
+            pointerEvents: showChladniPattern ? 'auto' : 'none'
           }}
           className="chladni-container"
         >
           <ChladniPattern className="fixed inset-0" />
         </div>
         
-        {/* Video with dynamic z-index - TEMPORARILY ALWAYS VISIBLE */}
+        {/* Video with dynamic visibility */}
         <div 
           style={{
             position: 'absolute',
             inset: 0,
-            opacity: showVideo ? 1 : 0, // Removed videoVisible condition - always show when showVideo is true
-            transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: isAboveRevealText ? 25 : 11, // Higher z-index when above RevealText, lower when below
-            pointerEvents: 'auto' // Always allow interaction when video is shown
+            opacity: showVideo && videoVisible ? 1 : 0,
+            transition: "opacity 0.3s ease-out",
+            zIndex: 25,
+            pointerEvents: 'auto'
           }}
         >
           {isAndroid ? (
@@ -196,25 +182,13 @@ const Index = () => {
             <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
-        
-        {/* Dark green overlay with opacity controlled by fade progress - TEMPORARILY DISABLED */}
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            backgroundColor: colors.darkGreen,
-            opacity: 0, // TEMPORARILY SET TO 0 - was fadeProgress
-            transition: "opacity 0.3s ease-out", // Smooth CSS transition
-            zIndex: 20  // Between Chladni (15/30) and video (11/25)
-          }}
-        />
-        
       </div>
       
       {/* Content overlay on top of everything */}
       <div 
-        className="content-container relative z-40" // INCREASED: Content z-index highest of all (was 20)
+        className="content-container relative z-40"
         style={{ 
-          backgroundColor: 'transparent', // Always transparent to let Chladni pattern show through
+          backgroundColor: 'transparent',
           position: 'relative' 
         }}
       >
