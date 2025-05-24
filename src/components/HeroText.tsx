@@ -28,7 +28,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const getContainerHeight = () => {
     if (isAndroid) return 'h-[300vh]'; // 3 screen heights
     if (isIOS) return 'h-[450vh]';    // 4.5 screen heights
-    return 'h-[500vh]';               // 5 screen heights for desktop
+    return 'h-[450vh]';               // 4.5 screen heights for desktop (changed from 500vh)
   };
   
   if (isLoading) {
