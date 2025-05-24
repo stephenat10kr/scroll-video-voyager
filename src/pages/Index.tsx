@@ -26,6 +26,7 @@ const Index = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [videoVisible, setVideoVisible] = useState(true);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -96,20 +97,37 @@ const Index = () => {
     }
   }, [isIOS, isAndroid]);
   
-  // Video visibility logic based on RevealText position
+  // Video visibility and overlay logic based on RevealText position
   useEffect(() => {
     const handleScroll = () => {
       const revealTextSection = document.querySelector('[data-component="reveal-text"]');
       if (!revealTextSection) return;
       
       const rect = revealTextSection.getBoundingClientRect();
-      const isRevealTextAtTop = rect.top <= 0;
+      const viewportHeight = window.innerHeight;
       
-      // Hide video when RevealText reaches top, show when it's below
+      // Calculate when overlay should start fading in (1 viewport above RevealText)
+      const fadeStartPoint = viewportHeight; // When RevealText top is 1 viewport away
+      const fadeEndPoint = 0; // When RevealText top reaches viewport top
+      
+      // Calculate overlay opacity based on scroll position
+      let opacity = 0;
+      if (rect.top <= fadeStartPoint && rect.top >= fadeEndPoint) {
+        // Linear interpolation between fadeStartPoint and fadeEndPoint
+        opacity = 1 - (rect.top / fadeStartPoint);
+        opacity = Math.max(0, Math.min(1, opacity));
+      } else if (rect.top < fadeEndPoint) {
+        opacity = 1;
+      }
+      
+      setOverlayOpacity(opacity);
+      
+      // Hide video when RevealText reaches top
+      const isRevealTextAtTop = rect.top <= 0;
       setVideoVisible(!isRevealTextAtTop);
       setShowChladniPattern(isRevealTextAtTop);
       
-      console.log("RevealText at top:", isRevealTextAtTop, "Video visible:", !isRevealTextAtTop);
+      console.log("RevealText top:", rect.top, "Overlay opacity:", opacity, "Video visible:", !isRevealTextAtTop);
     };
     
     // Set up scroll listener
@@ -180,6 +198,21 @@ const Index = () => {
             <ScrollVideo onReady={handleVideoReady} src={videoSrc} />
           )}
         </div>
+        
+        {/* Dark green overlay on top of video */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: colors.darkGreen,
+            opacity: overlayOpacity,
+            zIndex: 30,
+            pointerEvents: 'none'
+          }}
+        />
       </div>
       
       {/* Content overlay on top of everything */}
