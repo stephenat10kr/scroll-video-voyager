@@ -16,19 +16,17 @@ html, body {
   background-attachment: fixed; /* Make the background sticky */
 }
 
-/* Content container styles - allowing natural height and transparent background */
+/* Content container styles - allowing natural height */
 .content-container {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  z-index: 40; /* INCREASED: Higher z-index to match Index.tsx change */
-  background-color: transparent; /* Always transparent to let Chladni show through */
+  z-index: 20; /* Above video and Chladni pattern */
 }
 
 /* Add section spacing */
 .content-container section {
   position: relative;
-  background-color: transparent; /* Ensure all sections are transparent */
 }
 
 /* Video container styles - with updated z-index */
@@ -38,7 +36,7 @@ html, body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 11; /* Below Chladni pattern (30) */
+  z-index: 10; /* Below Chladni pattern (15) but above preloader (5) */
 }
 
 /* Chladni pattern container - ensure it stretches to full content height */

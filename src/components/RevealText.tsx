@@ -8,17 +8,15 @@ import { contentfulClient } from "@/lib/contentfulClient";
 import type { ContentfulRevealText } from "@/types/contentful";
 import Form from "@/components/Form";
 import { colors } from "@/lib/theme";
-
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // HubSpot Portal ID and Form ID matching those in Navigation.tsx
 const HUBSPOT_PORTAL_ID = "242761887";
 const HUBSPOT_FORM_ID = "ed4555d7-c442-473e-8ae1-304ca35edbf0";
-
 const RevealText = () => {
   const textRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<HTMLDivElement>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
   const {
     data: revealTextContent,
     isLoading,
@@ -68,7 +66,6 @@ const RevealText = () => {
       }
     }
   });
-  
   useEffect(() => {
     console.log("Current revealTextContent:", revealTextContent);
     const text = textRef.current;
@@ -83,15 +80,16 @@ const RevealText = () => {
     // Create HTML structure with words and characters wrapped in spans
     const formattedHTML = words.map(word => {
       // Update the character spans to have display: inline-block and padding-bottom
-      const charSpans = word.split("").map(char => `<span class="char" style="display: inline-block; padding-bottom: 0.2em;">${char}</span>`).join("");
+      const charSpans = word.split("").map(char => 
+        `<span class="char" style="display: inline-block; padding-bottom: 0.2em;">${char}</span>`
+      ).join("");
       return `<div class="word" style="display: inline-block; margin-right: 0.25em;">${charSpans}</div>`;
     }).join("");
     text.innerHTML = formattedHTML;
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: text,
-        start: "top bottom-=66.7vh",
-        // Updated to start when element is 2/3rds up the viewport
+        start: "top bottom-=66.7vh", // Updated to start when element is 2/3rds up the viewport
         end: "bottom center",
         scrub: 0.5,
         markers: false
@@ -110,9 +108,8 @@ const RevealText = () => {
       tl.kill();
     };
   }, [revealTextContent]);
-  
   if (isLoading) {
-    return <div className="w-full min-h-screen py-24 pb-36" style={{
+    return <div className="w-full py-24 pb-36" style={{
       backgroundColor: colors.darkGreen
     }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
@@ -120,37 +117,27 @@ const RevealText = () => {
         </div>
       </div>;
   }
-  
   if (error) {
     console.error("Error loading reveal text:", error);
   }
-  
-  return <>
-      {/* Added spacer above RevealText component - matches the one below - now with ID */}
-      <div id="reveal-text-spacer" style={{
-      height: "256px",
-      backgroundColor: colors.darkGreen,
-      margin: 0,
-      padding: 0,
-      display: 'block'
-    }}></div>
-      
-      <div id="reveal-text-section" style={{
-      backgroundColor: colors.darkGreen,
-      marginBottom: 0,
-      paddingBottom: 0
-    }} className="w-full min-h-screen pb-36 py-0">
+  return (
+    <>
+      <div className="w-full py-24 pb-36" style={{
+        backgroundColor: colors.darkGreen,
+        marginBottom: 0,
+        paddingBottom: 0,
+      }}>
         <div className="grid grid-cols-12 max-w-[90%] mx-auto">
           <div ref={textRef} style={{
-          background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          lineHeight: "1.2",
-          whiteSpace: "pre-wrap",
-          wordBreak: "normal",
-          WebkitFontSmoothing: "antialiased",
-          textRendering: "optimizeLegibility"
-        }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
+            background: "linear-gradient(90deg, #FFB577 0%, #FFB577 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            lineHeight: "1.2",
+            whiteSpace: "pre-wrap",
+            wordBreak: "normal",
+            WebkitFontSmoothing: "antialiased",
+            textRendering: "optimizeLegibility"
+          }} className="title-md text-roseWhite col-span-12 md:col-span-9 mb-8 py-[12px]">
             {revealTextContent?.fields.text || "Default reveal text"}
           </div>
           <div className="col-span-12 md:col-span-9">
@@ -162,16 +149,24 @@ const RevealText = () => {
       </div>
       
       {/* Dark green spacer directly attached to RevealText - now included in the RevealText component */}
-      <div style={{
-      height: "256px",
-      backgroundColor: colors.darkGreen,
-      margin: 0,
-      padding: 0,
-      display: 'block'
-    }}></div>
+      <div style={{ 
+        height: "256px", // Changed from "128px" to "256px" (doubled the height)
+        backgroundColor: colors.darkGreen,
+        margin: 0,
+        padding: 0,
+        display: 'block',
+      }}></div>
+      
+      {/* Intersection marker element at the end of RevealText */}
+      <div 
+        id="chladni-transition-marker" 
+        ref={markerRef} 
+        className="h-[2px] w-full opacity-0 pointer-events-none"
+        aria-hidden="true"
+      />
       
       <Form open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Curious?<br>Sign up to hear about upcoming events and membership offerings." hubspotPortalId={HUBSPOT_PORTAL_ID} hubspotFormId={HUBSPOT_FORM_ID} />
-    </>;
+    </>
+  );
 };
-
 export default RevealText;

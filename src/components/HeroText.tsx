@@ -4,7 +4,6 @@ import Logo from "./Logo";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useHeroText } from "../hooks/useHeroText";
 import { AspectRatio } from "./ui/aspect-ratio";
-import { useIsAndroid } from "../hooks/use-android";
 
 interface HeroTextProps {
   skipLogoSection?: boolean;
@@ -12,7 +11,6 @@ interface HeroTextProps {
 
 const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   const isMobile = useIsMobile();
-  const isAndroid = useIsAndroid();
   const {
     data: heroTextItems,
     isLoading,
@@ -36,10 +34,10 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
   }
   
   return (
-    <div className={`w-full bg-transparent ${isAndroid ? '' : 'h-[500vh]'}`}>
+    <div className="w-full bg-transparent h-[500vh]">
       {/* First section - Logo section (only show if not skipped) */}
       {!skipLogoSection && (
-        <div className={`${isAndroid ? 'h-screen' : ''} flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20`}>
+        <div className="flex flex-col justify-center px-4 md:px-8 lg:px-12 pt-20">
           <div className="w-full max-w-[90%] mx-auto">
             <div className="flex flex-col items-center">
               <h2 className="title-sm text-roseWhite mb-0 text-center py-0">WELCOME TO</h2>
@@ -72,7 +70,7 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
       </div>
 
       {/* Third section - Second hero text */}
-      <div className={`h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12 ${isAndroid ? 'mb-24' : ''}`}>
+      <div className="h-screen flex flex-col justify-center px-4 md:px-8 lg:px-12">
         <div className="w-full max-w-[90%] mx-auto">
           <div className="py-12">
             <h2 className="title-sm text-roseWhite mb-4 text-center">{secondHeroText.fields.heroTextEyebrow}</h2>
@@ -87,8 +85,8 @@ const HeroText: React.FC<HeroTextProps> = ({ skipLogoSection = false }) => {
         </div>
       </div>
 
-      {/* Additional spacing, only if not on Android */}
-      {!isAndroid && <div className="h-[400vh]"></div>}
+      {/* Additional spacing to fill the 500vh height */}
+      <div className="h-[400vh]"></div>
     </div>
   );
 };

@@ -1,17 +1,19 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import ScrollVideo from "./ScrollVideo";
 import ImprovedScrollVideo from "./ImprovedScrollVideo";
 import { useContentfulAsset } from "../hooks/useContentfulAsset";
 import { useIsAndroid } from "../hooks/use-android";
 import Preloader from "./Preloader";
-import { HERO_VIDEO_ASSET_ID } from "@/types/contentful";
+import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
 
 const Video = () => {
-  // Use single video asset ID for all devices
+  // Use different video asset IDs based on device type
   const isAndroid = useIsAndroid();
+  const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
   
-  // Use the single video asset ID for all devices
-  const { data: videoAsset, isLoading, error } = useContentfulAsset(HERO_VIDEO_ASSET_ID);
+  // Use the appropriate video asset ID based on device type
+  const { data: videoAsset, isLoading, error } = useContentfulAsset(videoAssetId);
   
   // Only use Contentful video source, no fallback URLs
   const videoSrc = videoAsset?.fields?.file?.url 
@@ -114,7 +116,7 @@ const Video = () => {
     if (!videoSrc) return;
     
     console.log('Video - Starting loading sequence');
-    console.log('Video - Using asset ID:', HERO_VIDEO_ASSET_ID);
+    console.log('Video - Using asset ID:', videoAssetId);
     console.log('Video - Is Android device:', isAndroid);
     
     // Reset the loading start time when the component mounts or source changes
@@ -272,7 +274,7 @@ const Video = () => {
   console.log('Video component - error:', error);
   console.log('Video component - progress:', loadProgress);
   console.log('Video component - isAndroid:', isAndroid);
-  console.log('Video component - using asset ID:', HERO_VIDEO_ASSET_ID);
+  console.log('Video component - using asset ID:', videoAssetId);
 
   return (
     <>

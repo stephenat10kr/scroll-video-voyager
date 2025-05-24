@@ -2,11 +2,13 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ScrollVideoPlayer from "./ScrollVideoPlayer";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useIsAndroid } from "../hooks/use-android";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Increase scroll distance from 2000 to 4000
 const SCROLL_EXTRA_PX = 4000;
 const AFTER_VIDEO_EXTRA_HEIGHT = 0;
 
@@ -19,143 +21,339 @@ const ScrollVideo: React.FC<{
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
-  const [isVideoReady, setIsVideoReady] = useState(false);
-  const setupCompleted = useRef(false);
+  const [isAfterVideo, setIsAfterVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isInViewport, setIsInViewport] = useState(true);
+  const [lastProgress, setLastProgress] = useState(0);
   const isMobile = useIsMobile();
   const isAndroid = useIsAndroid();
   
+  // Ensure the src is secure (https) but don't provide a fallback URL
   const secureVideoSrc = src ? src.replace(/^\/\//, 'https://').replace(/^http:/, 'https:') : undefined;
+  
+  // Detect Firefox browser
+  const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  
+  // Calculate segment count - increase for Android for smoother transitions
+  const segmentCount = isAndroid ? 8 : 5;
+
+  // Add intersection observer to detect when video exits viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      { 
+        threshold: 0.01,
+        rootMargin: "0px"
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
+  // Update progress state and determine scroll direction
+  useEffect(() => {
+    if (progress > lastProgress) {
+      // Scrolling down - set immediate transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0s";
+      }
+    } else {
+      // Scrolling up - set smooth transition
+      if (videoRef.current) {
+        videoRef.current.style.transition = "opacity 0.3s ease-in-out";
+      }
+    }
+    setLastProgress(progress);
+  }, [progress]);
 
   useEffect(() => {
     const video = videoRef.current;
-    const container = containerRef.current;
-    
-    if (!video || !container || !secureVideoSrc) return;
-
-    console.log("Setting up ScrollVideo with src:", secureVideoSrc);
-
-    // Clean up any existing scroll triggers
-    if (scrollTriggerRef.current) {
-      scrollTriggerRef.current.kill();
-      scrollTriggerRef.current = null;
-    }
-
-    // Reset setup flag
-    setupCompleted.current = false;
-
-    // Configure video
-    video.src = secureVideoSrc;
-    video.controls = false;
-    video.playsInline = true;
-    video.muted = true;
-    video.preload = "auto";
-    video.pause();
-
-    // Set container height
-    container.style.height = `${window.innerHeight + SCROLL_EXTRA_PX + AFTER_VIDEO_EXTRA_HEIGHT}px`;
-
-    const setupScrollTrigger = () => {
-      if (setupCompleted.current || !video.duration || !isFinite(video.duration)) {
-        return;
+    if (video && secureVideoSrc) {
+      // Force initial visibility for mobile devices
+      if (isMobile) {
+        console.log("Mobile detected: Forcing initial video visibility");
+        
+        // Force loading of the first frame
+        video.currentTime = 0.001;
+        video.load();
       }
-
-      console.log(`Setting up ScrollTrigger with video duration: ${video.duration}s`);
-
-      const scrubValue = isAndroid ? 1.8 : (isMobile ? 1.0 : 0.8);
       
-      scrollTriggerRef.current = ScrollTrigger.create({
-        trigger: container,
-        start: "top top",
-        end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          if (isNaN(progress) || progress < 0 || progress > 1) return;
+      // Android-specific optimizations
+      if (isAndroid) {
+        console.log("Android detected: Applying Android-specific optimizations");
+        
+        // Enhanced hardware acceleration for Android
+        video.style.transform = "translate3d(0,0,0) translateZ(0)";
+        video.style.backfaceVisibility = "hidden";
+        video.style.perspective = "1000px";
+        
+        // Apply will-change for GPU acceleration on Android
+        video.style.willChange = "transform, opacity";
+        
+        // Force multiple frame loading attempts for Android
+        const loadFirstFrame = () => {
+          if (video.readyState >= 1) {
+            // Set multiple timestamps to ensure frame loading
+            video.currentTime = 0.001;
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
+          }
+        };
+        
+        loadFirstFrame();
+        
+        // Additional frame loading attempts for Android
+        setTimeout(loadFirstFrame, 200);
+        setTimeout(loadFirstFrame, 500);
+        
+        // Add Android-specific texture management
+        video.style.imageRendering = "high-quality";
+        
+        // Prevent Android browser from unloading video textures
+        setInterval(() => {
+          if (video.paused && video.readyState >= 2) {
+            // Touch the video element to prevent texture unloading
+            const currentTime = video.currentTime;
+            video.currentTime = currentTime + 0.001;
+          }
+        }, 2000);
+      }
+      
+      // Firefox-specific optimizations
+      if (isFirefox) {
+        console.log("Firefox detected: Applying Firefox-specific optimizations");
+        
+        // Apply Firefox-specific hardware acceleration hints
+        video.style.transform = "translateZ(0)";
+        video.style.backfaceVisibility = "hidden";
+        
+        // Try to improve Firefox performance by reducing motion complexity
+        video.style.willChange = "transform, opacity";
+      }
+      
+      const handleCanPlay = () => {
+        console.log("Video can play now");
+        setVideoLoaded(true);
+        
+        // Notify parent that video is ready
+        if (onReady) {
+          onReady();
+        }
+        
+        // Always pause the video when it can play
+        video.pause();
+        console.log("Video paused on load");
+        
+        // For mobile, we need to ensure a frame is displayed
+        if (isMobile) {
+          // Set the currentTime to show the first frame
+          video.currentTime = 0.001;
           
-          // Much more aggressive safety buffer - exclude last 1.5 seconds and never exceed 85% of video
-          const safeEndBuffer = Math.min(1.5, video.duration * 0.15); // At least 15% buffer or 1.5 seconds
-          const maxSafeTime = Math.max(0, video.duration - safeEndBuffer);
-          const maxProgress = 0.85; // Never go beyond 85% of the video to avoid end issues
-          
-          // Map progress to the safe portion only
-          const safeProgress = Math.min(progress, maxProgress);
-          const targetTime = safeProgress * maxSafeTime;
-          
-          // Triple safety check
-          const finalTime = Math.min(Math.max(0, targetTime), maxSafeTime);
-          
-          try {
-            // Only update if the time is significantly different to reduce flicker
-            if (Math.abs(video.currentTime - finalTime) > 0.05) {
-              video.currentTime = finalTime;
-            }
-            console.log(`Video scrub: progress=${progress.toFixed(4)}, safeProgress=${safeProgress.toFixed(4)}, time=${finalTime.toFixed(3)}/${video.duration.toFixed(3)} (max safe: ${maxSafeTime.toFixed(3)})`);
-          } catch (error) {
-            console.warn("Error updating video time:", error);
+          // Android-specific frame loading
+          if (isAndroid) {
+            // Use multiple frames to ensure texture loading on Android
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
           }
         }
-      });
-
-      setupCompleted.current = true;
-      setIsVideoReady(true);
+      };
       
-      if (onReady) {
-        onReady();
-      }
-
-      console.log("ScrollTrigger setup completed");
-    };
-
-    const handleVideoReady = () => {
-      console.log("Video ready:", { readyState: video.readyState, duration: video.duration });
+      // Add loadeddata event to ensure video is fully loaded before showing
+      const handleLoadedData = () => {
+        console.log("Video data loaded");
+        
+        // Also notify ready on loadeddata in case canplay doesn't fire
+        if (onReady) {
+          onReady();
+        }
+        
+        // Set the currentTime to show the first frame for mobile
+        if (isMobile) {
+          video.currentTime = 0.001;
+          
+          // Android-specific frame loading
+          if (isAndroid) {
+            // Force rendering multiple frames for Android texture loading
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+            setTimeout(() => { video.currentTime = 0.1; }, 100);
+          }
+        }
+      };
       
-      // Simple check - if we have a valid duration, set up the trigger
-      if (video.duration && isFinite(video.duration) && video.duration > 0) {
-        setupScrollTrigger();
-      }
-    };
-
-    // Wait for video to be ready
-    if (video.readyState >= 1 && video.duration && isFinite(video.duration)) {
-      setupScrollTrigger();
-    } else {
-      video.addEventListener('loadedmetadata', handleVideoReady);
-      video.addEventListener('canplay', handleVideoReady);
+      // Add loadedmetadata event which might fire earlier on some devices
+      const handleLoadedMetadata = () => {
+        console.log("Video metadata loaded");
+        
+        // Set the currentTime to show the first frame for mobile
+        if (isMobile) {
+          video.currentTime = 0.001;
+        }
+        
+        // Android-specific optimization after metadata loads
+        if (isAndroid) {
+          // Force hardware decoder initialization on Android
+          video.play().then(() => {
+            video.pause();
+            console.log("Android: Forced play/pause to initialize hardware decoder");
+          }).catch(err => {
+            console.log("Android: Initial play failed, using alternative method", err);
+            // Alternative method - set multiple frames
+            video.currentTime = 0.001;
+            setTimeout(() => { video.currentTime = 0.01; }, 50);
+          });
+        }
+      };
+      
+      // Add error handling
+      const handleError = (e: Event) => {
+        console.error("Video error:", e);
+        // Even if there's an error, try to notify ready
+        if (onReady && !videoLoaded) {
+          onReady();
+        }
+      };
+      
+      video.addEventListener("canplay", handleCanPlay);
+      video.addEventListener("loadeddata", handleLoadedData);
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
+      video.addEventListener("error", handleError);
+      
+      // Add a safety timeout to ensure visibility regardless of events
+      const shortTimeoutId = setTimeout(() => {
+        // Force visibility after a very short delay
+        if (isMobile) {
+          console.log("Mobile video visibility forced by short timeout");
+        }
+      }, 100);
+      
+      // Use a longer timeout as a fallback for all devices
+      const timeoutId = setTimeout(() => {
+        console.log("Video visibility forced by fallback timeout");
+        
+        // If video still hasn't loaded its first frame, try to force it
+        if (isMobile && video.readyState < 2) {
+          video.load();
+          video.currentTime = 0.001;
+          
+          // Android-specific frame loading in the fallback timeout
+          if (isAndroid) {
+            // Try additional loading methods for Android
+            setTimeout(() => {
+              // Force hardware decoding with a quick play/pause
+              video.play().then(() => {
+                video.pause();
+              }).catch(() => {
+                // If play fails, try multiple frame settings
+                video.currentTime = 0.01;
+                setTimeout(() => { video.currentTime = 0.1; }, 50);
+              });
+            }, 50);
+          }
+        }
+        
+        // Also notify ready after timeout as a last resort
+        if (onReady && !videoLoaded) {
+          onReady();
+        }
+      }, 300);
+      
+      return () => {
+        video.removeEventListener("canplay", handleCanPlay);
+        video.removeEventListener("loadeddata", handleLoadedData);
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        video.removeEventListener("error", handleError);
+        clearTimeout(shortTimeoutId);
+        clearTimeout(timeoutId);
+      };
     }
+  }, [secureVideoSrc, isMobile, isFirefox, isAndroid, onReady, videoLoaded]);
 
-    // Cleanup
-    return () => {
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-        scrollTriggerRef.current = null;
-      }
-      video.removeEventListener('loadedmetadata', handleVideoReady);
-      video.removeEventListener('canplay', handleVideoReady);
-      setupCompleted.current = false;
-    };
-  }, [secureVideoSrc, isMobile, isAndroid, onReady]);
+  // Add document-level interaction detection
+  useEffect(() => {
+    // Global interaction handler for mobile devices
+    if (isMobile) {
+      const handleInteraction = () => {
+        console.log("User interaction detected");
+        
+        const video = videoRef.current;
+        if (video) {
+          // Try to display the first frame
+          if (video.readyState >= 1) {
+            video.currentTime = 0.001;
+            
+            // Android-specific interaction handling
+            if (isAndroid) {
+              // Force multiple frame renders on Android after interaction
+              setTimeout(() => { video.currentTime = 0.01; }, 50);
+              setTimeout(() => { video.currentTime = 0.1; }, 100);
+              
+              // Try to initialize hardware decoder on Android after interaction
+              video.play().then(() => {
+                video.pause();
+                console.log("Android: Initialized hardware decoder after user interaction");
+              }).catch(() => {
+                console.log("Android: Play after interaction failed, using alternative methods");
+              });
+            }
+          }
+        }
+      };
+      
+      // Listen for any user interaction
+      document.addEventListener('touchstart', handleInteraction, { once: true });
+      document.addEventListener('click', handleInteraction, { once: true });
+      
+      return () => {
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('click', handleInteraction);
+      };
+    }
+  }, [isMobile, isAndroid]);
 
   return (
     <div 
       ref={containerRef} 
       className="relative w-full min-h-screen overflow-hidden bg-black"
     >
-      <video 
-        ref={videoRef}
-        playsInline 
-        preload="auto" 
-        loop={false} 
-        muted 
-        tabIndex={-1} 
-        className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "black",
-          display: "block",
-          visibility: "visible"
-        }} 
-      />
+      <ScrollVideoPlayer 
+        src={secureVideoSrc} 
+        segmentCount={segmentCount} 
+        onAfterVideoChange={setIsAfterVideo}
+        onProgressChange={setProgress}
+        videoRef={videoRef} 
+        containerRef={containerRef} 
+        SCROLL_EXTRA_PX={SCROLL_EXTRA_PX} 
+        AFTER_VIDEO_EXTRA_HEIGHT={AFTER_VIDEO_EXTRA_HEIGHT} 
+        isMobile={isMobile}
+      >
+        <video 
+          ref={videoRef} 
+          src={secureVideoSrc} 
+          playsInline 
+          preload="auto" 
+          loop={false} 
+          muted 
+          tabIndex={-1} 
+          className="fixed top-0 left-0 w-full h-full object-cover pointer-events-none bg-black" 
+          style={{
+            minHeight: "100vh",
+            backgroundColor: "black",
+            display: "block",
+            visibility: "visible"
+          }} 
+        />
+      </ScrollVideoPlayer>
     </div>
   );
 };

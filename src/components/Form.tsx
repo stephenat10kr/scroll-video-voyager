@@ -100,13 +100,7 @@ export default function Form({
       const success = await submitToHubspot(data);
       
       if (success) {
-        toast.success("Thank you for your submission!", {
-          style: {
-            color: colors.roseWhite,
-            backgroundColor: colors.darkGreen,
-            border: `1px solid ${colors.roseWhite}`
-          }
-        });
+        toast.success("Thank you for your submission!");
         reset();
         onClose();
       } else {
@@ -115,13 +109,7 @@ export default function Form({
     } else {
       // Fallback to original behavior if HubSpot isn't configured
       console.log(data);
-      toast.success("Thank you for your submission!", {
-        style: {
-          color: colors.roseWhite,
-          backgroundColor: colors.darkGreen,
-          border: `1px solid ${colors.roseWhite}`
-        }
-      });
+      toast.success("Form submitted successfully!");
       reset();
       onClose();
     }
