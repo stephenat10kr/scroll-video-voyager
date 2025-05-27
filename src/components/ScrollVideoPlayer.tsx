@@ -287,25 +287,16 @@ const ScrollVideoPlayer: React.FC<ScrollVideoPlayerProps> = ({
       // Ensure video is paused before setting up ScrollTrigger
       video.pause();
       
-      // Determine the appropriate scrub value based on browser and device
-      // Increased scrub value for Firefox - higher values mean smoother but slightly delayed updates
-      let scrubValue = isFirefox ? 2.5 : (isMobile ? 1.0 : 0.8);
+      // Set scrub value to 4.0 for all systems for consistent smooth performance
+      const scrubValue = 4.0;
       
-      // Android-specific scrub value optimization
-      if (isAndroid) {
-        // Android devices benefit from a higher scrub value for smoother performance
-        // Changed from 2.0 to 1.8 for smoother scrubbing
-        scrubValue = 1.8;
-        console.log("Using Android-optimized scrub value:", scrubValue);
-      }
-      
-      console.log(`Using scrub value: ${scrubValue} for ${isFirefox ? 'Firefox' : (isAndroid ? 'Android' : (isMobile ? 'mobile' : 'desktop'))}`);
+      console.log(`Using scrub value: ${scrubValue} for all systems`);
       
       scrollTriggerRef.current = ScrollTrigger.create({
         trigger: container,
         start: "top top",
         end: `+=${SCROLL_EXTRA_PX}`,
-        scrub: scrubValue, // Use the device/browser-specific scrub value
+        scrub: scrubValue,
         anticipatePin: 1,
         fastScrollEnd: true,
         preventOverlaps: true,
