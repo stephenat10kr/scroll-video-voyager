@@ -16,6 +16,7 @@ import Preloader from "../components/Preloader";
 import ScrollVideo from "../components/ScrollVideo";
 import { useContentfulAsset } from "@/hooks/useContentfulAsset";
 import { HERO_VIDEO_ASSET_ID, HERO_VIDEO_PORTRAIT_ASSET_ID } from "@/types/contentful";
+import { useTitles } from "@/hooks/useTitles";
 import colors from "../lib/theme";
 
 const Index = () => {
@@ -28,6 +29,9 @@ const Index = () => {
   const [videoVisible, setVideoVisible] = useState(true);
   const [showChladniPattern, setShowChladniPattern] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
+  
+  // Fetch dynamic titles from Contentful
+  const { data: titles } = useTitles();
   
   // Use appropriate video asset ID based on device
   const videoAssetId = isAndroid ? HERO_VIDEO_PORTRAIT_ASSET_ID : HERO_VIDEO_ASSET_ID;
@@ -251,19 +255,19 @@ const Index = () => {
         </section>
         
         <section>
-          <Values title="VALUES" />
+          <Values title={titles?.values || "VALUES"} />
         </section>
         
         <section>
-          <Rituals title="RITUALS" />
+          <Rituals title={titles?.rituals || "RITUALS"} />
         </section>
         
         <section>
-          <Gallery title="SPACE" description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge." address="45 Howard St, New York, NY 10013" mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013" />
+          <Gallery title={titles?.space || "SPACE"} description="Nestled in Soho's iconic cast-iron district, 45 Howard is the new home of Lightning Society. Once part of New York's industrial backbone, this multi-level wonder is now a space where history and possibility converge." address="45 Howard St, New York, NY 10013" mapUrl="https://www.google.com/maps/place/45+Howard+St,+New+York,+NY+10013" />
         </section>
         
         <section>
-          <Questions title="QUESTIONS" />
+          <Questions title={titles?.questions || "QUESTIONS"} />
         </section>
         
         <section>
