@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 import { colors } from "@/lib/theme";
@@ -57,7 +56,7 @@ const Footer = () => {
           </Link>
         </div>
         <span className="text-body-sm-mobile md:text-body-sm text-[#FFF4F1] text-right w-full">
-          © Lightning Society 2025
+          © Lightning Society
         </span>
       </div>
     </footer>
