@@ -5,7 +5,7 @@ import { contentfulClient } from "@/lib/contentfulClient";
 const fetchTitles = async () => {
   try {
     const response = await contentfulClient.getEntries({
-      'sys.id[in]': '1D65VClsp3AmUlHWdO6QMx,3rT9YboboHcYaHl9EBRcDJ,kmkaxOF3pYwQEupNjlnlA,4QTpBFWwKOHxvE29YnMWFD'
+      'sys.id[in]': ['1D65VClsp3AmUlHWdO6QMx', '3rT9YboboHcYaHl9EBRcDJ', 'kmkaxOF3pYwQEupNjlnlA', '4QTpBFWwKOHxvE29YnMWFD']
     });
     
     console.log('Contentful titles response:', response);
@@ -36,8 +36,9 @@ export const useTitles = () => {
       
       data.items.forEach(item => {
         if (item && item.sys && item.fields) {
-          // Extract the title from the fields - assuming it's stored in a 'title' field
-          const title = item.fields.title || item.fields.text || "";
+          // Extract the title from the fields with proper type checking
+          const titleField = item.fields.title || item.fields.text || "";
+          const title = typeof titleField === 'string' ? titleField : String(titleField);
           titleMap[item.sys.id] = title;
         }
       });
