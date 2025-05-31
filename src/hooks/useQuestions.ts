@@ -6,10 +6,10 @@ import { QuestionData } from "@/components/Questions";
 
 const transformTag = (tagId: string) => {
   const tagMap: Record<string, string> = {
-    "community": "THE COMMUNITY",
-    "space": "THE SPACE",
-    "membership": "THE MEMBERSHIPS", // Fixed: changed from "memberships" to "membership"
-    "memberships": "THE MEMBERSHIPS" // Keep this for backward compatibility
+    "community": "OUR VALUES",
+    "space": "OUR CAMPUS", 
+    "membership": "OUR MEMBERSHIPS",
+    "memberships": "OUR MEMBERSHIPS" // Keep this for backward compatibility
   };
   return tagMap[tagId] || tagId.toUpperCase();
 };
@@ -72,7 +72,7 @@ export const useQuestions = () => {
         
         // Ensure all predefined tabs exist even if empty
         const result = { ...groupedQuestions };
-        ["THE COMMUNITY", "THE SPACE", "THE MEMBERSHIPS"].forEach(tab => {
+        ["OUR VALUES", "OUR CAMPUS", "OUR MEMBERSHIPS"].forEach(tab => {
           if (!result[tab]) {
             result[tab] = [];
           }

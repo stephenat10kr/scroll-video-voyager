@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -13,7 +12,7 @@ export interface QuestionData {
 interface QuestionsProps {
   title: string;
 }
-const TABS = ["THE COMMUNITY", "THE SPACE", "THE MEMBERSHIPS"] as const;
+const TABS = ["OUR VALUES", "OUR CAMPUS", "OUR MEMBERSHIPS"] as const;
 const Questions: React.FC<QuestionsProps> = ({
   title
 }) => {
@@ -54,7 +53,7 @@ const Questions: React.FC<QuestionsProps> = ({
   return <div className="w-full py-24" style={{ backgroundColor: colors.darkGreen }}>
       <div className="max-w-[90%] mx-auto grid grid-cols-12 gap-4">
         <h2 className="title-sm text-[#FFF4F1] mb-12 col-span-12">{title}</h2>
-        <Tabs defaultValue="THE COMMUNITY" className={tabsClassName}>
+        <Tabs defaultValue="OUR VALUES" className={tabsClassName}>
           <TabsList className="mb-12 bg-transparent w-full flex flex-wrap justify-start gap-4 h-auto">
             {TABS.map(tab => <TabsTrigger key={tab} value={tab} className="px-6 py-3 rounded-full data-[state=active]:bg-[#FFB577] data-[state=active]:text-black text-[#FFB577] border border-[#FFB577] hover:bg-white/10">
                 {tab}
