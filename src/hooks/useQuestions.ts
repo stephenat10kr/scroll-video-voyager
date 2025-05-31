@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { contentfulClient } from "@/lib/contentfulClient";
 import { ContentfulQuestion, ContentfulQuestionResponse } from "@/types/contentful";
@@ -6,10 +5,13 @@ import { QuestionData } from "@/components/Questions";
 
 const transformTag = (tagId: string) => {
   const tagMap: Record<string, string> = {
+    "values": "OUR VALUES",
+    "campus": "OUR CAMPUS", 
+    "memberships": "OUR MEMBERSHIPS",
+    // Keep old mappings for backward compatibility
     "community": "OUR VALUES",
-    "space": "OUR CAMPUS", 
-    "membership": "OUR MEMBERSHIPS",
-    "memberships": "OUR MEMBERSHIPS" // Keep this for backward compatibility
+    "space": "OUR CAMPUS",
+    "membership": "OUR MEMBERSHIPS"
   };
   return tagMap[tagId] || tagId.toUpperCase();
 };
